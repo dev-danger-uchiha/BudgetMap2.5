@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Seleccionar Rol</title>
+</head>
+<body>
+  <h2>Selecciona Tu Rol</h2>
+
+  <!-- Botón para ADMIN -->
+  <form th:action="@{/form/admin}" method="post">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+    <button type="submit">SOY ADMIN</button>
+  </form>
+
+  <!-- Botón para MODERADOR -->
+  <form th:action="@{/form/moderador}" method="post">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+    <button type="submit">SOY MODERADOR</button>
+  </form>
+
+  <!-- Botón para ESTABLECIMIENTO -->
+  <form th:action="@{/form/establecimiento}" method="post">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+    <button type="submit">SOY ESTABLECIMIENTO</button>
+  </form>
+
+  <!-- Botón para USER -->
+  <form th:action="@{/form/user}" method="post">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+    <button type="submit">SOY USER</button>
+  </form>
+</body>
+</html>
+
