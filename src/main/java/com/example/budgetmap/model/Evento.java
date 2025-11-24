@@ -3,44 +3,40 @@ package com.example.budgetmap.model;
 import com.example.budgetmap.model.enums.TipoEvento;
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.experimental.SuperBuilder;
+
 
 @Entity
 @Table(name = "evento")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class Evento {
+@SuperBuilder
+    
+public class Evento extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
+    @Column(nullable = false, length = 150)
     private String titulo;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private TipoEvento tipo;
 
+    @Column(name = "fecha_inicio", nullable = false)
     private LocalDateTime fechaInicio;
 
+    @Column(name = "fecha_fin", nullable = false)
     private LocalDateTime fechaFin;
 
     @Column(columnDefinition = "TEXT")
     private String descripcion;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "lugar_id")
-    @JsonIgnore
+    @JoinColumn(name = "lugar_id", nullable = false)
     private Lugar lugar;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "creador_id")
-    @JsonIgnore
     private Usuario creador;
-
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt = Instant.now();
 }

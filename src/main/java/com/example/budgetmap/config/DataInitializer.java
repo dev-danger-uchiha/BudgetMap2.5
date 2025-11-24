@@ -1,38 +1,20 @@
 package com.example.budgetmap.config;
 
-import com.example.budgetmap.model.Establecimiento;
-import com.example.budgetmap.model.Evento;
-import com.example.budgetmap.model.Lugar;
-import com.example.budgetmap.model.Notificacion;
-import com.example.budgetmap.model.Pqrs;
-import com.example.budgetmap.model.Reserva;
-import com.example.budgetmap.model.Usuario;
-import com.example.budgetmap.model.enums.EstadoEstablecimiento;
-import com.example.budgetmap.model.enums.EstadoPqrs;
-import com.example.budgetmap.model.enums.EstadoReserva;
-import com.example.budgetmap.model.enums.EstadoUsuario;
-import com.example.budgetmap.model.enums.Role;
-import com.example.budgetmap.model.enums.TipoEvento;
-import com.example.budgetmap.model.enums.TipoEstablecimiento;
-import com.example.budgetmap.model.enums.TipoLugar;
-import com.example.budgetmap.repository.EstablecimientoRepository;
-import com.example.budgetmap.repository.EventoRepository;
-import com.example.budgetmap.repository.LugarRepository;
-import com.example.budgetmap.repository.NotificacionRepository;
-import com.example.budgetmap.repository.PqrsRepository;
-import com.example.budgetmap.repository.ReservaRepository;
-import com.example.budgetmap.repository.UsuarioRepository;
+import com.example.budgetmap.model.*;
+import com.example.budgetmap.model.enums.*;
+import com.example.budgetmap.repository.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Component
-@Profile({ "dev", "default" }) // ejecuta en perfil dev o por defecto; quita o ajusta según necesites
+@Profile({ "dev", "default" }) // ejecuta en perfil dev o por defecto
 public class DataInitializer implements CommandLineRunner {
 
     private final UsuarioRepository usuarioRepository;
@@ -44,14 +26,16 @@ public class DataInitializer implements CommandLineRunner {
     private final NotificacionRepository notificacionRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public DataInitializer(UsuarioRepository usuarioRepository,
+    public DataInitializer(
+            UsuarioRepository usuarioRepository,
             EstablecimientoRepository establecimientoRepository,
             LugarRepository lugarRepository,
             EventoRepository eventoRepository,
             ReservaRepository reservaRepository,
             PqrsRepository pqrsRepository,
             NotificacionRepository notificacionRepository,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder
+    ) {
         this.usuarioRepository = usuarioRepository;
         this.establecimientoRepository = establecimientoRepository;
         this.lugarRepository = lugarRepository;
@@ -64,21 +48,17 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     @Transactional
-    public void run(String... args) throws Exception {
+    public void run(String... args) {
         seedUsers();
         seedLugarEventoEstablecimiento();
         seedReservaPqrsNotifications();
     }
 
     private void seedUsers() {
-        createUserIfNotExists("admin", "admin@local", "admin123", Role.ROL_ADMIN, EstadoUsuario.ACTIVO,
-                "Administrador");
-        createUserIfNotExists("moderador", "moderador@local", "mod12345", Role.ROL_MODERADOR, EstadoUsuario.ACTIVO,
-                "Moderador");
-        createUserIfNotExists("establecimiento", "establecimiento@local", "est12345", Role.ROL_ESTABLECIMIENTO,
-                EstadoUsuario.ACTIVO, "Propietario Establecimiento");
-        createUserIfNotExists("cliente", "cliente@local", "cli12345", Role.ROL_CLIENTE, EstadoUsuario.ACTIVO,
-                "Cliente Demo");
+        createUserIfNotExists("admin", "admin@local", "admin123", Role.ROL_ADMIN, EstadoUsuario.ACTIVO, "Administrador");
+        createUserIfNotExists("moderador", "moderador@local", "mod12345", Role.ROL_MODERADOR, EstadoUsuario.ACTIVO, "Moderador");
+        createUserIfNotExists("establecimiento", "establecimiento@local", "est12345", Role.ROL_ESTABLECIMIENTO, EstadoUsuario.ACTIVO, "Propietario Establecimiento");
+        createUserIfNotExists("cliente", "cliente@local", "cli12345", Role.ROL_CLIENTE, EstadoUsuario.ACTIVO, "Cliente Demo");
     }
 
     private void seedLugarEventoEstablecimiento() {
@@ -92,7 +72,7 @@ public class DataInitializer implements CommandLineRunner {
                     .descripcion("Lugar de pruebas para eventos y demostraciones")
                     .ciudad("Bogota")
                     .direccion("Calle Falsa 123")
-                    .estado(com.example.budgetmap.model.enums.EstadoLugar.PUBLICADO)
+                    .estado(EstadoLugar.PUBLICADO)
                     .build();
             lugar = lugarRepository.save(lugar);
         } else {
@@ -114,8 +94,7 @@ public class DataInitializer implements CommandLineRunner {
 
         // crear un establecimiento si no existe
         if (establecimientoRepository.findAll().isEmpty()) {
-            Usuario propietario = usuarioRepository.findByUserName("establecimiento")
-                    .orElse(null);
+            Usuario propietario = usuarioRepository.findByUserName("establecimiento").orElse(null);
             Establecimiento est = Establecimiento.builder()
                     .nombre("Demo Restaurante")
                     .tipo(TipoEstablecimiento.RESTAURANTE)
@@ -147,11 +126,10 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         // crear PQRS de ejemplo
-        Optional<Usuario> maybeUser = usuarioRepository.findByUserName("cliente");
-        if (maybeUser.isPresent() && pqrsRepository.findAll().isEmpty()) {
+        if (maybeCliente.isPresent() && pqrsRepository.findAll().isEmpty()) {
             Pqrs p = Pqrs.builder()
-                    .usuario(maybeUser.get())
-                    .tipo(com.example.budgetmap.model.enums.TipoPqrs.SUGERENCIA)
+                    .usuario(maybeCliente.get())
+                    .tipo(TipoPqrs.SUGERENCIA)
                     .mensaje("Este es un mensaje de prueba para PQRS")
                     .estado(EstadoPqrs.ABIERTA)
                     .build();
@@ -159,9 +137,9 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         // notificación de ejemplo para cliente
-        if (maybeUser.isPresent() && notificacionRepository.findAll().isEmpty()) {
+        if (maybeCliente.isPresent() && notificacionRepository.findAll().isEmpty()) {
             Notificacion n = Notificacion.builder()
-                    .usuario(maybeUser.get())
+                    .usuario(maybeCliente.get())
                     .tipo("INFO")
                     .contenido("Bienvenido a BudgetMap - cuenta de prueba creada")
                     .leido(false)
@@ -170,10 +148,9 @@ public class DataInitializer implements CommandLineRunner {
         }
     }
 
-    private void createUserIfNotExists(String userName, String email, String rawPassword, Role role,
-            EstadoUsuario estado, String nombre) {
-        if (usuarioRepository.existsByUserName(userName))
-            return;
+    private void createUserIfNotExists(String userName, String email, String rawPassword, Role role, EstadoUsuario estado, String nombre) {
+        if (usuarioRepository.existsByUserName(userName)) return;
+
         Usuario u = Usuario.builder()
                 .userName(userName)
                 .email(email)

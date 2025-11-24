@@ -2,20 +2,17 @@ package com.example.budgetmap.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.Instant;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.experimental.SuperBuilder;
+
 
 @Entity
 @Table(name = "notificacion")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class Notificacion {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+@SuperBuilder
+public class Notificacion extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id", nullable = false)
@@ -26,15 +23,7 @@ public class Notificacion {
 
     @Column(columnDefinition = "TEXT")
     private String contenido;
-
+    
+    @Builder.Default
     private Boolean leido = false;
-
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt;
-
-    @PrePersist
-    public void prePersist() {
-        if (createdAt == null)
-            createdAt = Instant.now();
-    }
 }

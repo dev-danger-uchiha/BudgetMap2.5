@@ -4,21 +4,18 @@ import com.example.budgetmap.model.enums.Role;
 import com.example.budgetmap.model.enums.EstadoUsuario;
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.Instant;
 import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.experimental.SuperBuilder;
+
 
 @Entity
 @Table(name = "usuario")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class Usuario {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+@SuperBuilder
+public class Usuario extends BaseEntity {
 
     @Column(name = "user_name", nullable = false, unique = true, length = 100)
     private String userName;
@@ -32,6 +29,7 @@ public class Usuario {
 
     @Enumerated(EnumType.STRING)
     @Column(length = 20, nullable = false)
+    @Builder.Default
     private EstadoUsuario estado = EstadoUsuario.PENDIENTE;
 
     private String nombre;
@@ -40,10 +38,6 @@ public class Usuario {
     private String email;
 
     private String telefono;
-
-    @Column(name = "created_at", nullable = false, updatable = false)
-    @Builder.Default
-    private Instant createdAt = Instant.now();
 
     @OneToMany(mappedBy = "creadoPor", fetch = FetchType.LAZY)
     @JsonIgnore

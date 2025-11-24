@@ -4,20 +4,17 @@ import com.example.budgetmap.model.enums.TipoPqrs;
 import com.example.budgetmap.model.enums.EstadoPqrs;
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.Instant;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.experimental.SuperBuilder;
+
 
 @Entity
 @Table(name = "pqrs")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class Pqrs {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+@SuperBuilder
+public class Pqrs extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id")
@@ -31,6 +28,7 @@ public class Pqrs {
     private String mensaje;
 
     @Enumerated(EnumType.STRING)
+    @Builder.Default
     private EstadoPqrs estado = EstadoPqrs.ABIERTA;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -40,13 +38,4 @@ public class Pqrs {
 
     @Column(columnDefinition = "TEXT")
     private String respuesta;
-
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt;
-
-    @PrePersist
-    public void prePersist() {
-        if (createdAt == null)
-            createdAt = Instant.now();
-    }
 }
