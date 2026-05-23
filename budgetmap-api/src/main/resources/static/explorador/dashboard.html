@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Radar - BudgetMap</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    const token = localStorage.getItem('jwt_token');
+    const rol = localStorage.getItem('user_rol');
+
+    // Seguridad: Si no hay token o no es EXPLORADOR, redirigir
+    if (!token || rol !== 'EXPLORADOR') {
+      window.location.href = '/login.html?denied=true';
+    }
+  </script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+
+<body class="h-screen flex flex-col bg-gray-50 dark:bg-gray-900 font-sans overflow-hidden">
+
+  <nav class="bg-gradient-to-r from-emerald-600 to-lime-500 shadow-md z-50 relative">
+    <div class="px-6 py-3 flex justify-between items-center text-white">
+      <div class="flex items-center gap-3">
+        <div class="bg-white rounded-full p-1 shadow">
+          <img src="/images/logo.jpg" alt="Logo" class="w-8 h-8 object-contain rounded-full"
+            onerror="this.src='https://via.placeholder.com/150/ffffff/22c55e?text=BM'" />
+        </div>
+        <span class="text-xl font-extrabold tracking-wider">BUDGETMAP</span>
+      </div>
+
+      <ul class="hidden md:flex gap-6 font-semibold text-sm">
+        <li><a href="/explorador/dashboard.html" class="text-lime-200 border-b-2 border-lime-200 pb-1">Mi Radar</a></li>
+        <li><a href="/explorador/mis-reservas.html" class="hover:text-lime-200 transition">Mis Reservas</a></li>
+        <li><a href="/explorador/notificaciones.html" class="hover:text-lime-200 transition">Notificaciones</a></li>
+      </ul>
+
+      <div class="flex items-center gap-4">
+        <div class="text-right hidden sm:block">
+          <p id="user-name-display" class="text-sm font-bold leading-tight">Cargando...</p>
+          <p class="text-xs text-lime-100 flex items-center justify-end gap-1">
+            <span id="user-points">0</span> pts 🪙
+          </p>
+        </div>
+        <div class="relative group">
+          <button class="flex items-center focus:outline-none">
+            <div
+              class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-emerald-600 font-bold shadow-inner border-2 border-lime-300">
+              <span id="user-initial">U</span>
+            </div>
+          </button>
+          <div
+            class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-xl py-2 hidden group-hover:block border border-gray-100 dark:border-gray-700">
+            <a href="/explorador/perfil.html"
+              class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-lime-50 dark:hover:bg-gray-700">⚙️
+              Mi Perfil y Radio</a>
+            <a href="/soporte/crear-pqrs.html"
+              class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-lime-50 dark:hover:bg-gray-700">🛠️
+              Soporte (PQRS)</a>
+            <hr class="my-1 border-gray-200 dark:border-gray-600">
+            <button onclick="cerrarSesion()"
+              class="w-full text-left block px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-gray-700 font-bold">🚪
+              Cerrar Sesión</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="flex flex-1 h-full overflow-hidden relative">
+
+    <div id="mapa-radar" class="absolute inset-0 z-0"></div>
+
+    <div
+      class="absolute top-4 left-4 z-40 w-72 bottom-[28%] bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-emerald-100 dark:border-gray-700 hidden md:flex flex-col overflow-hidden transition-all">
+      <div class="p-3 border-b border-emerald-100 dark:border-gray-700 bg-emerald-50 dark:bg-gray-800">
+        <h2 class="font-extrabold text-sm text-emerald-800 dark:text-emerald-400 flex items-center gap-2">
+          🟢 Establecimientos
+        </h2>
+      </div>
+      <div id="lista-establecimientos" class="p-3 flex-1 overflow-y-auto space-y-3">
+        <p class="text-xs text-gray-400 text-center mt-4">Buscando...</p>
+      </div>
+    </div>
+
+    <div
+      class="absolute top-4 right-4 z-40 w-72 bottom-[28%] bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-blue-100 dark:border-gray-700 hidden md:flex flex-col overflow-hidden transition-all">
+      <div class="p-3 border-b border-blue-100 dark:border-gray-700 bg-blue-50 dark:bg-gray-800">
+        <h2 class="font-extrabold text-sm text-blue-800 dark:text-blue-400 flex items-center gap-2">
+          🔵 Lugares Públicos
+        </h2>
+      </div>
+      <div id="lista-lugares" class="p-3 flex-1 overflow-y-auto space-y-3">
+        <p class="text-xs text-gray-400 text-center mt-4">Buscando...</p>
+      </div>
+    </div>
+
+    <div
+      class="absolute bottom-4 left-4 right-4 z-40 h-[24%] bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-purple-100 dark:border-gray-700 hidden md:flex flex-col overflow-hidden transition-all">
+      <div class="p-2 px-4 border-b border-purple-100 dark:border-gray-700 bg-purple-50 dark:bg-gray-800">
+        <h2 class="font-extrabold text-sm text-purple-800 dark:text-purple-400 flex items-center gap-2">
+          🟣 Eventos Próximos
+        </h2>
+      </div>
+      <div id="lista-eventos" class="p-3 flex-1 overflow-x-auto flex gap-4 items-center">
+        <p class="text-xs text-gray-400 pl-4">Buscando...</p>
+      </div>
+    </div>
+
+    <button onclick="alert('En desarrollo para móvil')"
+      class="md:hidden absolute bottom-6 left-1/2 transform -translate-x-1/2 z-50 bg-emerald-600 text-white px-6 py-3 rounded-full shadow-2xl font-bold flex items-center gap-2 border-2 border-white">
+      📋 Ver Radar
+    </button>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script>
+    // 1. Inicialización de datos
+    document.addEventListener("DOMContentLoaded", () => {
+      const nombreUsuario = localStorage.getItem('user_nombre') || 'Explorador';
+      document.getElementById('user-name-display').textContent = `Hola, ${nombreUsuario}`;
+      document.getElementById('user-initial').textContent = nombreUsuario.charAt(0).toUpperCase();
+
+      iniciarMapa();
+      cargarLugaresCercanos();
+    });
+
+    function cerrarSesion() {
+      localStorage.clear();
+      window.location.href = '/login.html';
+    }
+
+    // 2. Configuración del Mapa (Leaflet)
+    let mapa;
+
+    function iniciarMapa() {
+      mapa = L.map('mapa-radar', {
+        zoomControl: false
+      }).setView([4.6097, -74.0817], 13);
+      L.control.zoom({
+        position: 'topleft'
+      }).addTo(mapa);
+
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OpenStreetMap &copy; CARTO'
+      }).addTo(mapa);
+
+      const userIcon = L.divIcon({
+        className: 'custom-div-icon',
+        html: `<div class="bg-blue-500 w-6 h-6 rounded-full border-4 border-white shadow-lg pulse"></div>`,
+        iconSize: [24, 24],
+        iconAnchor: [12, 12]
+      });
+
+      L.marker([4.6097, -74.0817], {
+        icon: userIcon
+      }).addTo(mapa).bindPopup("<b>Estás aquí</b>");
+
+      L.circle([4.6097, -74.0817], {
+        color: '#10b981',
+        fillColor: '#a7f3d0',
+        fillOpacity: 0.2,
+        radius: 2000
+      }).addTo(mapa);
+    }
+
+    // 3. Consumo de API y Renderizado
+    async function cargarLugaresCercanos() {
+      const token = localStorage.getItem('jwt_token');
+      const headers = {
+        'Authorization': `Bearer ${token}`
+      };
+
+      const divEstablecimientos = document.getElementById('lista-establecimientos');
+      const divLugares = document.getElementById('lista-lugares');
+      const divEventos = document.getElementById('lista-eventos');
+
+      try {
+        const [resEst, resLug, resEvt] = await Promise.allSettled([
+          fetch('http://localhost:8080/api/establecimientos/aprobados', {
+            headers
+          }),
+          fetch('http://localhost:8080/api/lugares/aprobados', {
+            headers
+          }),
+          fetch('http://localhost:8080/api/eventos/vigentes', { // URL corregida a /vigentes
+            headers
+          })
+        ]);
+
+        divEstablecimientos.innerHTML = '';
+        divLugares.innerHTML = '';
+        divEventos.innerHTML = '';
+
+        // --- PROCESAR ESTABLECIMIENTOS ---
+        if (resEst.status === 'fulfilled' && resEst.value.ok) {
+          const data = await resEst.value.json();
+          if (data.length === 0) divEstablecimientos.innerHTML = '<p class="text-xs text-gray-400">No hay establecimientos.</p>';
+
+          data.forEach(est => {
+            crearMarcadorMapa(est.latitud, est.longitud, est.nombre, 'Establecimiento', 'bg-emerald-500', 'text-emerald-700', `/explorador/detalle.html?id=${est.id}&tipo=establecimiento`);
+
+            divEstablecimientos.innerHTML += `
+              <div class="bg-white dark:bg-gray-700 p-3 rounded-xl shadow-sm border border-gray-100 hover:border-emerald-400 cursor-pointer transition" 
+                   onclick="window.location.href='/explorador/detalle.html?id=${est.id}&tipo=establecimiento'">
+                <span class="text-[9px] font-bold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded">${est.categoria || 'Local'}</span>
+                <h3 class="font-bold text-gray-800 dark:text-white text-sm mt-1">${est.nombre}</h3>
+                <p class="text-xs text-gray-500 line-clamp-2">${est.descripcion || 'Sin descripción'}</p>
+              </div>`;
+          });
+        }
+
+        // --- PROCESAR LUGARES PÚBLICOS ---
+        if (resLug.status === 'fulfilled' && resLug.value.ok) {
+          const data = await resLug.value.json();
+          if (data.length === 0) divLugares.innerHTML = '<p class="text-xs text-gray-400">No hay lugares.</p>';
+
+          data.forEach(lug => {
+            crearMarcadorMapa(lug.latitud, lug.longitud, lug.nombre, 'Lugar Público', 'bg-blue-500', 'text-blue-700', `/explorador/detalle.html?id=${lug.id}&tipo=lugar`);
+
+            divLugares.innerHTML += `
+              <div class="bg-white dark:bg-gray-700 p-3 rounded-xl shadow-sm border border-gray-100 hover:border-blue-400 cursor-pointer transition"
+                   onclick="window.location.href='/explorador/detalle.html?id=${lug.id}&tipo=lugar'">
+                <span class="text-[9px] font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded">${lug.categoria || 'Público'}</span>
+                <h3 class="font-bold text-gray-800 dark:text-white text-sm mt-1">${lug.nombre}</h3>
+                <p class="text-xs text-gray-500 line-clamp-2">${lug.descripcion || 'Sin descripción'}</p>
+              </div>`;
+          });
+        }
+
+        // --- PROCESAR EVENTOS VIGENTES ---
+        if (resEvt.status === 'fulfilled' && resEvt.value.ok) {
+          const data = await resEvt.value.json();
+          const ahora = new Date();
+
+          const eventosVigentes = data.filter(ev => {
+            const fechaEvento = new Date(ev.fecha || ev.fechaInicio);
+            return ev.activo !== false && fechaEvento >= ahora.setHours(0, 0, 0, 0);
+          });
+
+          if (eventosVigentes.length === 0) {
+            divEventos.innerHTML = '<p class="text-xs text-gray-400 pl-4 italic">No hay eventos próximos.</p>';
+          } else {
+            eventosVigentes.forEach(ev => {
+              const lat = ev.lugar?.latitud || ev.establecimiento?.latitud;
+              const lng = ev.lugar?.longitud || ev.establecimiento?.longitud;
+
+              if (lat && lng) {
+                crearMarcadorMapa(lat, lng, ev.nombre, 'Evento Próximo', 'bg-purple-600', 'text-purple-700', `/explorador/detalle.html?id=${ev.id}&tipo=evento`);
+              }
+
+              divEventos.innerHTML += `
+                <div class="bg-white dark:bg-gray-700 p-3 rounded-xl shadow-sm border border-purple-100 hover:border-purple-500 cursor-pointer transition min-w-[220px] max-w-[250px] flex-shrink-0" 
+                     onclick="window.location.href='/explorador/detalle.html?id=${ev.id}&tipo=evento'">
+                  <div class="flex justify-between items-start mb-1">
+                    <span class="text-[9px] font-black bg-purple-600 text-white px-2 py-0.5 rounded-full uppercase tracking-tighter">
+                      ${ev.tipoEvento || 'Evento'}
+                    </span>
+                    <span class="text-[10px] font-bold text-purple-600">
+                      ${ev.horaInicio ? ev.horaInicio.substring(0, 5) : '8:00'}
+                    </span>
+                  </div>
+                  <h3 class="font-black text-gray-800 dark:text-white text-sm truncate">${ev.nombre}</h3>
+                  <p class="text-[10px] text-gray-500 mt-1">📅 ${ev.fecha || ev.fechaInicio}</p>
+                </div>`;
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Error al cargar radar:", error);
+      }
+    }
+
+    // 4. Utilidades de Mapa
+    function crearMarcadorMapa(lat, lng, nombre, tipo, colorBg, colorTexto, url) {
+      if (!lat || !lng) return;
+      const markerIcon = L.divIcon({
+        className: 'custom-icon',
+        html: `<div class="w-5 h-5 rounded-full border-2 border-white shadow-md ${colorBg}"></div>`,
+        iconSize: [20, 20],
+        iconAnchor: [10, 10]
+      });
+
+      L.marker([lat, lng], {
+        icon: markerIcon
+      }).addTo(mapa)
+        .bindPopup(`
+          <b class="${colorTexto}">${nombre}</b><br>
+          <span class="text-[10px] font-bold text-gray-500 uppercase">${tipo}</span><br>
+          <a href="${url}" class="text-blue-500 underline text-xs">Ver detalles</a>
+        `);
+    }
+  </script>
+
+  <style>
+    .pulse {
+      animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+    }
+
+    @keyframes pulse-ring {
+      0% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+      70% { transform: scale(1.5); box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+      100% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+    }
+  </style>
+</body>
+
+</html>

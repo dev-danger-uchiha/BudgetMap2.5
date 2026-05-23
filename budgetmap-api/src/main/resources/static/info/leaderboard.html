@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Leaderboard - Top Exploradores | BudgetMap</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <div th:replace="~{fragments/navbar :: miNavbar}"></div>
+
+    <main class="max-w-4xl mx-auto py-20 px-6">
+        <div class="text-center mb-16">
+            <h1 class="text-4xl font-black text-gray-900">Top Exploradores</h1>
+            <p class="mt-4 text-gray-600">Los usuarios más activos de la comunidad que han ahorrado y ganado más tokens.</p>
+        </div>
+
+        <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 border-b border-gray-100">
+                        <th class="px-8 py-5 text-sm font-bold text-gray-400 uppercase">Posición</th>
+                        <th class="px-8 py-5 text-sm font-bold text-gray-400 uppercase">Explorador</th>
+                        <th class="px-8 py-5 text-sm font-bold text-gray-400 uppercase text-right">Tokens Acumulados</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    <tr class="hover:bg-emerald-50/30 transition">
+                        <td class="px-8 py-6 font-black text-2xl text-amber-500">1</td>
+                        <td class="px-8 py-6">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center font-bold">JD</div>
+                                <span class="font-bold text-gray-800">Juan Diego G.</span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-6 text-right font-black text-emerald-600">12,450</td>
+                    </tr>
+                    <tr class="hover:bg-emerald-50/30 transition">
+                        <td class="px-8 py-6 font-black text-2xl text-gray-400">2</td>
+                        <td class="px-8 py-6">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center font-bold">MC</div>
+                                <span class="font-bold text-gray-800">María Camila R.</span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-6 text-right font-black text-emerald-600">10,800</td>
+                    </tr>
+                    <tr class="hover:bg-emerald-50/30 transition">
+                        <td class="px-8 py-6 font-black text-2xl text-amber-700">3</td>
+                        <td class="px-8 py-6">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center font-bold">AL</div>
+                                <span class="font-bold text-gray-800">Andrés López</span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-6 text-right font-black text-emerald-600">9,200</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mt-10 text-center">
+            <p class="text-gray-500 text-sm italic">El ranking se actualiza cada 24 horas basado en reservas confirmadas.</p>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/footer :: miFooter}"></div>
+</body>
+</html>

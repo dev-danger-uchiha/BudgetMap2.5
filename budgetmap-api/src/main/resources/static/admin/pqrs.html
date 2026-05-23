@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - PQRS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    const token = localStorage.getItem('jwt_token');
+    const rol = localStorage.getItem('user_rol');
+    if (!token || !rol || (!rol.includes('ADMINISTRADOR') && !rol.includes('MODERADOR'))) {
+        window.location.href = '/login.html?denied=true';
+    }
+  </script>
+</head>
+<body class="bg-emerald-50 min-h-screen text-slate-800 font-sans flex flex-col">
+
+  <nav class="bg-white border-b border-emerald-100 p-4 sticky top-0 z-50 shadow-sm">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+      <div class="flex items-center gap-4">
+        <span class="bg-emerald-600 text-white px-3 py-1 rounded-full font-black text-[10px] uppercase tracking-tighter">ADMIN</span>
+        <h1 class="font-black tracking-widest text-emerald-900">CONTROL CENTER</h1>
+      </div>
+      <div class="flex gap-6 text-xs font-bold uppercase tracking-widest">
+        <a href="/admin/aprobaciones.html" class="text-slate-500 hover:text-emerald-600 transition">Aprobaciones</a>
+        <a href="/admin/pqrs.html" class="text-emerald-600 border-b-2 border-emerald-600 pb-1">Tickets PQRS</a>
+        <a href="/admin/usuarios.html" class="text-slate-500 hover:text-emerald-600 transition">Usuarios</a>
+        <a href="/admin/estadisticas.html" class="text-slate-500 hover:text-emerald-600 transition">Métricas</a>
+      </div>
+      <button onclick="localStorage.clear(); location.href='/login.html'" class="text-[10px] text-slate-400 font-bold hover:text-red-500 transition">SALIR</button>
+    </div>
+  </nav>
+
+  <main class="flex-1 max-w-7xl mx-auto w-full flex mt-8 px-6 pb-8 gap-6 h-[calc(100vh-120px)]">
+    
+    <aside class="w-1/3 bg-white border border-emerald-100 rounded-3xl flex flex-col overflow-hidden shadow-sm">
+        <div class="p-5 border-b border-emerald-50 bg-emerald-50/30 flex justify-between items-center">
+            <h2 class="text-xl font-black text-slate-900 italic uppercase tracking-tighter">Bandeja PQRS</h2>
+        </div>
+        <div id="lista-tickets" class="flex-1 overflow-y-auto p-4 space-y-3">
+            <p class="text-center text-slate-400 text-sm italic mt-10">Cargando tickets...</p>
+        </div>
+    </aside>
+
+    <section class="flex-1 bg-white border border-emerald-100 rounded-3xl flex flex-col overflow-hidden relative shadow-sm">
+        
+        <div id="ticket-vacio" class="absolute inset-0 flex items-center justify-center bg-white z-10 transition-opacity">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-emerald-300 text-2xl">✉</span>
+                </div>
+                <p class="text-emerald-800/40 font-bold italic">Selecciona un ticket para gestionarlo.</p>
+            </div>
+        </div>
+        
+        <div id="ticket-detalle" class="flex-col h-full hidden">
+            <div class="p-6 border-b border-emerald-50">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <span id="t-tipo" class="bg-red-100 text-red-600 px-2 py-1 rounded text-[10px] font-black uppercase tracking-widest mb-2 inline-block">Queja</span>
+                        <h3 id="t-asunto" class="text-2xl font-black text-slate-900 italic">Asunto del Ticket</h3>
+                        <p id="t-usuario" class="text-xs text-emerald-600 font-semibold mt-1">Usuario: cliente@mail.com</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex-1 p-6 overflow-y-auto bg-emerald-50/20">
+                <div class="bg-white border border-emerald-100 rounded-2xl p-5 mb-4 shadow-sm">
+                    <p id="t-mensaje" class="text-slate-700 text-sm leading-relaxed">Cuerpo del mensaje...</p>
+                </div>
+            </div>
+
+            <div class="p-6 bg-white border-t border-emerald-50">
+                <textarea id="respuesta-texto" class="w-full bg-emerald-50/50 border border-emerald-100 rounded-xl p-4 text-sm text-slate-800 focus:border-emerald-500 focus:bg-white outline-none transition-all resize-none" rows="4" placeholder="Escribe tu respuesta para el usuario..."></textarea>
+                <div class="flex justify-end mt-4">
+                    <button onclick="enviarRespuesta()" class="bg-emerald-600 text-white px-8 py-3 rounded-xl text-xs font-black uppercase hover:bg-emerald-700 shadow-md shadow-emerald-200 transition-all">Enviar Respuesta</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+  </main>
+
+  <script>
+    let ticketActivo = null;
+    let ticketsGlobales = [];
+
+    document.addEventListener("DOMContentLoaded", () => cargarTickets());
+
+    async function cargarTickets() {
+        const contenedor = document.getElementById('lista-tickets');
+        
+        try {
+            const response = await fetch('http://localhost:8080/api/pqrs/pendientes', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (response.ok) {
+                ticketsGlobales = await response.json(); 
+                contenedor.innerHTML = '';
+                
+                if(ticketsGlobales.length === 0) {
+                    contenedor.innerHTML = `<p class="text-center text-emerald-800/40 text-sm font-bold italic mt-10">¡Todo al día! No hay pendientes.</p>`;
+                    return;
+                }
+
+                ticketsGlobales.forEach(t => {
+                    const isUrgent = (t.tipo === 'QUEJA' || t.tipo === 'RECLAMO');
+                    const colorBorde = isUrgent ? 'border-red-400' : 'border-emerald-400';
+                    const colorFondo = isUrgent ? 'hover:bg-red-50' : 'hover:bg-emerald-50';
+                    
+                    contenedor.innerHTML += `
+                        <div onclick="abrirTicket(${t.id})" class="bg-white p-4 rounded-xl border-l-4 ${colorBorde} cursor-pointer ${colorFondo} transition-all border border-emerald-50 shadow-sm mb-3 group">
+                            <div class="flex justify-between text-[10px] font-bold text-slate-400 mb-1">
+                                <span>#${t.codigoTicket || t.id} — ${t.tipo}</span>
+                                <span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded uppercase">${t.estado}</span>
+                            </div>
+                            <h4 class="text-sm font-bold text-slate-800 truncate group-hover:text-slate-900">${t.asunto}</h4>
+                        </div>
+                    `;
+                });
+            } else {
+                contenedor.innerHTML = `<p class="text-center text-red-500 text-sm mt-10">Error de permisos.</p>`;
+            }
+        } catch (e) {
+            contenedor.innerHTML = `<p class="text-center text-red-500 text-sm mt-10">Error de conexión.</p>`;
+        }
+    }
+
+    function abrirTicket(id) {
+        const t = ticketsGlobales.find(ticket => ticket.id === id);
+        if (!t) return;
+
+        ticketActivo = t.id;
+        document.getElementById('ticket-vacio').classList.add('opacity-0', 'pointer-events-none');
+        setTimeout(() => document.getElementById('ticket-vacio').classList.add('hidden'), 200);
+        
+        const detalle = document.getElementById('ticket-detalle');
+        detalle.classList.remove('hidden');
+        detalle.classList.add('flex');
+        
+        document.getElementById('t-tipo').innerText = t.tipo;
+        document.getElementById('t-asunto').innerText = t.asunto;
+        document.getElementById('t-mensaje').innerText = t.descripcion || 'Sin descripción disponible.';
+        
+        // Estilo de tipo (Rojo para quejas, Verde para el resto)
+        const badgeTipo = document.getElementById('t-tipo');
+        if(t.tipo === 'QUEJA' || t.tipo === 'RECLAMO') {
+            badgeTipo.className = "bg-red-100 text-red-600 px-2 py-1 rounded text-[10px] font-black uppercase tracking-widest mb-2 inline-block";
+        } else {
+            badgeTipo.className = "bg-emerald-100 text-emerald-600 px-2 py-1 rounded text-[10px] font-black uppercase tracking-widest mb-2 inline-block";
+        }
+
+        const nombre = t.usuarioNombre || 'Anónimo';
+        const correo = t.usuarioEmail || 'Sin correo';
+        document.getElementById('t-usuario').innerText = `Remitente: ${nombre} (${correo})`; 
+    }
+
+    async function enviarRespuesta() {
+        if(!ticketActivo) return;
+        const respuesta = document.getElementById('respuesta-texto').value;
+        
+        if(!respuesta.trim()) { 
+            alert("Escribe una respuesta."); 
+            return; 
+        }
+        if(respuesta.trim().length < 10) {
+            alert("La respuesta debe tener al menos 10 caracteres.");
+            return;
+        }
+
+        try {
+            const response = await fetch(`http://localhost:8080/api/pqrs/${ticketActivo}/responder`, {
+                method: 'PUT',
+                headers: { 
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ respuesta: respuesta })
+            });
+
+            if (response.ok) {
+                alert("Respuesta enviada con éxito.");
+                document.getElementById('respuesta-texto').value = '';
+                
+                // Reset visual
+                document.getElementById('ticket-vacio').classList.remove('hidden', 'opacity-0', 'pointer-events-none');
+                const detalle = document.getElementById('ticket-detalle');
+                detalle.classList.add('hidden');
+                detalle.classList.remove('flex');
+                
+                cargarTickets(); 
+            } else {
+                alert("Error al enviar la respuesta.");
+            }
+        } catch(e) { 
+            alert("Error de conexión con el servidor."); 
+        }
+    }
+  </script>
+</body>
+</html>

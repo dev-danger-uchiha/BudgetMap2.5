@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro - BudgetMap</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Animación suave para desplegar el formulario */
+    .expand-smooth {
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+    }
+    .expand-smooth.show {
+      max-height: 1000px;
+      opacity: 1;
+      overflow: visible;
+    }
+  </style>
+</head>
+<body class="relative min-h-screen flex items-center justify-center overflow-x-hidden font-sans py-12">
+
+  <video autoplay loop muted playsinline class="fixed top-1/2 left-1/2 min-w-full min-h-full w-auto h-auto -translate-x-1/2 -translate-y-1/2 object-cover z-0">
+    <source src="/images/dia.mp4" type="video/mp4">
+  </video>
+
+  <div class="fixed inset-0 bg-black/10 backdrop-blur-sm z-10"></div>
+
+  <div class="relative z-20 w-full max-w-3xl px-6 mt-16 mb-8">
+    
+    <a href="/" class="absolute -top-16 left-1/2 transform -translate-x-1/2 z-30 group block cursor-pointer outline-none">
+      
+      <div class="absolute -inset-2 bg-gradient-to-r from-emerald-400 to-lime-300 rounded-full blur-xl opacity-70 group-hover:opacity-100 transition duration-500"></div>
+      
+      <div class="relative bg-white rounded-full w-28 h-28 flex items-center justify-center shadow-2xl ring-4 ring-white/30">
+        <img src="/images/logo.png" alt="Logo BudgetMap" class="absolute w-40 h-40 max-w-none object-contain transform transition duration-500 hover:scale-110 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+      </div>
+    </a>
+
+    <main class="bg-white/95 dark:bg-gray-900/90 backdrop-blur-xl pt-20 pb-10 px-8 md:px-12 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/20">
+      
+      <div class="text-center mb-8">
+        <h2 class="text-3xl md:text-4xl font-black text-gray-800 dark:text-white tracking-tight">Únete a BudgetMap</h2>
+        <p class="text-gray-500 dark:text-gray-400 mt-2 text-sm font-medium">Selecciona cómo deseas participar en la comunidad.</p>
+      </div>
+
+      <div id="alertContainer" class="hidden mb-6 p-4 rounded-xl text-sm font-bold text-center transition-all shadow-inner"></div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8" id="roleCards">
+        
+        <div onclick="seleccionarRol('EXPLORADOR', this)" class="role-card relative flex flex-col items-center p-5 bg-gray-50/50 dark:bg-gray-800/50 border-2 border-transparent rounded-2xl cursor-pointer hover:bg-white dark:hover:bg-gray-700 transition shadow-sm hover:shadow-md">
+          <span class="text-4xl mb-2 filter drop-shadow-sm">🎒</span>
+          <span class="text-sm font-extrabold text-gray-700 dark:text-gray-200 uppercase tracking-wider">Explorador</span>
+          <p class="text-[10px] text-gray-500 mt-1 text-center font-medium">Descubre lugares y ahorra</p>
+        </div>
+
+        <div onclick="seleccionarRol('LOCAL_ALIADO', this)" class="role-card relative flex flex-col items-center p-5 bg-gray-50/50 dark:bg-gray-800/50 border-2 border-transparent rounded-2xl cursor-pointer hover:bg-white dark:hover:bg-gray-700 transition shadow-sm hover:shadow-md">
+          <span class="text-4xl mb-2 filter drop-shadow-sm">🏪</span>
+          <span class="text-sm font-extrabold text-gray-700 dark:text-gray-200 uppercase tracking-wider">Local Aliado</span>
+          <p class="text-[10px] text-gray-500 mt-1 text-center font-medium">Registra tu negocio</p>
+        </div>
+
+        <div onclick="seleccionarRol('ANFITRION', this)" class="role-card relative flex flex-col items-center p-5 bg-gray-50/50 dark:bg-gray-800/50 border-2 border-transparent rounded-2xl cursor-pointer hover:bg-white dark:hover:bg-gray-700 transition shadow-sm hover:shadow-md">
+          <span class="text-4xl mb-2 filter drop-shadow-sm">🎤</span>
+          <span class="text-sm font-extrabold text-gray-700 dark:text-gray-200 uppercase tracking-wider">Anfitrión</span>
+          <p class="text-[10px] text-gray-500 mt-1 text-center font-medium">Crea y gestiona eventos</p>
+        </div>
+      </div>
+
+      <form id="registerForm" class="expand-smooth space-y-6">
+        
+        <div class="flex items-center justify-center space-x-4 mb-4">
+          <div class="h-px bg-gray-300 dark:bg-gray-600 w-1/3"></div>
+          <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Tus Datos</span>
+          <div class="h-px bg-gray-300 dark:bg-gray-600 w-1/3"></div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div>
+            <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1 ml-1">Nombres *</label>
+            <input type="text" id="nombre" required class="w-full px-4 py-2.5 bg-gray-50/50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition shadow-sm dark:text-white" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1 ml-1">Apellidos *</label>
+            <input type="text" id="apellido" required class="w-full px-4 py-2.5 bg-gray-50/50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition shadow-sm dark:text-white" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1 ml-1">Correo Electrónico *</label>
+            <input type="email" id="email" required placeholder="correo@ejemplo.com" class="w-full px-4 py-2.5 bg-gray-50/50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition shadow-sm dark:text-white" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1 ml-1">Teléfono</label>
+            <input type="text" id="telefono" class="w-full px-4 py-2.5 bg-gray-50/50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition shadow-sm dark:text-white" />
+          </div>
+          
+          <div>
+            <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1 ml-1">Contraseña *</label>
+            <input type="password" id="password" required minlength="6" placeholder="Mínimo 6 caracteres" class="w-full px-4 py-2.5 bg-gray-50/50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition shadow-sm dark:text-white" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1 ml-1">Confirmar Contraseña *</label>
+            <input type="password" id="confirmPassword" required minlength="6" placeholder="Repite tu contraseña" class="w-full px-4 py-2.5 bg-gray-50/50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition shadow-sm dark:text-white" />
+          </div>
+        </div>
+
+        <div class="pt-4">
+          <button type="submit" class="w-full flex justify-center py-3.5 px-4 rounded-xl shadow-lg shadow-emerald-500/30 text-base font-extrabold text-white bg-gradient-to-r from-emerald-500 to-lime-500 hover:from-emerald-400 hover:to-lime-400 focus:outline-none focus:ring-4 focus:ring-emerald-500/50 transition duration-300 transform hover:-translate-y-1">
+            Crear cuenta en BudgetMap
+          </button>
+        </div>
+      </form>
+
+      <div class="mt-8 text-center text-sm font-medium border-t border-gray-200 dark:border-gray-700 pt-6">
+        <span class="text-gray-600 dark:text-gray-400">¿Ya tienes una cuenta?</span> 
+        <a href="/login.html" class="text-emerald-600 dark:text-emerald-400 font-black hover:text-lime-500 transition hover:underline ml-1">Inicia sesión</a>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    let rolSeleccionado = "";
+
+    function seleccionarRol(rol, elementoCard) {
+      rolSeleccionado = rol;
+
+      // Efectos visuales en las tarjetas (marcar la seleccionada)
+      document.querySelectorAll('.role-card').forEach(card => {
+        card.classList.remove('border-emerald-500', 'bg-white', 'dark:bg-gray-700', 'shadow-lg', 'scale-105');
+        card.classList.add('border-transparent');
+      });
+      elementoCard.classList.remove('border-transparent');
+      elementoCard.classList.add('border-emerald-500', 'bg-white', 'dark:bg-gray-700', 'shadow-lg', 'scale-105');
+
+      // Desplegar el formulario
+      document.getElementById('registerForm').classList.add('show');
+    }
+
+    // Envío del formulario
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      if (!rolSeleccionado) {
+        mostrarAlerta("Por favor, selecciona un rol primero.", "error");
+        return;
+      }
+
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+
+      // Validación de contraseñas
+      if (password !== confirmPassword) {
+        mostrarAlerta("Las contraseñas no coinciden. Por favor, verifícalas.", "error");
+        return; // Detiene el envío si no coinciden
+      }
+
+      // Preparar los datos
+      const data = {
+        nombre: document.getElementById('nombre').value,
+        apellido: document.getElementById('apellido').value,
+        email: document.getElementById('email').value,
+        password: password,
+        telefono: document.getElementById('telefono').value,
+        rol: rolSeleccionado
+      };
+
+      try {
+        const response = await fetch('http://localhost:8080/api/auth/registro', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+          mostrarAlerta("¡Cuenta creada con éxito! Redirigiendo al login...", "success");
+          setTimeout(() => window.location.href = '/login.html', 2000);
+        } else {
+          const errorData = await response.json();
+          mostrarAlerta(errorData.message || "Error al registrarse. Verifica tus datos o correo.", "error");
+        }
+      } catch (error) {
+        mostrarAlerta("Error de conexión con el servidor. ¿Spring Boot está corriendo?", "error");
+      }
+    });
+
+    function mostrarAlerta(msg, tipo) {
+      const container = document.getElementById('alertContainer');
+      container.textContent = msg;
+      container.classList.remove('hidden', 'bg-red-500/10', 'text-red-600', 'bg-emerald-500/10', 'text-emerald-600');
+
+      if (tipo === 'success') {
+        container.classList.add('bg-emerald-500/10', 'text-emerald-600', 'border', 'border-emerald-500/30');
+      } else {
+        container.classList.add('bg-red-500/10', 'text-red-600', 'border', 'border-red-500/30');
+      }
+      
+      setTimeout(() => container.classList.add('hidden'), 4000);
+    }
+  </script>
+</body>
+</html>

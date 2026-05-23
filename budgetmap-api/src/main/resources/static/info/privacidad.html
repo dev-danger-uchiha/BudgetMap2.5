@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Política de Privacidad | BudgetMap</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-700">
+    <div th:replace="~{fragments/navbar :: miNavbar}"></div>
+
+    <main class="max-w-4xl mx-auto py-20 px-6 bg-white my-10 rounded-2xl shadow-sm border border-gray-100">
+        <h1 class="text-3xl font-black text-gray-900 mb-6 border-b pb-4">Política de Privacidad</h1>
+        
+        <section class="space-y-8">
+            <div class="bg-emerald-50 p-6 rounded-xl border-l-4 border-emerald-500">
+                <h2 class="text-xl font-bold text-emerald-800 mb-2">Tratamiento de Datos GPS</h2>
+                <p class="text-emerald-900/80">BudgetMap solo accede a tu ubicación cuando el radar está activo. No guardamos un historial de tus movimientos, solo procesamos tu posición actual para mostrarte locales cercanos.</p>
+            </div>
+
+            <div>
+                <h2 class="text-xl font-bold text-gray-800 mb-3">Recolección de Datos</h2>
+                <p>Recopilamos información básica como nombre, correo electrónico y preferencias de consumo para personalizar tu experiencia de ahorro.</p>
+            </div>
+
+            <div>
+                <h2 class="text-xl font-bold text-gray-800 mb-3">Seguridad de la Información</h2>
+                <p>Toda comunicación entre tu navegador y nuestros servidores está protegida mediante protocolos HTTPS y encriptación de extremo a extremo para tus contraseñas.</p>
+            </div>
+        </section>
+    </main>
+
+    <div th:replace="~{fragments/footer :: miFooter}"></div>
+</body>
+</html>

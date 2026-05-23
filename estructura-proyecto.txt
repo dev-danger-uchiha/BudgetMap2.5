@@ -1,0 +1,426 @@
+Listado de rutas de carpetas
+El n£mero de serie del volumen es D4CC-9DA0
+C:.
+|   .gitignore
+|   CARPETA.JPG
+|   estructura-proyecto.txt
+|   exposicion.txt
+|   HTML.txt
+|   README.md
+|   
++---.vscode
+|       settings.json
+|       
++---budgetmap-api
+|   |   pom.xml
+|   |   
+|   +---src
+|   |   +---main
+|   |   |   +---java
+|   |   |   |   \---com
+|   |   |   |       \---budgetmap
+|   |   |   |           |   BudgetMapApiApplication.java
+|   |   |   |           |   
+|   |   |   |           +---client
+|   |   |   |           |       PythonServiceClient.java
+|   |   |   |           |       PythonServiceClientConfig.java
+|   |   |   |           |       
+|   |   |   |           +---config
+|   |   |   |           |       JacksonConfig.java
+|   |   |   |           |       MvcConfig.java
+|   |   |   |           |       RateLimitingConfig.java
+|   |   |   |           |       
+|   |   |   |           +---controller
+|   |   |   |           |       AuthController.java
+|   |   |   |           |       ConfigAlertaController.java
+|   |   |   |           |       EstablecimientoController.java
+|   |   |   |           |       EstadisticasController.java
+|   |   |   |           |       EventoController.java
+|   |   |   |           |       LugarController.java
+|   |   |   |           |       NotificacionController.java
+|   |   |   |           |       PQRSController.java
+|   |   |   |           |       PromocionController.java
+|   |   |   |           |       ReservaController.java
+|   |   |   |           |       UsuarioController.java
+|   |   |   |           |       
+|   |   |   |           +---dto
+|   |   |   |           |       AprobacionRequest.java
+|   |   |   |           |       ConfigAlertaResponse.java
+|   |   |   |           |       DashboardStatsResponse.java
+|   |   |   |           |       EstablecimientoRequest.java
+|   |   |   |           |       EstablecimientoResponse.java
+|   |   |   |           |       EstablecimientoUpdateRequest.java
+|   |   |   |           |       EventoRequest.java
+|   |   |   |           |       EventoResponse.java
+|   |   |   |           |       LoginRequest.java
+|   |   |   |           |       LoginResponse.java
+|   |   |   |           |       LugarRequest.java
+|   |   |   |           |       NotificacionResponse.java
+|   |   |   |           |       PQRSRequest.java
+|   |   |   |           |       PQRSResponse.java
+|   |   |   |           |       PQRSRespuestaRequest.java
+|   |   |   |           |       PromocionRequest.java
+|   |   |   |           |       PromocionResponse.java
+|   |   |   |           |       RegistroRequest.java
+|   |   |   |           |       ReservaRequest.java
+|   |   |   |           |       ReservaResponse.java
+|   |   |   |           |       UsuarioDTO.java
+|   |   |   |           |       
+|   |   |   |           +---exception
+|   |   |   |           |       ConflictoDatosException.java
+|   |   |   |           |       CredencialesInvalidasException.java
+|   |   |   |           |       EmailYaRegistradoException.java
+|   |   |   |           |       GlobalExceptionHandler.java
+|   |   |   |           |       OperacionNoPermitidaException.java
+|   |   |   |           |       PasswordInvalidoException.java
+|   |   |   |           |       RecursoNoEncontradoException.java
+|   |   |   |           |       RegistroException.java
+|   |   |   |           |       ResourceNotFoundException.java
+|   |   |   |           |       
+|   |   |   |           +---model
+|   |   |   |           |   |   ConfigAlerta.java
+|   |   |   |           |   |   Establecimiento.java
+|   |   |   |           |   |   Evento.java
+|   |   |   |           |   |   Lugar.java
+|   |   |   |           |   |   Notificacion.java
+|   |   |   |           |   |   PQRS.java
+|   |   |   |           |   |   Promocion.java
+|   |   |   |           |   |   Reserva.java
+|   |   |   |           |   |   Usuario.java
+|   |   |   |           |   |   
+|   |   |   |           |   \---enums
+|   |   |   |           |           CategoriaEstablecimiento.java
+|   |   |   |           |           CategoriaLugar.java
+|   |   |   |           |           EstadoAprobacion.java
+|   |   |   |           |           EstadoPQRS.java
+|   |   |   |           |           EstadoReserva.java
+|   |   |   |           |           RolUsuario.java
+|   |   |   |           |           TipoEvento.java
+|   |   |   |           |           TipoNotificacion.java
+|   |   |   |           |           TipoPQRS.java
+|   |   |   |           |           
+|   |   |   |           +---repository
+|   |   |   |           |       ConfigAlertaRepository.java
+|   |   |   |           |       EstablecimientoRepository.java
+|   |   |   |           |       EventoRepository.java
+|   |   |   |           |       LugarRepository.java
+|   |   |   |           |       NotificacionRepository.java
+|   |   |   |           |       PQRSRepository.java
+|   |   |   |           |       PromocionRepository.java
+|   |   |   |           |       ReservaRepository.java
+|   |   |   |           |       UsuarioRepository.java
+|   |   |   |           |       
+|   |   |   |           +---security
+|   |   |   |           |       JwtAuthenticationFilter.java
+|   |   |   |           |       JwtUtils.java
+|   |   |   |           |       UserDetailsImpl.java
+|   |   |   |           |       UserDetailsServiceImpl.java
+|   |   |   |           |       WebSecurityConfig.java
+|   |   |   |           |       
+|   |   |   |           +---service
+|   |   |   |           |       AuthService.java
+|   |   |   |           |       ConfigAlertaService.java
+|   |   |   |           |       EstablecimientoService.java
+|   |   |   |           |       EstadisticasService.java
+|   |   |   |           |       EventoService.java
+|   |   |   |           |       LugarService.java
+|   |   |   |           |       NotificacionService.java
+|   |   |   |           |       PQRSService.java
+|   |   |   |           |       PromocionService.java
+|   |   |   |           |       ReservaService.java
+|   |   |   |           |       UsuarioService.java
+|   |   |   |           |       
+|   |   |   |           \---util
+|   |   |   |                   GeometryUtils.java
+|   |   |   |                   
+|   |   |   \---resources
+|   |   |       |   application.properties
+|   |   |       |   
+|   |   |       \---static
+|   |   |           |   index.html
+|   |   |           |   login.html
+|   |   |           |   register.html
+|   |   |           |   
+|   |   |           +---admin
+|   |   |           |       aprobaciones.html
+|   |   |           |       estadisticas.html
+|   |   |           |       pqrs.html
+|   |   |           |       usuarios.html
+|   |   |           |       
+|   |   |           +---aliado
+|   |   |           |       check-in.html
+|   |   |           |       dashboard.html
+|   |   |           |       mi-establecimiento.html
+|   |   |           |       promociones.html
+|   |   |           |       
+|   |   |           +---anfitrion
+|   |   |           |       mis-eventos.html
+|   |   |           |       
+|   |   |           +---explorador
+|   |   |           |       dashboard.html
+|   |   |           |       detalle.html
+|   |   |           |       mis-reservas.html
+|   |   |           |       notificaciones.html
+|   |   |           |       perfil.html
+|   |   |           |       
+|   |   |           +---images
+|   |   |           |       fondo.jpg
+|   |   |           |       logo.png
+|   |   |           |       
+|   |   |           \---soporte
+|   |   |                   crear-pqrs.html
+|   |   |                   
+|   |   \---test
+|   |       \---java
+|   \---target
+|       |   budgetmap-api-1.0.0.jar
+|       |   budgetmap-api-1.0.0.jar.original
+|       |   
+|       +---classes
+|       |   |   application.properties
+|       |   |   
+|       |   +---com
+|       |   |   \---budgetmap
+|       |   |       |   BudgetMapApiApplication.class
+|       |   |       |   
+|       |   |       +---client
+|       |   |       |       PythonServiceClient.class
+|       |   |       |       PythonServiceClientConfig.class
+|       |   |       |       
+|       |   |       +---config
+|       |   |       |       JacksonConfig.class
+|       |   |       |       MvcConfig.class
+|       |   |       |       RateLimitingConfig.class
+|       |   |       |       
+|       |   |       +---controller
+|       |   |       |       AuthController.class
+|       |   |       |       ConfigAlertaController.class
+|       |   |       |       EstablecimientoController.class
+|       |   |       |       EstadisticasController.class
+|       |   |       |       EventoController.class
+|       |   |       |       LugarController.class
+|       |   |       |       NotificacionController.class
+|       |   |       |       PQRSController.class
+|       |   |       |       PromocionController.class
+|       |   |       |       ReservaController.class
+|       |   |       |       UsuarioController.class
+|       |   |       |       
+|       |   |       +---dto
+|       |   |       |       AprobacionRequest.class
+|       |   |       |       ConfigAlertaResponse$ConfigAlertaResponseBuilder.class
+|       |   |       |       ConfigAlertaResponse.class
+|       |   |       |       DashboardStatsResponse$DashboardStatsResponseBuilder.class
+|       |   |       |       DashboardStatsResponse.class
+|       |   |       |       EstablecimientoRequest.class
+|       |   |       |       EstablecimientoResponse$EstablecimientoResponseBuilder.class
+|       |   |       |       EstablecimientoResponse.class
+|       |   |       |       EstablecimientoUpdateRequest.class
+|       |   |       |       EventoRequest.class
+|       |   |       |       EventoResponse$EventoResponseBuilder.class
+|       |   |       |       EventoResponse.class
+|       |   |       |       LoginRequest.class
+|       |   |       |       LoginResponse$LoginResponseBuilder.class
+|       |   |       |       LoginResponse.class
+|       |   |       |       LugarRequest.class
+|       |   |       |       NotificacionResponse$NotificacionResponseBuilder.class
+|       |   |       |       NotificacionResponse.class
+|       |   |       |       PQRSRequest.class
+|       |   |       |       PQRSResponse$PQRSResponseBuilder.class
+|       |   |       |       PQRSResponse.class
+|       |   |       |       PQRSRespuestaRequest$PQRSRespuestaRequestBuilder.class
+|       |   |       |       PQRSRespuestaRequest.class
+|       |   |       |       PromocionRequest.class
+|       |   |       |       PromocionResponse$PromocionResponseBuilder.class
+|       |   |       |       PromocionResponse.class
+|       |   |       |       RegistroRequest$RegistroRequestBuilder.class
+|       |   |       |       RegistroRequest.class
+|       |   |       |       ReservaRequest.class
+|       |   |       |       ReservaResponse$ReservaResponseBuilder.class
+|       |   |       |       ReservaResponse.class
+|       |   |       |       UsuarioDTO$UsuarioDTOBuilder.class
+|       |   |       |       UsuarioDTO.class
+|       |   |       |       
+|       |   |       +---exception
+|       |   |       |       ConflictoDatosException.class
+|       |   |       |       CredencialesInvalidasException.class
+|       |   |       |       EmailYaRegistradoException.class
+|       |   |       |       GlobalExceptionHandler$ErrorResponse.class
+|       |   |       |       GlobalExceptionHandler.class
+|       |   |       |       OperacionNoPermitidaException.class
+|       |   |       |       PasswordInvalidoException.class
+|       |   |       |       RecursoNoEncontradoException.class
+|       |   |       |       RegistroException.class
+|       |   |       |       ResourceNotFoundException.class
+|       |   |       |       
+|       |   |       +---model
+|       |   |       |   |   ConfigAlerta$ConfigAlertaBuilder.class
+|       |   |       |   |   ConfigAlerta.class
+|       |   |       |   |   Establecimiento$EstablecimientoBuilder.class
+|       |   |       |   |   Establecimiento.class
+|       |   |       |   |   Evento$EventoBuilder.class
+|       |   |       |   |   Evento.class
+|       |   |       |   |   Lugar$LugarBuilder.class
+|       |   |       |   |   Lugar.class
+|       |   |       |   |   Notificacion$NotificacionBuilder.class
+|       |   |       |   |   Notificacion.class
+|       |   |       |   |   PQRS$PQRSBuilder.class
+|       |   |       |   |   PQRS.class
+|       |   |       |   |   Promocion$PromocionBuilder.class
+|       |   |       |   |   Promocion.class
+|       |   |       |   |   Reserva$ReservaBuilder.class
+|       |   |       |   |   Reserva.class
+|       |   |       |   |   Usuario$UsuarioBuilder.class
+|       |   |       |   |   Usuario.class
+|       |   |       |   |   
+|       |   |       |   \---enums
+|       |   |       |           CategoriaEstablecimiento.class
+|       |   |       |           CategoriaLugar.class
+|       |   |       |           EstadoAprobacion.class
+|       |   |       |           EstadoPQRS.class
+|       |   |       |           EstadoReserva.class
+|       |   |       |           RolUsuario.class
+|       |   |       |           TipoEvento.class
+|       |   |       |           TipoNotificacion.class
+|       |   |       |           TipoPQRS.class
+|       |   |       |           
+|       |   |       +---repository
+|       |   |       |       ConfigAlertaRepository.class
+|       |   |       |       EstablecimientoRepository.class
+|       |   |       |       EventoRepository.class
+|       |   |       |       LugarRepository.class
+|       |   |       |       NotificacionRepository.class
+|       |   |       |       PQRSRepository.class
+|       |   |       |       PromocionRepository.class
+|       |   |       |       ReservaRepository.class
+|       |   |       |       UsuarioRepository.class
+|       |   |       |       
+|       |   |       +---security
+|       |   |       |       JwtAuthenticationFilter.class
+|       |   |       |       JwtUtils.class
+|       |   |       |       UserDetailsImpl$UserDetailsImplBuilder.class
+|       |   |       |       UserDetailsImpl.class
+|       |   |       |       UserDetailsServiceImpl.class
+|       |   |       |       WebSecurityConfig.class
+|       |   |       |       
+|       |   |       +---service
+|       |   |       |       AuthService.class
+|       |   |       |       ConfigAlertaService.class
+|       |   |       |       EstablecimientoService.class
+|       |   |       |       EstadisticasService.class
+|       |   |       |       EventoService.class
+|       |   |       |       LugarService.class
+|       |   |       |       NotificacionService.class
+|       |   |       |       PQRSService.class
+|       |   |       |       PromocionService.class
+|       |   |       |       ReservaService.class
+|       |   |       |       UsuarioService.class
+|       |   |       |       
+|       |   |       \---util
+|       |   |               GeometryUtils.class
+|       |   |               
+|       |   \---static
+|       |       |   index.html
+|       |       |   login.html
+|       |       |   register.html
+|       |       |   
+|       |       +---admin
+|       |       |       aprobaciones.html
+|       |       |       estadisticas.html
+|       |       |       pqrs.html
+|       |       |       usuarios.html
+|       |       |       
+|       |       +---aliado
+|       |       |       check-in.html
+|       |       |       dashboard.html
+|       |       |       mi-establecimiento.html
+|       |       |       promociones.html
+|       |       |       
+|       |       +---anfitrion
+|       |       |       mis-eventos.html
+|       |       |       
+|       |       +---explorador
+|       |       |       dashboard.html
+|       |       |       detalle.html
+|       |       |       mis-reservas.html
+|       |       |       notificaciones.html
+|       |       |       perfil.html
+|       |       |       
+|       |       +---images
+|       |       |       fondo.jpg
+|       |       |       logo.png
+|       |       |       
+|       |       \---soporte
+|       |               crear-pqrs.html
+|       |               
+|       +---generated-sources
+|       |   \---annotations
+|       +---generated-test-sources
+|       |   \---test-annotations
+|       +---maven-archiver
+|       |       pom.properties
+|       |       
+|       +---maven-status
+|       |   \---maven-compiler-plugin
+|       |       +---compile
+|       |       |   \---default-compile
+|       |       |           createdFiles.lst
+|       |       |           inputFiles.lst
+|       |       |           
+|       |       \---testCompile
+|       |           \---default-testCompile
+|       |                   createdFiles.lst
+|       |                   inputFiles.lst
+|       |                   
+|       \---test-classes
++---budgetmap-geo
+|   |   .env
+|   |   .env.example
+|   |   app.py
+|   |   requirements.txt
+|   |   
+|   +---models
+|   |   |   geo_models.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           geo_models.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---routes
+|   |   |   alert_routes.py
+|   |   |   geo_routes.py
+|   |   |   report_routes.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           alert_routes.cpython-314.pyc
+|   |           geo_routes.cpython-314.pyc
+|   |           report_routes.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---services
+|   |   |   alert_service.py
+|   |   |   geo_engine.py
+|   |   |   report_engine.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           alert_service.cpython-314.pyc
+|   |           geo_engine.cpython-314.pyc
+|   |           report_engine.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           app.cpython-314.pyc
+|           
++---database
+|   \---init
+|           01-schema.sql
+|           02-data.sql
+|           
++---instance
+\---scripts
+        logs.sh
+        start.sh
+        stop.sh
+        

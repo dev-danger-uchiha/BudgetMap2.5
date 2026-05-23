@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notificaciones - BudgetMap</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Seguridad: Solo exploradores
+    const token = localStorage.getItem('jwt_token');
+    if (!token) window.location.href = '/login.html';
+  </script>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen">
+
+  <nav class="bg-emerald-600 p-4 shadow-md text-white flex justify-between items-center sticky top-0 z-50">
+    <button onclick="location.href='/explorador/dashboard.html'" class="flex items-center gap-2 font-bold hover:text-lime-200 transition">
+      ⬅️ Volver
+    </button>
+    <span class="font-extrabold tracking-widest uppercase">Notificaciones</span>
+    <button onclick="marcarTodasLeidas()" class="text-[10px] bg-emerald-700 hover:bg-emerald-800 px-3 py-1 rounded-full font-bold transition">
+      Marcar todo como leído
+    </button>
+  </nav>
+
+  <main class="max-w-2xl mx-auto mt-6 px-4 pb-10">
+    
+    <div class="flex gap-2 mb-6 overflow-x-auto pb-2 no-scrollbar">
+        <button class="bg-emerald-600 text-white px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap">Todas</button>
+        <button class="bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-4 py-1.5 rounded-full text-xs font-bold border border-gray-200 dark:border-gray-700 whitespace-nowrap">No leídas</button>
+    </div>
+
+    <div id="lista-notificaciones" class="space-y-3">
+        <div class="animate-pulse flex gap-4 p-4 bg-white dark:bg-gray-800 rounded-2xl">
+            <div class="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+            <div class="flex-1 space-y-2">
+                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+                <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notificaciones-vacias" class="hidden text-center py-20">
+        <div class="text-6xl mb-4">📭</div>
+        <p class="text-gray-500 font-bold">Todo al día. No tienes notificaciones nuevas.</p>
+    </div>
+
+  </main>
+
+  <script>
+    const userId = localStorage.getItem('user_id');
+
+    document.addEventListener("DOMContentLoaded", () => {
+        cargarNotificaciones();
+    });
+
+    async function cargarNotificaciones() {
+        const contenedor = document.getElementById('lista-notificaciones');
+        const vacio = document.getElementById('notificaciones-vacias');
+
+        try {
+            const response = await fetch(`http://localhost:8080/api/notificaciones`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                const notificaciones = await response.json();
+                contenedor.innerHTML = '';
+
+                if (notificaciones.length === 0) {
+                    vacio.classList.remove('hidden');
+                    return;
+                }
+
+                notificaciones.forEach(notif => {
+                    const iconInfo = getIconByTipo(notif.tipo);
+                    const isLeida = notif.leida;
+
+                    contenedor.innerHTML += `
+                        <div class="relative group p-4 rounded-2xl flex gap-4 transition duration-300 ${isLeida ? 'bg-white/50 dark:bg-gray-800/50 grayscale-[0.5]' : 'bg-white dark:bg-gray-800 shadow-md border-l-4 border-emerald-500'}" 
+                             onclick="marcarLeida(${notif.id})">
+                            
+                            <div class="flex-shrink-0 w-12 h-12 ${iconInfo.bg} rounded-full flex items-center justify-center text-xl shadow-inner">
+                                ${iconInfo.emoji}
+                            </div>
+
+                            <div class="flex-1">
+                                <div class="flex justify-between items-start">
+                                    <h3 class="text-sm font-black text-gray-800 dark:text-white">${notif.titulo}</h3>
+                                    <span class="text-[10px] text-gray-400 font-medium">${formatearFecha(notif.createdAt)}</span>
+                                </div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
+                                    ${notif.mensaje}
+                                </p>
+                            </div>
+
+                            ${!isLeida ? '<div class="absolute top-4 right-4 w-2 h-2 bg-emerald-500 rounded-full animate-ping"></div>' : ''}
+                        </div>
+                    `;
+                });
+            }
+        } catch (error) {
+            console.error("Error cargando notificaciones");
+        }
+    }
+
+    function getIconByTipo(tipo) {
+        switch(tipo) {
+            case 'RESERVA_CONFIRMADA': return { emoji: '✅', bg: 'bg-green-100' };
+            case 'PROMOCION_NUEVA': return { emoji: '🏷️', bg: 'bg-lime-100' };
+            case 'ALERTA_PROXIMIDAD': return { emoji: '📍', bg: 'bg-emerald-100' };
+            case 'PQRS_RESPUESTA': return { emoji: '✉️', bg: 'bg-blue-100' };
+            default: return { emoji: '🔔', bg: 'bg-gray-100' };
+        }
+    }
+
+    function formatearFecha(fechaString) {
+        const fecha = new Date(fechaString);
+        return fecha.toLocaleDateString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    async function marcarLeida(id) {
+        try {
+            await fetch(`http://localhost:8080/api/notificaciones/${id}/leer`, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            cargarNotificaciones(); // Recargamos para actualizar el estilo visual
+        } catch (e) {}
+    }
+
+    async function marcarTodasLeidas() {
+        if(!confirm("¿Deseas marcar todas como leídas?")) return;
+        try {
+            await fetch(`http://localhost:8080/api/notificaciones/leer-todas`, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            cargarNotificaciones();
+        } catch (e) {}
+    }
+  </script>
+
+  <style>
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</body>
+</html>

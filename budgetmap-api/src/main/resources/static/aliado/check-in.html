@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Check-in - BudgetMap Aliados</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+</head>
+<body class="bg-gray-900 min-h-screen text-white font-sans pb-10">
+
+  <nav class="p-4 flex justify-between items-center border-b border-gray-800">
+    <button onclick="location.href='/aliado/dashboard.html'" class="text-emerald-500 font-bold flex items-center gap-2">
+      ⬅️ Volver
+    </button>
+    <span class="font-black tracking-widest text-emerald-500">VALIDACIÓN DE ACCESO</span>
+    <div class="w-10"></div>
+  </nav>
+
+  <main class="max-w-md mx-auto mt-10 px-6">
+    
+    <section class="text-center mb-12">
+      <h2 class="text-xl font-bold text-gray-400 uppercase tracking-widest mb-6">Ingresa el ID de Reserva</h2>
+      
+      <div class="bg-gray-800 rounded-3xl p-6 mb-8 border-2 border-emerald-500/30 shadow-2xl">
+        <input type="text" id="codigo-input" readonly placeholder="000000"
+               class="bg-transparent text-5xl font-black text-center w-full outline-none text-emerald-400 placeholder-gray-700 tracking-widest">
+      </div>
+
+      <div class="grid grid-cols-3 gap-4">
+        <button onclick="addNum('1')" class="h-16 bg-gray-800 rounded-2xl text-2xl font-bold hover:bg-emerald-600 transition">1</button>
+        <button onclick="addNum('2')" class="h-16 bg-gray-800 rounded-2xl text-2xl font-bold hover:bg-emerald-600 transition">2</button>
+        <button onclick="addNum('3')" class="h-16 bg-gray-800 rounded-2xl text-2xl font-bold hover:bg-emerald-600 transition">3</button>
+        <button onclick="addNum('4')" class="h-16 bg-gray-800 rounded-2xl text-2xl font-bold hover:bg-emerald-600 transition">4</button>
+        <button onclick="addNum('5')" class="h-16 bg-gray-800 rounded-2xl text-2xl font-bold hover:bg-emerald-600 transition">5</button>
+        <button onclick="addNum('6')" class="h-16 bg-gray-800 rounded-2xl text-2xl font-bold hover:bg-emerald-600 transition">6</button>
+        <button onclick="addNum('7')" class="h-16 bg-gray-800 rounded-2xl text-2xl font-bold hover:bg-emerald-600 transition">7</button>
+        <button onclick="addNum('8')" class="h-16 bg-gray-800 rounded-2xl text-2xl font-bold hover:bg-emerald-600 transition">8</button>
+        <button onclick="addNum('9')" class="h-16 bg-gray-800 rounded-2xl text-2xl font-bold hover:bg-emerald-600 transition">9</button>
+        <button onclick="clearInput()" class="h-16 bg-red-900/30 text-red-500 rounded-2xl text-xl font-bold">C</button>
+        <button onclick="addNum('0')" class="h-16 bg-gray-800 rounded-2xl text-2xl font-bold hover:bg-emerald-600 transition">0</button>
+        <button onclick="procesarCheckIn()" class="h-16 bg-emerald-600 rounded-2xl text-2xl font-bold shadow-lg shadow-emerald-500/20">✓</button>
+      </div>
+    </section>
+
+    <section>
+      <h3 class="text-xs font-black text-gray-500 uppercase tracking-widest mb-4">Últimos ingresos</h3>
+      <div id="lista-llegadas" class="space-y-3">
+        <p class="text-center text-sm text-gray-600 italic">No hay ingresos recientes.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <div id="modal-resultado" class="fixed inset-0 bg-black/80 flex items-center justify-center p-6 hidden z-[100]">
+      <div class="bg-white rounded-3xl p-8 max-w-xs w-full text-center space-y-4">
+          <div id="modal-icon" class="text-6xl">✅</div>
+          <h2 id="modal-title" class="text-2xl font-black text-gray-800">¡Acceso Válido!</h2>
+          <p id="modal-msg" class="text-gray-600 text-sm italic">Reserva de Juan Pérez para 2 personas confirmada.</p>
+          <button onclick="cerrarModal()" class="w-full bg-gray-900 text-white font-bold py-3 rounded-xl">ACEPTAR</button>
+      </div>
+  </div>
+
+  <script>
+    let currentInput = "";
+    const inputDisplay = document.getElementById('codigo-input');
+
+    function addNum(num) {
+      if (currentInput.length < 8) {
+        currentInput += num;
+        inputDisplay.value = currentInput;
+      }
+    }
+
+    function clearInput() {
+      currentInput = "";
+      inputDisplay.value = "";
+    }
+
+    async function procesarCheckIn() {
+      if (!currentInput) return;
+
+      try {
+        const response = await fetch(`http://localhost:8080/api/reservas/${currentInput}/confirmar`, {
+          method: 'PUT',
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          const res = await response.json();
+          mostrarModal("✅", "¡Acceso Válido!", `Cliente: ${res.usuarioNombre}<br>Cupos: ${res.cantidadPersonas}`);
+          registrarLlegadaLocal(res);
+        } else {
+          mostrarModal("❌", "Código Inválido", "La reserva no existe, ya fue usada o está cancelada.");
+        }
+      } catch (e) {
+        mostrarModal("⚠️", "Error de Red", "No se pudo conectar con el servidor.");
+      }
+      clearInput();
+    }
+
+    function mostrarModal(icon, title, msg) {
+        document.getElementById('modal-icon').innerHTML = icon;
+        document.getElementById('modal-title').textContent = title;
+        document.getElementById('modal-msg').innerHTML = msg;
+        document.getElementById('modal-resultado').classList.remove('hidden');
+    }
+
+    function cerrarModal() {
+        document.getElementById('modal-resultado').classList.add('hidden');
+    }
+
+    function registrarLlegadaLocal(res) {
+        const lista = document.getElementById('lista-llegadas');
+        const item = document.createElement('div');
+        item.className = "bg-gray-800 p-4 rounded-2xl flex justify-between items-center animate-bounce";
+        item.innerHTML = `
+            <div>
+                <p class="font-bold text-sm text-emerald-400">${res.usuarioNombre}</p>
+                <p class="text-[10px] text-gray-500">${new Date().toLocaleTimeString()}</p>
+            </div>
+            <span class="bg-gray-700 px-3 py-1 rounded-lg text-xs font-bold text-white">x${res.cantidadPersonas} pax</span>
+        `;
+        if(lista.firstChild && lista.firstChild.nodeName === 'P') lista.innerHTML = '';
+        lista.prepend(item);
+    }
+  </script>
+</body>
+</html>

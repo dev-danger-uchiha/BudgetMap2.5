@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anfitrión - Gestión de Eventos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    const token = localStorage.getItem('jwt_token');
+    if (!token || localStorage.getItem('user_rol') !== 'ANFITRION') window.location.href = '/login.html';
+  </script>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen pb-20">
+
+  <nav class="bg-blue-700 p-4 shadow-lg text-white flex justify-between items-center sticky top-0 z-50">
+    <div class="flex items-center gap-2">
+       <span class="bg-white text-blue-700 px-2 py-0.5 rounded text-[10px] font-black uppercase">Anfitrión</span>
+       <span class="font-bold tracking-widest text-lg">BUDGETMAP</span>
+    </div>
+    <div class="flex gap-4 text-xs font-bold uppercase">
+        <a href="/anfitrion/mis-eventos.html" class="text-blue-200 border-b-2 border-blue-200">Mis Eventos</a>
+        <button onclick="localStorage.clear(); location.href='/login.html'" class="hover:text-red-300">Salir</button>
+    </div>
+  </nav>
+
+  <main class="max-w-6xl mx-auto mt-8 px-4 grid grid-cols-1 lg:grid-cols-3 gap-8">
+    
+    <div class="lg:col-span-1">
+      <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-700 sticky top-24">
+        <h2 class="text-xl font-black text-gray-800 dark:text-white mb-6">Crear Nuevo Evento 🎨</h2>
+        
+        <form id="eventoForm" class="space-y-4">
+          <div>
+            <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">Nombre:</label>
+            <input type="text" id="nombre" required class="w-full px-4 py-2 rounded-xl border dark:bg-gray-700 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">¿Dónde será el evento?</label>
+            <select id="lugarId" required class="w-full px-4 py-2 rounded-xl border dark:bg-gray-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500">
+                <option value="">Selecciona un sitio aprobado...</option>
+                </select>
+            <p class="text-[9px] text-gray-400 mt-1 italic">Solo aparecen sitios aprobados por moderación.</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">Tipo:</label>
+              <select id="tipo" class="w-full px-3 py-2 rounded-xl border dark:bg-gray-700 dark:text-white text-xs">
+                <option value="ARTISTICO">Concierto / Artístico</option>
+                <option value="CULTURAL">Cultural</option>
+                <option value="DEPORTIVO">Deportivo</option>
+                <option value="RECREATIVO">Feria / Recreativo</option>
+                <option value="VETERINARIO">Veterinario</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">Aforo Máx:</label>
+              <input type="number" id="aforo" required class="w-full px-3 py-2 rounded-xl border dark:bg-gray-700 dark:text-white text-xs">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">Fecha:</label>
+              <input type="date" id="fecha" required class="w-full px-3 py-2 rounded-xl border dark:bg-gray-700 dark:text-white text-xs">
+            </div>
+            <div>
+              <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">Hora:</label>
+              <input type="time" id="hora" required class="w-full px-3 py-2 rounded-xl border dark:bg-gray-700 dark:text-white text-xs">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">Precio Entrada ($):</label>
+            <input type="number" id="precio" placeholder="0 para gratis" class="w-full px-4 py-2 rounded-xl border dark:bg-gray-700 dark:text-white text-sm">
+          </div>
+
+          <button type="submit" class="w-full bg-blue-600 text-white font-black py-4 rounded-xl shadow-lg hover:bg-blue-500 transition transform active:scale-95">
+            PUBLICAR EVENTO
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div class="lg:col-span-2">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-2xl font-black text-gray-800 dark:text-white uppercase tracking-tighter">Eventos Activos</h3>
+        <span id="badge-total" class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold">0</span>
+      </div>
+      <div id="lista-eventos" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        </div>
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        cargarLugaresDisponibles(); // Carga la lista para el SELECT
+        cargarMisEventos();
+    });
+
+    // Función para llenar el SELECT con sitios donde se puede hacer eventos
+    async function cargarLugaresDisponibles() {
+        const select = document.getElementById('lugarId');
+        try {
+            // Consultamos lugares aprobados (parques, plazas, etc)
+            const response = await fetch('http://localhost:8080/api/lugares/aprobados', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) {
+                const lugares = await response.json();
+                lugares.forEach(l => {
+                    const opt = document.createElement('option');
+                    opt.value = l.id;
+                    opt.textContent = `📍 ${l.nombre} (${l.tipo})`;
+                    select.appendChild(opt);
+                });
+            }
+        } catch (e) { console.error("Error cargando lugares"); }
+    }
+
+    async function cargarMisEventos() {
+        const contenedor = document.getElementById('lista-eventos');
+        try {
+            const response = await fetch('http://localhost:8080/api/mis-eventos', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) {
+                const eventos = await response.json();
+                document.getElementById('badge-total').textContent = eventos.length;
+                contenedor.innerHTML = eventos.length ? '' : '<p class="text-gray-400 italic">No hay eventos activos.</p>';
+
+                eventos.forEach(ev => {
+                    contenedor.innerHTML += `
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-lg border border-gray-100 dark:border-gray-700">
+                            <div class="flex justify-between mb-4">
+                                <span class="text-[10px] font-black bg-blue-50 text-blue-600 px-2 py-1 rounded uppercase">${ev.tipoEvento}</span>
+                                <button onclick="eliminarEvento(${ev.id})" class="text-red-400 hover:text-red-600">🗑️</button>
+                            </div>
+                            <h4 class="font-black text-gray-800 dark:text-white text-lg uppercase">${ev.nombre}</h4>
+                            <p class="text-xs text-emerald-600 font-bold mt-1">📍 En: ${ev.lugarNombre || 'Sitio asignado'}</p>
+                            
+                            <div class="mt-6 flex justify-between border-t dark:border-gray-700 pt-4">
+                                <div>
+                                    <p class="text-[9px] text-gray-400 font-bold uppercase">Asistencia</p>
+                                    <p class="text-sm font-black text-gray-700 dark:text-gray-300">${ev.aforoActual} / ${ev.aforoMaximo}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-[9px] text-gray-400 font-bold uppercase">Precio</p>
+                                    <p class="text-sm font-black text-blue-600">$${ev.precio}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+        } catch (e) {}
+    }
+
+    document.getElementById('eventoForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    let horaVal = document.getElementById('hora').value;
+    if(horaVal.length === 5) horaVal += ":00"; 
+
+    const data = {
+        nombre: document.getElementById('nombre').value,
+        tipoEvento: document.getElementById('tipo').value,
+        // Forzamos a que sean números enteros y decimales, no texto
+        aforoMaximo: parseInt(document.getElementById('aforo').value), 
+        fechaInicio: document.getElementById('fecha').value,
+        horaInicio: horaVal,
+        precio: parseFloat(document.getElementById('precio').value || 0),
+        lugarId: parseInt(document.getElementById('lugarId').value) 
+    };
+
+    try {
+        const response = await fetch('http://localhost:8080/api/eventos', {
+            method: 'POST',
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json' 
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+            alert("¡Evento creado y vinculado al lugar con éxito!");
+            document.getElementById('eventoForm').reset();
+            cargarMisEventos();
+        } else {
+            // Si hay un error, ahora lo veremos en pantalla
+            const errorData = await response.json();
+            alert("Error al guardar: " + (errorData.message || "Revisa los datos"));
+        }
+    } catch (error) { 
+        alert("Error de conexión con el servidor."); 
+    }
+});
+
+    async function eliminarEvento(id) {
+        if(!confirm("¿Eliminar este evento?")) return;
+        await fetch(`http://localhost:8080/api/eventos/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        cargarMisEventos();
+    }
+  </script>
+</body>
+</html>

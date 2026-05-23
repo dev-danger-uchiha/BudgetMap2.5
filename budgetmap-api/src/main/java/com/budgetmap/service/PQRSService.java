@@ -1,0 +1,133 @@
+package com.budgetmap.service;
+
+import com.budgetmap.dto.PQRSRequest;
+import com.budgetmap.dto.PQRSResponse;
+import com.budgetmap.model.PQRS;
+import com.budgetmap.model.Usuario;
+import com.budgetmap.model.enums.EstadoPQRS;
+import com.budgetmap.repository.PQRSRepository;
+import com.budgetmap.repository.UsuarioRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+@Service
+public class PQRSService {
+
+    @Autowired
+    private PQRSRepository pqrsRepository;
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    public List<PQRSResponse> listarTodos() {
+        return pqrsRepository.findAll().stream().map(this::convertirAResponse).collect(Collectors.toList());
+    }
+
+    public List<PQRSResponse> listarPorUsuario(Long usuarioId) {
+        return pqrsRepository.findByUsuarioId(usuarioId).stream().map(this::convertirAResponse)
+                .collect(Collectors.toList());
+    }
+
+    public Page<PQRSResponse> listarPorUsuarioPaginado(Long usuarioId, Pageable pageable) {
+        return pqrsRepository.findByUsuarioIdOrderByCreatedAtDesc(usuarioId, pageable).map(this::convertirAResponse);
+    }
+
+    public List<PQRSResponse> listarPendientesRespuesta() {
+        return pqrsRepository.findPendientesRespuesta().stream().map(this::convertirAResponse)
+                .collect(Collectors.toList());
+    }
+
+    public List<PQRSResponse> listarAsignadosAModerador(Long moderadorId) {
+        return pqrsRepository.findAsignadosAModerador(moderadorId).stream().map(this::convertirAResponse)
+                .collect(Collectors.toList());
+    }
+
+    private PQRS obtenerEntityPorId(Long id) {
+        return pqrsRepository.findById(id).orElseThrow(() -> new RuntimeException("PQRS no encontrado"));
+    }
+
+    public PQRSResponse obtenerPorId(Long id) {
+        return convertirAResponse(obtenerEntityPorId(id));
+    }
+
+    @Transactional
+    public PQRSResponse crear(PQRSRequest request, Long usuarioId) {
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        PQRS pqrs = PQRS.builder()
+                .codigoTicket(generarCodigoTicket())
+                .usuario(usuario)
+                .tipo(request.getTipo())
+                .asunto(request.getAsunto())
+                .descripcion(request.getDescripcion())
+                .adjuntos(request.getAdjuntos())
+                .estado(EstadoPQRS.ABIERTO)
+                .prioridad("MEDIA")
+                .build();
+
+        return convertirAResponse(pqrsRepository.save(pqrs));
+    }
+
+    @Transactional
+    public PQRSResponse responder(Long id, String respuesta, Long moderadorId) {
+        PQRS pqrs = obtenerEntityPorId(id);
+
+        pqrs.setRespuesta(respuesta);
+        pqrs.setEstado(EstadoPQRS.RESPONDIDO);
+        pqrs.setModeradorAsignadoId(moderadorId);
+        pqrs.setFechaRespuesta(LocalDateTime.now());
+
+        return convertirAResponse(pqrsRepository.save(pqrs));
+    }
+
+    @Transactional
+    public void asignarAModerador(Long id, Long moderadorId) {
+        PQRS pqrs = obtenerEntityPorId(id);
+        pqrs.setModeradorAsignadoId(moderadorId);
+        pqrs.setEstado(EstadoPQRS.EN_PROCESO);
+        pqrsRepository.save(pqrs);
+    }
+
+    @Transactional
+    public void cerrar(Long id) {
+        PQRS pqrs = obtenerEntityPorId(id);
+        pqrs.setEstado(EstadoPQRS.CERRADO);
+        pqrsRepository.save(pqrs);
+    }
+
+    public Long contarPorEstado(EstadoPQRS estado) {
+        return pqrsRepository.countByEstado(estado);
+    }
+
+    private String generarCodigoTicket() {
+        return "PQRS-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+    }
+
+    private PQRSResponse convertirAResponse(PQRS pqrs) {
+        return PQRSResponse.builder()
+                .id(pqrs.getId())
+                .codigoTicket(pqrs.getCodigoTicket())
+                .tipo(pqrs.getTipo())
+                .asunto(pqrs.getAsunto())
+                .descripcion(pqrs.getDescripcion())
+                .estado(pqrs.getEstado())
+                .prioridad(pqrs.getPrioridad())
+                .respuesta(pqrs.getRespuesta())
+                .fechaRespuesta(pqrs.getFechaRespuesta())
+                .adjuntos(pqrs.getAdjuntos())
+                .createdAt(pqrs.getCreatedAt())
+                .usuarioId(pqrs.getUsuario().getId())
+                .usuarioNombre(pqrs.getUsuario().getNombre())
+                .usuarioEmail(pqrs.getUsuario().getEmail())
+                .moderadorAsignadoId(pqrs.getModeradorAsignadoId())
+                .build();
+    }
+}

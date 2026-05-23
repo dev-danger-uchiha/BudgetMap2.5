@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Perfil y Radar - BudgetMap</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Seguridad: Solo exploradores
+    const token = localStorage.getItem('jwt_token');
+    if (!token) window.location.href = '/login.html';
+  </script>
+</head>
+
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen pb-10">
+
+  <nav class="bg-emerald-600 p-4 shadow-md text-white flex justify-between items-center">
+    <button onclick="location.href='/explorador/dashboard.html'"
+      class="flex items-center gap-2 font-bold hover:text-lime-200 transition">
+      ⬅️ Volver al Radar
+    </button>
+    <span class="font-extrabold tracking-widest">MI PERFIL</span>
+    <div class="w-8"></div>
+  </nav>
+
+  <main class="max-w-2xl mx-auto mt-8 px-4">
+
+    <div class="bg-gradient-to-br from-emerald-500 to-lime-500 rounded-3xl p-8 text-white shadow-xl mb-8 relative overflow-hidden">
+      <div class="relative z-10">
+        <h2 id="perfil-nombre" class="text-3xl font-black italic uppercase">Cargando...</h2>
+        <p id="perfil-email" class="text-emerald-100 text-sm mb-6">usuario@correo.com</p>
+
+        <div class="bg-white/20 backdrop-blur-md rounded-2xl p-4 inline-block border border-white/30">
+          <p class="text-[10px] font-bold uppercase tracking-widest opacity-80">Puntos Acumulados</p>
+          <p class="text-4xl font-black flex items-center gap-2">
+            <span id="puntos-valor">0</span>
+            <span class="text-xl">🪙</span>
+          </p>
+        </div>
+      </div>
+      <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full"></div>
+    </div>
+
+    <section class="bg-white dark:bg-gray-800 rounded-3xl shadow-lg p-8 border border-gray-100 dark:border-gray-700">
+      <h3 class="text-xl font-black text-gray-800 dark:text-white mb-6 flex items-center gap-2">
+        📡 Configuración del Radar
+      </h3>
+
+      <div class="space-y-8">
+        <div>
+          <div class="flex justify-between items-center mb-4">
+            <label class="font-bold text-gray-700 dark:text-gray-300">Radio de búsqueda:</label>
+            <span id="radio-display"
+              class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full font-black text-sm">500m</span>
+          </div>
+          <input type="range" id="radio-slider" min="500" max="5000" step="500" value="500"
+            class="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+          <div class="flex justify-between text-[10px] text-gray-400 mt-2 font-bold uppercase">
+            <span>Cercano (500m)</span>
+            <span>Máximo (5km)</span>
+          </div>
+        </div>
+
+        <hr class="border-gray-100 dark:border-gray-700">
+
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="font-bold text-gray-800 dark:text-white">Alertas de Promociones</p>
+              <p class="text-xs text-gray-500">Notificarme cuando haya descuentos cerca.</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="check-promo" class="sr-only peer" checked>
+              <div
+                class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500">
+              </div>
+            </label>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="font-bold text-gray-800 dark:text-white">Alertas de Eventos</p>
+              <p class="text-xs text-gray-500">Notificarme sobre eventos culturales o deportivos.</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="check-evento" class="sr-only peer" checked>
+              <div
+                class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500">
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <button id="btn-guardar-config"
+          class="w-full bg-gray-800 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-gray-700 transition">
+          GUARDAR CONFIGURACIÓN
+        </button>
+      </div>
+    </section>
+
+    <button onclick="cerrarSesion()"
+      class="w-full mt-8 py-4 text-red-500 font-bold border-2 border-red-100 rounded-2xl hover:bg-red-50 transition">
+      Cerrar Sesión
+    </button>
+
+  </main>
+
+  <script>
+    const userId = localStorage.getItem('user_id');
+
+    document.addEventListener("DOMContentLoaded", () => {
+      cargarDatosPerfil();
+      cargarConfiguracionRadar();
+    });
+
+    async function cargarDatosPerfil() {
+      try {
+        const response = await fetch(`http://localhost:8080/api/perfil/${userId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (response.ok) {
+          const user = await response.json();
+          document.getElementById('perfil-nombre').textContent = `${user.nombre} ${user.apellido}`;
+          document.getElementById('perfil-email').textContent = user.email;
+          document.getElementById('puntos-valor').textContent = user.puntosAcumulados || 0;
+        }
+      } catch (e) {
+        console.error("Error cargando perfil", e);
+      }
+    }
+
+    async function cargarConfiguracionRadar() {
+      const slider = document.getElementById('radio-slider');
+      const display = document.getElementById('radio-display');
+
+      try {
+        const response = await fetch(`http://localhost:8080/api/config-alertas/mi-radar`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (response.ok) {
+          const config = await response.json();
+          slider.value = config.radioMetros;
+          display.textContent = `${config.radioMetros}m`;
+          document.getElementById('check-promo').checked = config.notificarPromociones;
+          document.getElementById('check-evento').checked = config.notificarEventos;
+        }
+      } catch (e) {
+        console.error("Error cargando configuración de radar", e);
+      }
+
+      slider.addEventListener('input', () => {
+        display.textContent = `${slider.value}m`;
+      });
+    }
+
+    document.getElementById('btn-guardar-config').addEventListener('click', async () => {
+      const nuevoRadio = document.getElementById('radio-slider').value;
+      const promo = document.getElementById('check-promo').checked;
+      const evento = document.getElementById('check-evento').checked;
+
+      try {
+        const response = await fetch(`http://localhost:8080/api/config-alertas/radio`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            radioMetros: nuevoRadio,
+            notificarPromociones: promo,
+            notificarEventos: evento
+          })
+        });
+
+        if (response.ok) {
+          alert("¡Configuración actualizada! Tu radar ahora llegará más lejos.");
+        }
+      } catch (e) {
+        alert("Error al guardar.");
+      }
+    });
+
+    function cerrarSesion() {
+      localStorage.clear();
+      window.location.href = '/login.html';
+    }
+  </script>
+</body>
+</html>

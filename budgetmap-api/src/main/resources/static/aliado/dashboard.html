@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Aliado - BudgetMap</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    const token = localStorage.getItem('jwt_token');
+    const rol = localStorage.getItem('user_rol');
+    if (!token || rol !== 'LOCAL_ALIADO') window.location.href = '/login.html?denied=true';
+  </script>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 min-h-screen font-sans">
+
+  <nav class="bg-emerald-800 p-4 shadow-xl text-white flex justify-between items-center sticky top-0 z-50">
+    <div class="flex items-center gap-3">
+       <img src="/images/logo.jpg" class="w-8 h-8 rounded-full bg-white p-0.5" alt="Logo">
+       <span class="font-black tracking-widest text-lg">PANEL ALIADO</span>
+    </div>
+    <div class="flex gap-6 text-xs font-bold uppercase tracking-widest">
+        <a href="/aliado/dashboard.html" class="text-lime-400 border-b-2 border-lime-400 pb-1">Dashboard</a>
+        <a href="/aliado/promociones.html" class="hover:text-lime-400 transition">Promociones</a>
+        <a href="/aliado/mi-establecimiento.html" class="hover:text-lime-400 transition">Mi Local</a>
+    </div>
+    <button onclick="localStorage.clear(); location.href='/login.html'" class="text-[10px] bg-red-600 px-3 py-1 rounded-lg font-bold">SALIR</button>
+  </nav>
+
+  <main class="max-w-6xl mx-auto mt-8 px-4 pb-20">
+    
+    <div class="mb-10">
+        <h1 class="text-3xl font-black text-gray-800 dark:text-white">Hola, <span id="nombre-aliado" class="text-emerald-600">Aliado</span> 👋</h1>
+        <p class="text-gray-500 dark:text-gray-400 mt-1" id="nombre-negocio">Gestionando tu establecimiento...</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-lg border-b-4 border-emerald-500 relative overflow-hidden">
+            <p class="text-xs font-black text-gray-400 uppercase tracking-widest">Aforo Actual</p>
+            <div class="flex items-end gap-2 mt-2">
+                <span id="aforo-actual" class="text-5xl font-black text-gray-800 dark:text-white">0</span>
+                <span class="text-xl text-gray-400 font-bold mb-1">/ <span id="aforo-max">0</span></span>
+            </div>
+            <div class="w-full bg-gray-100 dark:bg-gray-700 h-2 rounded-full mt-4">
+                <div id="aforo-barra" class="bg-emerald-500 h-full rounded-full transition-all duration-700" style="width: 0%"></div>
+            </div>
+            <p class="text-[10px] text-emerald-600 font-bold mt-2">Actualizado en tiempo real</p>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-lg border-b-4 border-blue-500">
+            <p class="text-xs font-black text-gray-400 uppercase tracking-widest">Reservas para Hoy</p>
+            <p id="reservas-hoy" class="text-5xl font-black text-blue-600 mt-2">0</p>
+            <a href="/aliado/check-in.html" class="inline-block mt-4 text-xs font-bold text-blue-500 hover:underline">Ver lista de espera →</a>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-lg border-b-4 border-lime-500">
+            <p class="text-xs font-black text-gray-400 uppercase tracking-widest">Promociones Vivas</p>
+            <p id="promos-activas" class="text-5xl font-black text-lime-600 mt-2">0</p>
+            <a href="/aliado/promociones.html" class="inline-block mt-4 text-xs font-bold text-lime-600 hover:underline">Gestionar cupones →</a>
+        </div>
+
+    </div>
+
+    <section class="bg-gradient-to-br from-emerald-700 to-green-900 rounded-3xl p-8 text-white shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6">
+        <div class="text-center md:text-left">
+            <h2 class="text-2xl font-black tracking-tight">¿Llegó un cliente?</h2>
+            <p class="text-emerald-100 opacity-80 mt-1">Ingresa el código de reserva para validar su llegada y puntos.</p>
+        </div>
+        <button onclick="location.href='/aliado/check-in.html'" class="bg-white text-emerald-800 font-black px-8 py-4 rounded-2xl shadow-xl hover:bg-lime-50 transition transform active:scale-95 whitespace-nowrap">
+            VALIDAR CÓDIGO (CHECK-IN)
+        </button>
+    </section>
+
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", cargarMetricas);
+
+    async function cargarMetricas() {
+    try {
+        console.log("Cargando métricas del dashboard...");
+
+        // 1. Obtener establecimiento
+        const responseEst = await fetch('http://localhost:8080/api/establecimientos/mi-establecimiento', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        console.log("STATUS establecimiento:", responseEst.status);
+
+        // 🔥 Manejo correcto de estados
+        if (responseEst.status === 200) {
+            const est = await responseEst.json();
+
+            // Validación extra (modo PRO)
+            if (!est || !est.id) {
+                console.warn("Respuesta sin establecimiento válido");
+                window.location.href = '/aliado/mi-establecimiento.html';
+                return;
+            }
+
+            // Pintar datos básicos
+            document.getElementById('nombre-aliado').textContent =
+                localStorage.getItem('user_nombre') || 'Aliado';
+
+            document.getElementById('nombre-negocio').textContent =
+                `Gestionando: ${est.nombre}`;
+
+            // 2. Aforo
+            const actual = est.aforoActual || 0;
+            const max = est.aforoMaximo || 1;
+
+            document.getElementById('aforo-actual').textContent = actual;
+            document.getElementById('aforo-max').textContent = max;
+
+            const porcentaje = Math.min((actual / max) * 100, 100);
+            document.getElementById('aforo-barra').style.width = `${porcentaje}%`;
+
+            // 3. Reservas
+            try {
+                const responseRes = await fetch(
+                    `http://localhost:8080/api/reservas/establecimiento/${est.id}`,
+                    { headers: { 'Authorization': `Bearer ${token}` } }
+                );
+
+                if (responseRes.ok) {
+                    const reservas = await responseRes.json();
+                    document.getElementById('reservas-hoy').textContent = reservas.length;
+                } else {
+                    console.warn("Error cargando reservas:", responseRes.status);
+                    document.getElementById('reservas-hoy').textContent = "0";
+                }
+            } catch (err) {
+                console.error("Error en reservas:", err);
+                document.getElementById('reservas-hoy').textContent = "0";
+            }
+
+            // 4. Promociones
+            try {
+                const responsePromos = await fetch(
+                    `http://localhost:8080/api/promociones/establecimiento/${est.id}`,
+                    { headers: { 'Authorization': `Bearer ${token}` } }
+                );
+
+                if (responsePromos.ok) {
+                    const promos = await responsePromos.json();
+                    document.getElementById('promos-activas').textContent = promos.length;
+                } else {
+                    console.warn("Error cargando promos:", responsePromos.status);
+                    document.getElementById('promos-activas').textContent = "0";
+                }
+            } catch (err) {
+                console.error("Error en promociones:", err);
+                document.getElementById('promos-activas').textContent = "0";
+            }
+
+        } else if (responseEst.status === 404) {
+            // ✅ Solo redirige si NO tiene establecimiento
+            console.warn("No existe establecimiento → redirigiendo");
+            window.location.href = '/aliado/mi-establecimiento.html';
+
+        } else if (responseEst.status === 401 || responseEst.status === 403) {
+            // 🔐 Problema de sesión/token
+            console.warn("Sesión inválida");
+            localStorage.clear();
+            window.location.href = '/login.html';
+
+        } else {
+            // ❌ Otros errores (NO redirige)
+            console.error("Error inesperado:", responseEst.status);
+        }
+
+    } catch (error) {
+        console.error("Error crítico en Dashboard:", error);
+    }
+}
+  </script>
+</body>
+</html>
