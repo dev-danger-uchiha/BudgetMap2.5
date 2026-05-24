@@ -1,4 +1,4 @@
-package com.budgetmap.enums;
+package com.budgetmap.model.enums;
 
 public enum TipoPublico {
     ALIADO,

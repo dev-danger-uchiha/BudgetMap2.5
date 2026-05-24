@@ -1,6 +1,6 @@
 package com.budgetmap.model;
 
-import com.budgetmap.enums.TipoPublico;
+import com.budgetmap.model.enums.TipoPublico;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;

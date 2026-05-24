@@ -1,7 +1,7 @@
 package com.budgetmap.model;
 
-import com.budgetmap.enums.EstadoTransaccion;
-import com.budgetmap.enums.TipoTransaccion;
+import com.budgetmap.model.enums.EstadoTransaccion;
+import com.budgetmap.model.enums.TipoTransaccion;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;

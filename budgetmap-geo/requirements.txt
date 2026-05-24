@@ -7,7 +7,6 @@ cryptography==41.0.7
 Shapely==2.0.2
 GeoAlchemy2==0.14.2
 SQLAlchemy==2.0.23
-python-dotenv==1.0.0
 gunicorn==21.2.0
 requests==2.31.0
 numpy==1.26.2
