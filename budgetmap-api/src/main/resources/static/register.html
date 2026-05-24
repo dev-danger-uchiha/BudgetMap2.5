@@ -39,7 +39,7 @@
       </div>
     </a>
 
-    <main class="bg-white/95 dark:bg-gray-900/90 backdrop-blur-xl pt-20 pb-10 px-8 md:px-12 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/20">
+    <main class="bg-orange-50 dark:bg-gray-900/70 backdrop-blur-xl pt-20 pb-10 px-8 md:px-12 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/20">
       
       <div class="text-center mb-8">
         <h2 class="text-3xl md:text-4xl font-black text-gray-800 dark:text-white tracking-tight">Únete a BudgetMap</h2>
@@ -50,22 +50,22 @@
 
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8" id="roleCards">
         
-        <div onclick="seleccionarRol('EXPLORADOR', this)" class="role-card relative flex flex-col items-center p-5 bg-gray-50/50 dark:bg-gray-800/50 border-2 border-transparent rounded-2xl cursor-pointer hover:bg-white dark:hover:bg-gray-700 transition shadow-sm hover:shadow-md">
+        <div onclick="seleccionarRol('EXPLORADOR', this)" class="role-card relative flex flex-col items-center p-5 bg-white/60 dark:bg-orange-50 border-2 border-emerald-200 dark:border-transparent rounded-2xl cursor-pointer hover:bg-white dark:hover:bg-orange-100 transition shadow-sm hover:shadow-md text-gray-700 dark:text-gray-900">
           <span class="text-4xl mb-2 filter drop-shadow-sm">🎒</span>
-          <span class="text-sm font-extrabold text-gray-700 dark:text-gray-200 uppercase tracking-wider">Explorador</span>
-          <p class="text-[10px] text-gray-500 mt-1 text-center font-medium">Descubre lugares y ahorra</p>
+          <span class="text-sm font-extrabold uppercase tracking-wider">Explorador</span>
+          <p class="text-[10px] mt-1 text-center font-medium opacity-70">Descubre lugares y ahorra</p>
         </div>
 
-        <div onclick="seleccionarRol('LOCAL_ALIADO', this)" class="role-card relative flex flex-col items-center p-5 bg-gray-50/50 dark:bg-gray-800/50 border-2 border-transparent rounded-2xl cursor-pointer hover:bg-white dark:hover:bg-gray-700 transition shadow-sm hover:shadow-md">
+        <div onclick="seleccionarRol('LOCAL_ALIADO', this)" class="role-card relative flex flex-col items-center p-5 bg-white/60 dark:bg-orange-50 border-2 border-emerald-200 dark:border-transparent rounded-2xl cursor-pointer hover:bg-white dark:hover:bg-orange-100 transition shadow-sm hover:shadow-md text-gray-700 dark:text-gray-900">
           <span class="text-4xl mb-2 filter drop-shadow-sm">🏪</span>
-          <span class="text-sm font-extrabold text-gray-700 dark:text-gray-200 uppercase tracking-wider">Local Aliado</span>
-          <p class="text-[10px] text-gray-500 mt-1 text-center font-medium">Registra tu negocio</p>
+          <span class="text-sm font-extrabold uppercase tracking-wider">Local Aliado</span>
+          <p class="text-[10px] mt-1 text-center font-medium opacity-70">Registra tu negocio</p>
         </div>
 
-        <div onclick="seleccionarRol('ANFITRION', this)" class="role-card relative flex flex-col items-center p-5 bg-gray-50/50 dark:bg-gray-800/50 border-2 border-transparent rounded-2xl cursor-pointer hover:bg-white dark:hover:bg-gray-700 transition shadow-sm hover:shadow-md">
+        <div onclick="seleccionarRol('ANFITRION', this)" class="role-card relative flex flex-col items-center p-5 bg-white/60 dark:bg-orange-50 border-2 border-emerald-200 dark:border-transparent rounded-2xl cursor-pointer hover:bg-white dark:hover:bg-orange-100 transition shadow-sm hover:shadow-md text-gray-700 dark:text-gray-900">
           <span class="text-4xl mb-2 filter drop-shadow-sm">🎤</span>
-          <span class="text-sm font-extrabold text-gray-700 dark:text-gray-200 uppercase tracking-wider">Anfitrión</span>
-          <p class="text-[10px] text-gray-500 mt-1 text-center font-medium">Crea y gestiona eventos</p>
+          <span class="text-sm font-extrabold uppercase tracking-wider">Anfitrión</span>
+          <p class="text-[10px] mt-1 text-center font-medium opacity-70">Crea y gestiona eventos</p>
         </div>
       </div>
 
@@ -80,28 +80,28 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div>
             <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1 ml-1">Nombres *</label>
-            <input type="text" id="nombre" required class="w-full px-4 py-2.5 bg-gray-50/50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition shadow-sm dark:text-white" />
+            <input type="text" id="nombre" required class="w-full px-4 py-2.5 bg-white/60 dark:bg-gray-800/50 border border-emerald-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition shadow-sm text-gray-900 dark:text-white" />
           </div>
           <div>
             <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1 ml-1">Apellidos *</label>
-            <input type="text" id="apellido" required class="w-full px-4 py-2.5 bg-gray-50/50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition shadow-sm dark:text-white" />
+            <input type="text" id="apellido" required class="w-full px-4 py-2.5 bg-white/60 dark:bg-gray-800/50 border border-emerald-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition shadow-sm text-gray-900 dark:text-white" />
           </div>
           <div>
             <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1 ml-1">Correo Electrónico *</label>
-            <input type="email" id="email" required placeholder="correo@ejemplo.com" class="w-full px-4 py-2.5 bg-gray-50/50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition shadow-sm dark:text-white" />
+            <input type="email" id="email" required placeholder="correo@ejemplo.com" class="w-full px-4 py-2.5 bg-white/60 dark:bg-gray-800/50 border border-emerald-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition shadow-sm text-gray-900 dark:text-white" />
           </div>
           <div>
             <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1 ml-1">Teléfono</label>
-            <input type="text" id="telefono" class="w-full px-4 py-2.5 bg-gray-50/50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition shadow-sm dark:text-white" />
+            <input type="text" id="telefono" class="w-full px-4 py-2.5 bg-white/60 dark:bg-gray-800/50 border border-emerald-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition shadow-sm text-gray-900 dark:text-white" />
           </div>
           
           <div>
             <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1 ml-1">Contraseña *</label>
-            <input type="password" id="password" required minlength="6" placeholder="Mínimo 6 caracteres" class="w-full px-4 py-2.5 bg-gray-50/50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition shadow-sm dark:text-white" />
+            <input type="password" id="password" required minlength="6" placeholder="Mínimo 6 caracteres" class="w-full px-4 py-2.5 bg-white/60 dark:bg-gray-800/50 border border-emerald-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition shadow-sm text-gray-900 dark:text-white" />
           </div>
           <div>
             <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1 ml-1">Confirmar Contraseña *</label>
-            <input type="password" id="confirmPassword" required minlength="6" placeholder="Repite tu contraseña" class="w-full px-4 py-2.5 bg-gray-50/50 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition shadow-sm dark:text-white" />
+            <input type="password" id="confirmPassword" required minlength="6" placeholder="Repite tu contraseña" class="w-full px-4 py-2.5 bg-white/60 dark:bg-gray-800/50 border border-emerald-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition shadow-sm text-gray-900 dark:text-white" />
           </div>
         </div>
 
@@ -126,13 +126,20 @@
     function seleccionarRol(rol, elementoCard) {
       rolSeleccionado = rol;
 
-      // Efectos visuales en las tarjetas (marcar la seleccionada)
+      // Resetear todas las tarjetas a su estado inicial
       document.querySelectorAll('.role-card').forEach(card => {
-        card.classList.remove('border-emerald-500', 'bg-white', 'dark:bg-gray-700', 'shadow-lg', 'scale-105');
-        card.classList.add('border-transparent');
+        // Quitamos los estilos de "seleccionado" 
+        card.classList.remove('border-emerald-500', 'bg-white', 'shadow-lg', 'scale-105');
+        
+        // Devolvemos los estilos de "inactivo" (el fondo naranja oscuro ahora es fijo en el HTML)
+        card.classList.add('border-emerald-200', 'dark:border-transparent', 'bg-white/60');
       });
-      elementoCard.classList.remove('border-transparent');
-      elementoCard.classList.add('border-emerald-500', 'bg-white', 'dark:bg-gray-700', 'shadow-lg', 'scale-105');
+
+      // Quitamos el estilo inactivo a la tarjeta cliqueada
+      elementoCard.classList.remove('border-emerald-200', 'dark:border-transparent', 'bg-white/60');
+      
+      // Aplicamos el estilo ACTIVO: Borde verde y animación
+      elementoCard.classList.add('border-emerald-500', 'bg-white', 'shadow-lg', 'scale-105');
 
       // Desplegar el formulario
       document.getElementById('registerForm').classList.add('show');

@@ -6,6 +6,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -31,8 +32,21 @@ public class Reserva {
     private Usuario usuario;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "establecimiento_id", nullable = false)
+    @JoinColumn(name = "establecimiento_id")
     private Establecimiento establecimiento;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "evento_id")
+    private Evento evento;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "lugar_id")
+    private Lugar lugar;
+
+    // --- RELACIÓN ASOCIADA AL MODELO DE NEGOCIO (COMISIONES POR CUPÓN) ---
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "promocion_id")
+    private Promocion promocion;
 
     @Column(name = "fecha_reserva", nullable = false)
     private LocalDate fechaReserva;
@@ -43,12 +57,10 @@ public class Reserva {
     @Column(name = "hora_fin")
     private LocalTime horaFin;
 
-    // --- WARNING 1 ---
     @Builder.Default
     @Column(name = "numero_personas", nullable = false)
     private Integer numeroPersonas = 1;
 
-    // --- WARNING 2 ---
     @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -57,10 +69,13 @@ public class Reserva {
     @Column(name = "fecha_validacion")
     private LocalDateTime fechaValidacion;
 
-    // --- WARNING 3 ---
     @Builder.Default
     @Column(name = "puntos_otorgados")
     private Integer puntosOtorgados = 0;
+
+    @Builder.Default
+    @Column(name = "comision_cobrada", precision = 10, scale = 2)
+    private BigDecimal comisionCobrada = BigDecimal.ZERO;
 
     @Column(columnDefinition = "TEXT")
     private String notas;
@@ -84,5 +99,7 @@ public class Reserva {
             numeroPersonas = 1;
         if (puntosOtorgados == null)
             puntosOtorgados = 0;
+        if (comisionCobrada == null)
+            comisionCobrada = BigDecimal.ZERO;
     }
 }

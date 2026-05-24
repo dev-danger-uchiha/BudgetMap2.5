@@ -108,7 +108,8 @@ public class WebSecurityConfig {
                         .permitAll()
 
                         // --- 2. API PÚBLICA ---
-                        .requestMatchers("/api/auth/**", "/api/geo/**", "/error/**", "/health").permitAll()
+                        .requestMatchers("/api/auth/**", "/api/destacados/**", "/api/geo/**", "/error/**", "/health").permitAll()
+
                         .requestMatchers(HttpMethod.GET, "/api/lugares/aprobados/**",
                                 "/api/establecimientos/aprobados/**")
                         .permitAll()

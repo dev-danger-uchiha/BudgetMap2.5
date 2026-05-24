@@ -30,6 +30,9 @@ public interface LugarRepository extends JpaRepository<Lugar, Long> {
         @Query("SELECT l FROM Lugar l WHERE l.estado = 'PENDIENTE' AND l.activo = true")
         List<Lugar> findPendientesAprobacion();
 
+        @Query("SELECT l FROM Lugar l WHERE l.destacado = true AND l.estado = 'APROBADO' AND l.activo = true")
+        List<Lugar> findDestacados();
+
         @Query("SELECT COUNT(l) FROM Lugar l WHERE l.estado = :estado")
         Long countByEstado(@Param("estado") EstadoAprobacion estado);
 }

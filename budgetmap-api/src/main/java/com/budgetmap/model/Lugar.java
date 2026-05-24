@@ -82,6 +82,11 @@ public class Lugar {
     @Column(name = "motivo_rechazo", length = 500)
     private String motivoRechazo;
 
+    // --- NUEVO CAMPO: FILTRO INDEX ---
+    @Builder.Default
+    @Column(name = "destacado", nullable = false)
+    private Boolean destacado = false;
+
     @Builder.Default
     @Column(nullable = false)
     private Boolean activo = true;
@@ -106,6 +111,8 @@ public class Lugar {
             estado = EstadoAprobacion.PENDIENTE;
         if (activo == null)
             activo = true;
+        if (destacado == null)
+            destacado = false;
 
         if (this.latitud != null && this.longitud != null) {
             this.ubicacion = com.budgetmap.util.GeometryUtils.crearPunto(this.latitud, this.longitud);

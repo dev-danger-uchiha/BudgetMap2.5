@@ -63,6 +63,11 @@ public class Promocion {
     @Column(name = "usos_actuales", nullable = false)
     private Integer usosActuales = 0;
 
+    // --- NUEVO CAMPO: ACCESO ANTICIPADO FREEMIUM ---
+    @Builder.Default
+    @Column(name = "solo_pro", nullable = false)
+    private Boolean soloPro = false;
+
     @Column(name = "imagen_url", length = 500)
     private String imagenUrl;
 
@@ -86,5 +91,7 @@ public class Promocion {
             descuentoValor = BigDecimal.ZERO;
         if (precioEspecial == null)
             precioEspecial = BigDecimal.ZERO;
+        if (soloPro == null)
+            soloPro = false;
     }
 }

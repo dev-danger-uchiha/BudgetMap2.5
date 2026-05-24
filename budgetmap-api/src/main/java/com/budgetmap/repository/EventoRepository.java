@@ -31,4 +31,7 @@ public interface EventoRepository extends JpaRepository<Evento, Long> {
 
     @Query("SELECT COUNT(e) FROM Evento e WHERE e.creador.id = :creadorId AND e.activo = true")
     Long countActivosByCreador(@Param("creadorId") Long creadorId);
+    
+    @Query("SELECT e FROM Evento e WHERE e.destacado = true AND e.activo = true")
+    List<Evento> findAllDestacados();
 }

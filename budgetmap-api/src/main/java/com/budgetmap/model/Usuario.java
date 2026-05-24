@@ -57,6 +57,14 @@ public class Usuario {
     @Column(name = "ultimo_acceso")
     private LocalDateTime ultimoAcceso;
 
+    // --- NUEVOS CAMPOS: MODELO DE NEGOCIO ---
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "plan_id")
+    private PlanSuscripcion plan;
+
+    @Column(name = "fecha_fin_suscripcion")
+    private LocalDateTime fechaFinSuscripcion;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

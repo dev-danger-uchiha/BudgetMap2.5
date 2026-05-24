@@ -85,6 +85,20 @@ public class Establecimiento {
     @Column(name = "motivo_rechazo", length = 500)
     private String motivoRechazo;
 
+    // --- NUEVOS CAMPOS: PUBLICIDAD Y ADS ---
+    @Column(name = "pin_destacado")
+    private Boolean pinDestacado;
+
+    @Column(name = "color_pin", length = 20)
+    private String colorPin;
+
+    @Column(name = "fin_publicidad")
+    private LocalDateTime finPublicidad;
+
+    @Builder.Default
+    @Column(name = "destacado", nullable = false)
+    private Boolean destacado = false;
+
     @Builder.Default
     @Column(nullable = false)
     private Boolean activo = true;
@@ -106,6 +120,10 @@ public class Establecimiento {
             activo = true;
         if (aforoActual == null)
             aforoActual = 0;
+        if (destacado == null)
+            destacado = false;
+        if (pinDestacado == null)
+            pinDestacado = false;
         if (this.latitud != null && this.longitud != null) {
             this.ubicacion = com.budgetmap.util.GeometryUtils.crearPunto(this.latitud, this.longitud);
         }

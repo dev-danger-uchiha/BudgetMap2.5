@@ -39,6 +39,12 @@ public interface EstablecimientoRepository extends JpaRepository<Establecimiento
 
         @Query("SELECT COUNT(e) FROM Establecimiento e WHERE e.estado = :estado")
         Long countByEstado(@Param("estado") EstadoAprobacion estado);
+        
+        @Query("SELECT e FROM Establecimiento e WHERE e.destacado = true AND e.estado = 'APROBADO' AND e.activo = true")
+        List<Establecimiento> findDestacados();
 
+        @Query("SELECT e FROM Establecimiento e WHERE e.destacado = true AND e.categoria = :categoria AND e.estado = 'APROBADO' AND e.activo = true")
+        List<Establecimiento> findDestacadosPorCategoria(@Param("categoria") CategoriaEstablecimiento categoria);
+        
         boolean existsByNit(String nit);
 }

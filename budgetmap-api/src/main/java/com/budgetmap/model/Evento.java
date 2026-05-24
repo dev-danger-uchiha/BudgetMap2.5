@@ -34,11 +34,11 @@ public class Evento {
     @Column(name = "tipo_evento", nullable = false, length = 30)
     private TipoEvento tipoEvento;
 
-    @ManyToOne(fetch = FetchType.LAZY) // ser nulo si el evento es en un establecimiento
+    @ManyToOne(fetch = FetchType.LAZY) 
     @JoinColumn(name = "lugar_id")
     private Lugar lugar;
 
-    @ManyToOne(fetch = FetchType.LAZY) // ser nulo si el evento es en un lugar público
+    @ManyToOne(fetch = FetchType.LAZY) 
     @JoinColumn(name = "establecimiento_id")
     private Establecimiento establecimiento;
 
@@ -75,6 +75,7 @@ public class Evento {
     @Column(nullable = false)
     private Boolean activo = true;
 
+    // --- NUEVO CAMPO: FILTRO INDEX ---
     @Builder.Default
     @Column(name = "destacado", nullable = false)
     private Boolean destacado = false;

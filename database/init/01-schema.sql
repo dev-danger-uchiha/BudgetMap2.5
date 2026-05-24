@@ -1,5 +1,5 @@
 -- ======================================================
--- SCRIPT DE BASE DE DATOS: BUDGETMAP (VERSIÓN FINAL)
+-- SCRIPT DE BASE DE DATOS: BUDGETMAP (VERSIÓN FINAL + MODELO DE NEGOCIO)
 -- Autores: DEV UCHIHA
 -- Stack: Spring Boot + Flask + MySQL 8.0
 -- ======================================================
@@ -12,28 +12,67 @@ CREATE DATABASE IF NOT EXISTS budgetmap
 USE budgetmap;
 
 -- -----------------------------------------------------
--- 1. MÓDULO DE USUARIOS
+-- 1. MÓDULO DE PLANES (NUEVA TABLA PARA SaaS Y FREEMIUM)
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS planes_suscripcion (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL UNIQUE, -- Ej: 'BÁSICO', 'PRO', 'EXPLORADOR_PRO'
+    tipo_publico ENUM('ALIADO', 'EXPLORADOR') NOT NULL,
+    precio_mensual DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    permite_promos_ilimitadas BOOLEAN DEFAULT FALSE,
+    permite_estadisticas_avanzadas BOOLEAN DEFAULT FALSE,
+    acceso_anticipado_ofertas BOOLEAN DEFAULT FALSE,
+    sin_anuncios BOOLEAN DEFAULT FALSE,
+    activo BOOLEAN DEFAULT TRUE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- -----------------------------------------------------
+-- 2. MÓDULO DE USUARIOS
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS usuarios (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL, -- Ampliado para soportar BCrypt (60+ chars)
+    password VARCHAR(255) NOT NULL,
     nombre VARCHAR(255) NOT NULL,
     apellido VARCHAR(255),
     telefono VARCHAR(255),
     rol ENUM('ADMINISTRADOR', 'MODERADOR', 'LOCAL_ALIADO', 'ANFITRION', 'EXPLORADOR') NOT NULL,
+    
+    -- Manejo de Plan y Suscripción
+    plan_id INT, 
+    fecha_fin_suscripcion DATETIME,
+    
+    -- Manejo de Puntos / Tokens
     puntos_acumulados INT DEFAULT 0,
+    
     activo BOOLEAN DEFAULT TRUE,
     email_verificado BOOLEAN DEFAULT FALSE,
     ultimo_acceso DATETIME,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_email (email),
-    INDEX idx_rol (rol)
+    INDEX idx_rol (rol),
+    FOREIGN KEY (plan_id) REFERENCES planes_suscripcion(id)
 ) ENGINE=InnoDB;
 
 -- -----------------------------------------------------
--- 2. MÓDULO LUGARES
+-- 3. MÓDULO DE TRANSACCIONES (NUEVA TABLA PARA TOKENS Y COMISIONES)
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS transacciones (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    usuario_id BIGINT NOT NULL,
+    tipo ENUM('COMPRA_PLAN', 'COMPRA_PUNTOS', 'COMISION_RESERVA', 'PAGO_ADS') NOT NULL,
+    monto DECIMAL(10,2) NOT NULL,
+    metodo_pago VARCHAR(50), -- Ej: 'PSE', 'TDC', 'NEQUI'
+    referencia_pago VARCHAR(255) UNIQUE,
+    estado ENUM('PENDIENTE', 'EXITOSO', 'FALLIDO', 'REEMBOLSADO') DEFAULT 'PENDIENTE',
+    fecha_transaccion DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+) ENGINE=InnoDB;
+
+-- -----------------------------------------------------
+-- 4. MÓDULO LUGARES
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS lugares (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -50,6 +89,7 @@ CREATE TABLE IF NOT EXISTS lugares (
     moderador_id BIGINT,
     fecha_aprobacion DATETIME,
     motivo_rechazo VARCHAR(255),
+    destacado BOOLEAN DEFAULT FALSE,
     activo BOOLEAN DEFAULT TRUE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -58,7 +98,7 @@ CREATE TABLE IF NOT EXISTS lugares (
 ) ENGINE=InnoDB;
 
 -- -----------------------------------------------------
--- 3. MÓDULO ESTABLECIMIENTOS
+-- 5. MÓDULO ESTABLECIMIENTOS (Ajustado para SaaS y Ads)
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS establecimientos (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -80,6 +120,13 @@ CREATE TABLE IF NOT EXISTS establecimientos (
     moderador_id BIGINT,
     fecha_aprobacion DATETIME,
     motivo_rechazo VARCHAR(1000),
+    
+    -- Publicidad Hiperlocal (Ads)
+    pin_destacado BOOLEAN DEFAULT FALSE,
+    color_pin VARCHAR(20) DEFAULT 'NORMAL', -- Ej: 'DORADO', 'ROJO_URGENTE'
+    fin_publicidad DATETIME NULL,
+    
+    destacado BOOLEAN DEFAULT FALSE,
     activo BOOLEAN DEFAULT TRUE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -89,7 +136,7 @@ CREATE TABLE IF NOT EXISTS establecimientos (
 ) ENGINE=InnoDB;
 
 -- -----------------------------------------------------
--- 4. MÓDULO EVENTOS
+-- 6. MÓDULO EVENTOS
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS eventos (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -117,28 +164,7 @@ CREATE TABLE IF NOT EXISTS eventos (
 ) ENGINE=InnoDB;
 
 -- -----------------------------------------------------
--- 5. MÓDULO RESERVAS
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS reservas (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    codigo_reserva VARCHAR(255) NOT NULL UNIQUE,
-    usuario_id BIGINT NOT NULL,
-    evento_id BIGINT NULL,
-    establecimiento_id BIGINT NULL,
-    lugar_id BIGINT NULL,
-    fecha_reserva DATETIME NOT NULL,
-    numero_personas INT DEFAULT 1,
-    estado ENUM('PENDIENTE', 'CONFIRMADA', 'CANCELADA', 'COMPLETADA') DEFAULT 'PENDIENTE',
-    puntos_otorgados INT DEFAULT 0,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
-    FOREIGN KEY (evento_id) REFERENCES eventos(id),
-    FOREIGN KEY (establecimiento_id) REFERENCES establecimientos(id),
-    FOREIGN KEY (lugar_id) REFERENCES lugares(id)
-) ENGINE=InnoDB;
-
--- -----------------------------------------------------
--- 6. MÓDULO PROMOCIONES
+-- 7. MÓDULO PROMOCIONES (Ajustado para Acceso Anticipado)
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS promociones (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -154,6 +180,7 @@ CREATE TABLE IF NOT EXISTS promociones (
     codigo_cupon VARCHAR(255),
     usos_maximos INT,
     usos_actuales INT DEFAULT 0,
+    solo_pro BOOLEAN DEFAULT FALSE,
     imagen_url VARCHAR(1000),
     activo BOOLEAN DEFAULT TRUE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -163,7 +190,46 @@ CREATE TABLE IF NOT EXISTS promociones (
 ) ENGINE=InnoDB;
 
 -- -----------------------------------------------------
--- 7. MÓDULO DE SOPORTE
+-- 8. MÓDULO RESERVAS (Ajustado para Comisiones)
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS reservas (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    codigo_reserva VARCHAR(255) NOT NULL UNIQUE,
+    usuario_id BIGINT NOT NULL,
+    evento_id BIGINT NULL,
+    establecimiento_id BIGINT NULL,
+    lugar_id BIGINT NULL,
+    promocion_id BIGINT NULL,
+    fecha_reserva DATETIME NOT NULL,
+    numero_personas INT DEFAULT 1,
+    estado ENUM('PENDIENTE', 'CONFIRMADA', 'CANCELADA', 'COMPLETADA', 'REDIMIDA') DEFAULT 'PENDIENTE',
+    puntos_otorgados INT DEFAULT 0,
+    comision_cobrada DECIMAL(10,2) DEFAULT 0.00,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
+    FOREIGN KEY (evento_id) REFERENCES eventos(id),
+    FOREIGN KEY (establecimiento_id) REFERENCES establecimientos(id),
+    FOREIGN KEY (lugar_id) REFERENCES lugares(id),
+    FOREIGN KEY (promocion_id) REFERENCES promociones(id)
+) ENGINE=InnoDB;
+
+-- -----------------------------------------------------
+-- 9. MÓDULO DE ANALÍTICAS (NUEVA TABLA PARA EL ADD-ON OPCIONAL)
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS analiticas_locales (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    establecimiento_id BIGINT NOT NULL,
+    fecha DATE NOT NULL,
+    clics_perfil INT DEFAULT 0,
+    vistas_mapa INT DEFAULT 0,
+    cupones_vistos INT DEFAULT 0,
+    exploradores_cercanos_promedio INT DEFAULT 0, -- Dato traído por Flask/Geo
+    FOREIGN KEY (establecimiento_id) REFERENCES establecimientos(id),
+    UNIQUE INDEX idx_estab_fecha (establecimiento_id, fecha)
+) ENGINE=InnoDB;
+
+-- -----------------------------------------------------
+-- 10. MÓDULO DE SOPORTE Y NOTIFICACIONES (Se mantienen igual)
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS pqrs (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -182,9 +248,6 @@ CREATE TABLE IF NOT EXISTS pqrs (
     FOREIGN KEY (moderador_asignado_id) REFERENCES usuarios(id)
 ) ENGINE=InnoDB;
 
--- -----------------------------------------------------
--- 8. MÓDULO DE NOTIFICACIONES
--- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS notificaciones (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     usuario_id BIGINT NOT NULL,
@@ -199,9 +262,6 @@ CREATE TABLE IF NOT EXISTS notificaciones (
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
 ) ENGINE=InnoDB;
 
--- -----------------------------------------------------
--- 9. MÓDULO DE ALERTAS
--- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS config_alertas (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     usuario_id BIGINT NOT NULL UNIQUE,
