@@ -2,6 +2,7 @@ package com.budgetmap.service;
 
 import com.budgetmap.dto.ReservaRequest;
 import com.budgetmap.dto.ReservaResponse;
+import com.budgetmap.exception.ResourceNotFoundException;
 import com.budgetmap.model.Establecimiento;
 import com.budgetmap.model.Reserva;
 import com.budgetmap.model.Usuario;
@@ -14,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -33,6 +35,9 @@ public class ReservaService {
 
     @Autowired
     private UsuarioService usuarioService;
+
+    @Autowired
+    private PuntosService puntosService; // Motor de puntos inyectado correctamente
 
     public List<ReservaResponse> listarTodas() {
         return reservaRepository.findAll().stream()
@@ -110,8 +115,8 @@ public class ReservaService {
         reserva.setEstado(EstadoReserva.COMPLETADA);
         reserva.setFechaValidacion(LocalDateTime.now());
 
-        // Otorgar puntos al completar la asistencia
-        usuarioService.sumarPuntos(reserva.getUsuario().getId(), reserva.getPuntosOtorgados());
+        // Otorgar puntos dinámicos al completar la asistencia
+        puntosService.sumarPuntos(reserva.getUsuario().getId(), reserva.getPuntosOtorgados());
 
         return convertirAResponse(reservaRepository.save(reserva));
     }
