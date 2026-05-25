@@ -206,6 +206,12 @@ CREATE TABLE IF NOT EXISTS reservas (
     puntos_otorgados INT DEFAULT 0,
     comision_cobrada DECIMAL(10,2) DEFAULT 0.00,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    hora_inicio TIME NULL AFTER fecha_reserva,
+    hora_fin TIME NULL AFTER hora_inicio,
+    fecha_validacion DATETIME NULL AFTER estado,
+    notas TEXT NULL AFTER comision_cobrada,
+    motivo_cancelacion VARCHAR(500) NULL AFTER notas,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
     FOREIGN KEY (evento_id) REFERENCES eventos(id),
     FOREIGN KEY (establecimiento_id) REFERENCES establecimientos(id),
@@ -244,6 +250,8 @@ CREATE TABLE IF NOT EXISTS pqrs (
     respuesta TEXT,
     fecha_respuesta DATETIME,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    adjuntos VARCHAR(1000) NULL AFTER fecha_respuesta,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
     FOREIGN KEY (moderador_asignado_id) REFERENCES usuarios(id)
 ) ENGINE=InnoDB;
@@ -258,8 +266,12 @@ CREATE TABLE IF NOT EXISTS notificaciones (
     referencia_tipo ENUM('RESERVA', 'EVENTO', 'ESTABLECIMIENTO', 'PQRS') NULL,
     leida BOOLEAN DEFAULT FALSE,
     origen ENUM('SPRING', 'FLASK') DEFAULT 'SPRING',
+    fecha_lectura DATETIME NULL AFTER leida,
+    accion_url VARCHAR(500) NULL AFTER fecha_lectura,
+    imagen_url VARCHAR(500) NULL AFTER accion_url,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+    
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS config_alertas (
