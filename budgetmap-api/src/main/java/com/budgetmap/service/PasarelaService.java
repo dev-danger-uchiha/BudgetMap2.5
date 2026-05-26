@@ -10,6 +10,7 @@ import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.preference.Preference;
 import com.mercadopago.client.payment.PaymentClient;
 import com.mercadopago.resources.payment.Payment;
+import com.budgetmap.exception.PasarelaException;
 import com.budgetmap.exception.ResourceNotFoundException;
 import com.budgetmap.model.Transaccion;
 import com.budgetmap.model.enums.EstadoTransaccion;
@@ -77,7 +78,7 @@ public class PasarelaService {
 
         } catch (MPException | MPApiException e) {
             log.error("Error crítico al comunicarse con la pasarela de Mercado Pago", e);
-            throw new IllegalStateException("Error al comunicarse con la pasarela de pagos", e);
+            throw new PasarelaException("Error al comunicarse con la pasarela de pagos", e);
         }
     }
 

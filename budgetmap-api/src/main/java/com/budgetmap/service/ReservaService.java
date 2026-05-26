@@ -2,6 +2,7 @@ package com.budgetmap.service;
 
 import com.budgetmap.dto.ReservaRequest;
 import com.budgetmap.dto.ReservaResponse;
+import com.budgetmap.exception.ReservaException;
 import com.budgetmap.exception.ResourceNotFoundException;
 import com.budgetmap.model.Establecimiento;
 import com.budgetmap.model.Reserva;
@@ -74,7 +75,7 @@ public class ReservaService {
         if (aforoOcupado + request.getNumeroPersonas() > aforoMaximo) {
             logger.warn("Aforo excedido. Establecimiento ID: {}, Aforo actual: {}, Intentó reservar: {}", 
                         est.getId(), aforoOcupado, request.getNumeroPersonas());
-            throw new IllegalArgumentException("No hay cupo disponible para esa fecha");
+            throw new ReservaException("No hay cupo disponible para esa fecha");
         }
 
         Reserva reserva = Reserva.builder()
@@ -104,11 +105,11 @@ public class ReservaService {
 
         if (!reserva.getUsuario().getId().equals(usuarioId)) {
             logger.warn("Intento de cancelación no autorizada. Reserva ID: {}, Usuario ID: {}", id, usuarioId);
-            throw new SecurityException("No tiene permisos para cancelar esta reserva");
+            throw new ReservaException("No tiene permisos para cancelar esta reserva");
         }
 
         if (reserva.getEstado() == EstadoReserva.CANCELADA || reserva.getEstado() == EstadoReserva.COMPLETADA) {
-            throw new IllegalStateException("La reserva ya no puede ser cancelada");
+            throw new ReservaException("La reserva ya no puede ser cancelada");
         }
 
         reserva.setEstado(EstadoReserva.CANCELADA);

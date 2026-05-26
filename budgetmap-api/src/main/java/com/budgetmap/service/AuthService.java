@@ -126,7 +126,7 @@ public class AuthService {
 
     private String normalizarEmail(String email) {
         if (email == null) {
-            throw new IllegalArgumentException("El email es obligatorio");
+            throw new RegistroException("El email es obligatorio");
         }
         return email.trim().toLowerCase();
     }

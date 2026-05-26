@@ -1,5 +1,6 @@
 package com.budgetmap.security;
 
+import com.budgetmap.exception.JwtException;
 import com.budgetmap.model.enums.RolUsuario;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -28,13 +29,13 @@ public class JwtUtils {
     @jakarta.annotation.PostConstruct
     public void init() {
         if (!StringUtils.hasText(jwtSecret)) {
-            throw new IllegalStateException(
+            throw new JwtException(
                     "ERROR CRITICO: JWT_SECRET no esta configurado. " +
                             "Debe definir la variable de entorno JWT_SECRET antes de iniciar la aplicacion.");
         }
 
         if (jwtSecret.length() < 32) {
-            throw new IllegalStateException(
+            throw new JwtException(
                     "ERROR CRITICO: JWT_SECRET debe tener al menos 32 caracteres. " +
                             "Longitud actual: " + jwtSecret.length());
         }

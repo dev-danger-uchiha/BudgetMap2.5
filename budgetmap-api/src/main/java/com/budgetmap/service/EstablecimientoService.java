@@ -3,6 +3,7 @@ package com.budgetmap.service;
 import com.budgetmap.dto.EstablecimientoRequest;
 import com.budgetmap.dto.EstablecimientoResponse;
 import com.budgetmap.dto.EstablecimientoUpdateRequest;
+import com.budgetmap.exception.EstablecimientoException;
 import com.budgetmap.exception.ResourceNotFoundException;
 import com.budgetmap.model.Establecimiento;
 import com.budgetmap.model.Lugar;
@@ -98,7 +99,7 @@ public class EstablecimientoService {
 
         if (request.getNit() != null && establecimientoRepository.existsByNit(request.getNit())) {
             log.warn("Rechazo de creación: Ya existe un establecimiento con el NIT {}", request.getNit());
-            throw new IllegalArgumentException("Ya existe un establecimiento con ese NIT");
+            throw new EstablecimientoException("Ya existe un establecimiento con ese NIT");
         }
 
         Point puntoUbicacion = geometryFactory.createPoint(
@@ -158,7 +159,7 @@ public class EstablecimientoService {
 
         if (!est.getPropietario().getId().equals(propietarioId)) {
             log.warn("Intento de actualización no autorizada. Usuario ID: {} en Establecimiento ID: {}", propietarioId, id);
-            throw new SecurityException("No tiene permisos para editar este establecimiento");
+            throw new EstablecimientoException("No tiene permisos para editar este establecimiento");
         }
 
         Point puntoUbicacion = geometryFactory.createPoint(
@@ -231,7 +232,7 @@ public class EstablecimientoService {
 
         if (!est.getPropietario().getId().equals(propietarioId)) {
             log.error("Intento de eliminación no autorizada. Usuario ID: {} en Establecimiento ID: {}", propietarioId, id);
-            throw new SecurityException("No tiene permisos para eliminar este establecimiento");
+            throw new EstablecimientoException("No tiene permisos para eliminar este establecimiento");
         }
 
         est.setActivo(false);

@@ -2,6 +2,7 @@ package com.budgetmap.service;
 
 import com.budgetmap.dto.PromocionRequest;
 import com.budgetmap.dto.PromocionResponse;
+import com.budgetmap.exception.PromocionException;
 import com.budgetmap.exception.ResourceNotFoundException;
 import com.budgetmap.model.Establecimiento;
 import com.budgetmap.model.Evento;
@@ -87,17 +88,17 @@ public class PromocionService {
                     .orElseThrow(() -> new ResourceNotFoundException("Establecimiento no encontrado"));
 
             if (!est.getPropietario().getId().equals(propietarioId)) {
-                throw new SecurityException("No tienes permisos sobre este establecimiento");
+                throw new PromocionException("No tienes permisos sobre este establecimiento");
             }
         } else if (request.getEventoId() != null) {
             evento = eventoRepository.findById(request.getEventoId())
                     .orElseThrow(() -> new ResourceNotFoundException("Evento no encontrado"));
 
             if (!evento.getCreador().getId().equals(propietarioId)) {
-                throw new SecurityException("No tienes permisos sobre este evento");
+                throw new PromocionException("No tienes permisos sobre este evento");
             }
         } else {
-            throw new IllegalArgumentException("La promoción debe estar asociada a un local o evento");
+            throw new PromocionException("La promoción debe estar asociada a un local o evento");
         }
 
         Promocion promo = Promocion.builder()
@@ -158,7 +159,7 @@ public class PromocionService {
                 .orElseThrow(() -> new ResourceNotFoundException("Promoción no encontrada"));
 
         if (promo.getUsosMaximos() != null && promo.getUsosActuales() >= promo.getUsosMaximos()) {
-            throw new IllegalStateException("Límite de usos alcanzado");
+            throw new PromocionException("Límite de usos alcanzado");
         }
 
         promo.setUsosActuales(promo.getUsosActuales() + 1);
@@ -168,11 +169,11 @@ public class PromocionService {
     private void validarPropiedad(Promocion promo, Long propietarioId) {
         if (promo.getEstablecimiento() != null &&
                 !promo.getEstablecimiento().getPropietario().getId().equals(propietarioId)) {
-            throw new SecurityException("No tienes permisos para esta acción");
+            throw new PromocionException("No tienes permisos para esta acción");
         }
         if (promo.getEvento() != null &&
                 !promo.getEvento().getCreador().getId().equals(propietarioId)) {
-            throw new SecurityException("No tienes permisos para esta acción");
+            throw new PromocionException("No tienes permisos para esta acción");
         }
     }
 

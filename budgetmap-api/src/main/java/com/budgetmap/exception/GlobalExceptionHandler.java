@@ -124,7 +124,15 @@ public class GlobalExceptionHandler {
         @ExceptionHandler({
                         PasswordInvalidoException.class,
                         RegistroException.class,
-                        CredencialesInvalidasException.class
+                        CredencialesInvalidasException.class,
+                        JwtException.class,
+                        CuponException.class,
+                        EstablecimientoException.class,
+                        EventoException.class,
+                        PasarelaException.class,
+                        PromocionException.class,
+                        PuntosException.class,
+                        ReservaException.class
         })
         @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
         public ResponseEntity<ErrorResponse> handleBusinessErrors(

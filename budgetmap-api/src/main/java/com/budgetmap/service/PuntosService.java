@@ -1,5 +1,6 @@
 package com.budgetmap.service;
 
+import com.budgetmap.exception.PuntosException;
 import com.budgetmap.exception.ResourceNotFoundException;
 import com.budgetmap.model.Usuario;
 import com.budgetmap.repository.UsuarioRepository;
@@ -52,7 +53,7 @@ public class PuntosService {
             log.warn("Intento de fraude o saldo insuficiente. Usuario ID: {} tiene {} puntos, intentó gastar {}", 
                      usuarioId, usuario.getPuntosAcumulados(), puntosRequeridos);
             // Detenemos la operación y lanzamos un error de estado ilegal
-            throw new IllegalStateException("Saldo insuficiente. Tienes " + 
+            throw new PuntosException("Saldo insuficiente. Tienes " + 
                                        usuario.getPuntosAcumulados() + 
                                        " puntos y necesitas " + puntosRequeridos);
         }

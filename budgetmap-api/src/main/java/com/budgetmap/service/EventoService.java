@@ -2,6 +2,7 @@ package com.budgetmap.service;
 
 import com.budgetmap.dto.EventoRequest;
 import com.budgetmap.dto.EventoResponse;
+import com.budgetmap.exception.EventoException;
 import com.budgetmap.exception.ResourceNotFoundException;
 import com.budgetmap.model.Establecimiento;
 import com.budgetmap.model.Evento;
@@ -98,7 +99,7 @@ public class EventoService {
                     .orElseThrow(() -> new ResourceNotFoundException("Establecimiento no encontrado"));
         } else {
             log.warn("Rechazo de creación: El evento no tiene Lugar ni Establecimiento asignado.");
-            throw new IllegalArgumentException("El evento debe estar asociado a un Lugar o a un Establecimiento");
+            throw new EventoException("El evento debe estar asociado a un Lugar o a un Establecimiento");
         }
 
         Evento evento = Evento.builder()
@@ -132,7 +133,7 @@ public class EventoService {
 
         if (!evento.getCreador().getId().equals(creadorId)) {
             log.warn("Intento de edición no autorizada. Usuario ID: {} en Evento ID: {}", creadorId, id);
-            throw new SecurityException("No tiene permisos para editar este evento");
+            throw new EventoException("No tiene permisos para editar este evento");
         }
 
         evento.setNombre(request.getNombre());
@@ -165,7 +166,7 @@ public class EventoService {
 
         if (!evento.getCreador().getId().equals(creadorId)) {
             log.error("Intento de eliminación no autorizada. Usuario ID: {} en Evento ID: {}", creadorId, id);
-            throw new SecurityException("No tiene permisos para eliminar este evento");
+            throw new EventoException("No tiene permisos para eliminar este evento");
         }
 
         evento.setActivo(false);

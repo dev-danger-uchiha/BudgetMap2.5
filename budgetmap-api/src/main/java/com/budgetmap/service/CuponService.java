@@ -2,6 +2,7 @@ package com.budgetmap.service;
 
 import com.budgetmap.dto.CanjearCuponRequest;
 import com.budgetmap.dto.CuponRedimidoDTO;
+import com.budgetmap.exception.CuponException;
 import com.budgetmap.exception.ResourceNotFoundException;
 import com.budgetmap.model.CuponRedimido;
 import com.budgetmap.model.Establecimiento;
@@ -102,17 +103,17 @@ public class CuponService {
 
         if (!cupon.getEstablecimiento().getPropietario().getId().equals(propietarioId)) {
             log.warn("Alerta de seguridad: El usuario {} intentó validar un cupón del establecimiento {}", propietarioId, cupon.getEstablecimiento().getId());
-            throw new SecurityException("No tienes permisos para validar cupones de otro establecimiento");
+            throw new CuponException("No tienes permisos para validar cupones de otro establecimiento");
         }
 
         if (cupon.getUsado()) {
             log.warn("El cupón {} ya fue redimido anteriormente", codigo);
-            throw new IllegalStateException("Este cupón ya fue redimido anteriormente");
+            throw new CuponException("Este cupón ya fue redimido anteriormente");
         }
 
         if (cupon.getFechaExpiracion().isBefore(LocalDateTime.now())) {
             log.warn("Intento de validación de un cupón expirado: {}", codigo);
-            throw new IllegalStateException("Este cupón ya ha expirado");
+            throw new CuponException("Este cupón ya ha expirado");
         }
 
         cupon.setUsado(true);
