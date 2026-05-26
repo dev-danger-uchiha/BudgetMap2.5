@@ -12,7 +12,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/config-alertas")
-@CrossOrigin(origins = "*")
 public class ConfigAlertaController {
 
     @Autowired

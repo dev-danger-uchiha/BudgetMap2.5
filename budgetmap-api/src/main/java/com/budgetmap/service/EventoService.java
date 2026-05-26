@@ -179,6 +179,32 @@ public class EventoService {
                 .map(this::convertirAResponse).collect(Collectors.toList());
     }
 
+    public Page<EventoResponse> listarMisEventosPaginado(Long creadorId, Pageable pageable, String tipo, String nombre) {
+        List<Evento> eventos = eventoRepository.findByCreadorIdAndActivoTrue(creadorId);
+
+        if (tipo != null && !tipo.isBlank()) {
+            eventos = eventos.stream()
+                    .filter(e -> e.getTipoEvento() != null && e.getTipoEvento().name().equalsIgnoreCase(tipo))
+                    .collect(Collectors.toList());
+        }
+
+        if (nombre != null && !nombre.isBlank()) {
+            eventos = eventos.stream()
+                    .filter(e -> e.getNombre().toLowerCase().contains(nombre.toLowerCase()))
+                    .collect(Collectors.toList());
+        }
+
+        eventos.sort((e1, e2) -> e2.getFechaInicio().compareTo(e1.getFechaInicio()));
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), eventos.size());
+        List<EventoResponse> dtos = eventos.subList(start, end).stream()
+                .map(this::convertirAResponse)
+                .collect(Collectors.toList());
+
+        return new org.springframework.data.domain.PageImpl<>(dtos, pageable, eventos.size());
+    }
+
     private EventoResponse convertirAResponse(Evento evento) {
         return EventoResponse.builder()
                 .id(evento.getId())

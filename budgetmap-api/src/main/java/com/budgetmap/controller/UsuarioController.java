@@ -16,7 +16,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "*")
 public class UsuarioController {
 
     @Autowired
@@ -30,8 +29,12 @@ public class UsuarioController {
 
     @GetMapping("/usuarios/paginado")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
-    public ResponseEntity<Page<UsuarioDTO>> listarPaginado(Pageable pageable) {
-        return ResponseEntity.ok(usuarioService.listarActivos(pageable));
+    public ResponseEntity<Page<UsuarioDTO>> listarPaginado(
+            Pageable pageable,
+            @RequestParam(required = false) String criterio,
+            @RequestParam(required = false) String rol,
+            @RequestParam(required = false) Boolean activo) {
+        return ResponseEntity.ok(usuarioService.listarPaginadoConFiltros(pageable, criterio, rol, activo));
     }
 
     @GetMapping("/usuarios/{id}")

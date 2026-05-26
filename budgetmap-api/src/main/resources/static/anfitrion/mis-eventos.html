@@ -84,7 +84,27 @@
             <h3 class="text-2xl font-black text-slate-900 italic tracking-tighter uppercase">Cartelera Activa</h3>
             <span id="info-pag" class="text-xs font-bold text-slate-400">Pág 1</span>
         </div>
-        
+
+        <div class="bg-white border border-blue-100 rounded-3xl p-4 shadow-sm mb-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="flex flex-col gap-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Búsqueda (Nombre)</label>
+                    <input type="text" id="filtro-nombre" placeholder="Ej: Concierto..."
+                           class="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-sm outline-none focus:border-blue-500" onchange="cargarEventos(0)">
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tipo</label>
+                    <select id="filtro-tipo" class="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-sm outline-none focus:border-blue-500" onchange="cargarEventos(0)">
+                        <option value="">Todos</option>
+                        <option value="ARTISTICO">Artístico/Concierto</option>
+                        <option value="CULTURAL">Cultural/Teatro</option>
+                        <option value="DEPORTIVO">Deportivo</option>
+                        <option value="RECREATIVO">Feria/Social</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
         <div id="grid-eventos" class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <p class="text-blue-600 font-bold animate-pulse text-sm">Cargando cartelera...</p>
         </div>
@@ -120,15 +140,24 @@
     async function cargarEventos(page) {
         paginaActual = page;
         const grid = document.getElementById('grid-eventos');
-        
+
+        const filtroNombre = document.getElementById('filtro-nombre').value;
+        const filtroTipo = document.getElementById('filtro-tipo').value;
+
         try {
-            // Ajusta a tu endpoint paginado de eventos si lo tienes. Si no, usa el general y simulamos la paginación o quitas la paginación visual.
-            const res = await fetch(`http://localhost:8080/api/eventos/mis-eventos?page=${paginaActual}&size=4`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const params = new URLSearchParams({
+                page: paginaActual,
+                size: 4
+            });
+            if (filtroTipo) params.append('tipo', filtroTipo);
+            if (filtroNombre) params.append('nombre', filtroNombre);
+
+            const res = await fetch(`http://localhost:8080/api/eventos/mis-eventos?${params}`, { headers: { 'Authorization': `Bearer ${token}` } });
             if (res.ok) {
                 const data = await res.json();
-                const eventos = data.content || data; // Soporte para paginado o Array plano
+                const eventos = data.content || data;
                 paginasTotales = data.totalPages || 1;
-                
+
                 document.getElementById('info-pag').innerText = `Pág ${paginaActual + 1} de ${paginasTotales}`;
                 document.getElementById('btn-prev').disabled = paginaActual === 0;
                 document.getElementById('btn-next').disabled = paginaActual >= paginasTotales - 1;
@@ -162,16 +191,16 @@
         btn.disabled = true; btn.innerText = "Publicando...";
 
         let horaVal = document.getElementById('hora').value;
-        if(horaVal.length === 5) horaVal += ":00"; // Formato HH:MM:SS requerido por Spring
+        if(horaVal.length === 5) horaVal += ":00";
 
         const payload = {
             nombre: document.getElementById('nombre').value,
             tipoEvento: document.getElementById('tipo').value,
-            aforoMaximo: parseInt(document.getElementById('aforo').value), 
+            aforoMaximo: parseInt(document.getElementById('aforo').value),
             fechaInicio: document.getElementById('fecha').value,
             horaInicio: horaVal,
             precio: parseFloat(document.getElementById('precio').value || 0),
-            lugarId: parseInt(document.getElementById('lugarId').value) 
+            lugarId: parseInt(document.getElementById('lugarId').value)
         };
 
         try {

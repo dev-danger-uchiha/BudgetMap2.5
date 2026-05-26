@@ -58,7 +58,26 @@
             <h3 class="text-2xl font-black text-slate-900 italic tracking-tighter uppercase">Inventario Activo</h3>
             <span id="info-pag" class="text-xs font-bold text-slate-400">Pág 1</span>
         </div>
-        
+
+        <div class="bg-white border border-emerald-100 rounded-3xl p-4 shadow-sm mb-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="flex flex-col gap-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Búsqueda (Título)</label>
+                    <input type="text" id="filtro-titulo" placeholder="Ej: 2x1..."
+                           class="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-sm outline-none focus:border-emerald-500" onchange="cargarPromos(0)">
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Estado</label>
+                    <select id="filtro-estado" class="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-sm outline-none focus:border-emerald-500" onchange="cargarPromos(0)">
+                        <option value="">Todas</option>
+                        <option value="ACTIVA">Activa</option>
+                        <option value="VENCIDA">Vencida</option>
+                        <option value="AGOTADA">Agotada</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
         <div id="grid-promos" class="grid grid-cols-1 md:grid-cols-2 gap-4">
             </div>
 
@@ -80,15 +99,25 @@
         const grid = document.getElementById('grid-promos');
         grid.innerHTML = '<p class="p-4 text-emerald-600 text-sm font-bold animate-pulse">Cargando...</p>';
 
+        const filtroTitulo = document.getElementById('filtro-titulo').value;
+        const filtroEstado = document.getElementById('filtro-estado').value;
+
         try {
-            const res = await fetch(`http://localhost:8080/api/promociones/mis-promociones?page=${paginaActual}&size=4`, {
+            const params = new URLSearchParams({
+                page: paginaActual,
+                size: 4
+            });
+            if (filtroEstado) params.append('estado', filtroEstado);
+            if (filtroTitulo) params.append('titulo', filtroTitulo);
+
+            const res = await fetch(`http://localhost:8080/api/promociones/mis-promociones?${params}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
                 const data = await res.json();
                 const promos = data.content || data;
                 paginasTotales = data.totalPages || 1;
-                
+
                 document.getElementById('info-pag').innerText = `Pág ${paginaActual + 1} de ${paginasTotales}`;
                 document.getElementById('btn-prev').disabled = paginaActual === 0;
                 document.getElementById('btn-next').disabled = paginaActual >= paginasTotales - 1;
@@ -137,7 +166,6 @@
 
     async function eliminarPromo(id) {
         if(!confirm("¿Desactivar esta promoción?")) return;
-        // Petición DELETE a tu API
         const res = await fetch(`http://localhost:8080/api/promociones/${id}`, {
             method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }
         });

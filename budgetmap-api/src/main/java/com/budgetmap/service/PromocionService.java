@@ -166,6 +166,49 @@ public class PromocionService {
         promocionRepository.save(promo);
     }
 
+    public Page<PromocionResponse> listarMisprocionesPaginado(Long propietarioId, Pageable pageable, String estado, String titulo) {
+        Establecimiento est = establecimientoRepository.findByPropietarioId(propietarioId)
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("No tienes un establecimiento registrado"));
+
+        List<Promocion> promos = promocionRepository.findByEstablecimientoIdAndActivoTrue(est.getId());
+
+        if (estado != null && !estado.isBlank()) {
+            LocalDate hoy = LocalDate.now();
+            promos = promos.stream()
+                    .filter(p -> {
+                        boolean estaActiva = p.getFechaInicio() != null && p.getFechaFin() != null &&
+                                !hoy.isBefore(p.getFechaInicio()) &&
+                                !hoy.isAfter(p.getFechaFin());
+                        boolean estaVencida = p.getFechaFin() != null && hoy.isAfter(p.getFechaFin());
+                        boolean estaAgotada = p.getUsosMaximos() != null && p.getUsosActuales() >= p.getUsosMaximos();
+
+                        return switch (estado.toUpperCase()) {
+                            case "ACTIVA" -> estaActiva && !estaAgotada;
+                            case "VENCIDA" -> estaVencida;
+                            case "AGOTADA" -> estaAgotada;
+                            default -> true;
+                        };
+                    })
+                    .collect(Collectors.toList());
+        }
+
+        if (titulo != null && !titulo.isBlank()) {
+            promos = promos.stream()
+                    .filter(p -> p.getTitulo().toLowerCase().contains(titulo.toLowerCase()))
+                    .collect(Collectors.toList());
+        }
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), promos.size());
+        List<PromocionResponse> dtos = promos.subList(start, end).stream()
+                .map(this::convertirAResponse)
+                .collect(Collectors.toList());
+
+        return new org.springframework.data.domain.PageImpl<>(dtos, pageable, promos.size());
+    }
+
     private void validarPropiedad(Promocion promo, Long propietarioId) {
         if (promo.getEstablecimiento() != null &&
                 !promo.getEstablecimiento().getPropietario().getId().equals(propietarioId)) {

@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/admin/metrics")
-@CrossOrigin(origins = "*")
 public class EstadisticasController {
 
     @Autowired

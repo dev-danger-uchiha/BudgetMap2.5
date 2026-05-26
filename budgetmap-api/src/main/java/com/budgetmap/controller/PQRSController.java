@@ -20,7 +20,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "*")
 public class PQRSController {
 
     @Autowired
@@ -48,6 +47,16 @@ public class PQRSController {
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'MODERADOR')")
     public ResponseEntity<List<PQRSResponse>> listarPendientes() {
         return ResponseEntity.ok(pqrsService.listarPendientesRespuesta());
+    }
+
+    @GetMapping("/pqrs/paginados")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'MODERADOR')")
+    public ResponseEntity<Page<PQRSResponse>> listarPaginados(
+            Pageable pageable,
+            @RequestParam(required = false) String estado,
+            @RequestParam(required = false) String prioridad,
+            @RequestParam(required = false) String tipo) {
+        return ResponseEntity.ok(pqrsService.listarPaginadosConFiltros(pageable, estado, prioridad, tipo));
     }
 
     @GetMapping("/pqrs/asignados")

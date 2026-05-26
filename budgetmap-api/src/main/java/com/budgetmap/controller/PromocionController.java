@@ -17,7 +17,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "*")
 public class PromocionController {
 
     @Autowired
@@ -36,9 +35,12 @@ public class PromocionController {
 
     @GetMapping("/promociones/mis-promociones")
     @PreAuthorize("hasAnyRole('LOCAL_ALIADO', 'ANFITRION')")
-    public ResponseEntity<List<PromocionResponse>> listarMisPromociones(
-            @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        return ResponseEntity.ok(promocionService.listarMisPromociones(userDetails.getId()));
+    public ResponseEntity<Page<PromocionResponse>> listarMisPromociones(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            Pageable pageable,
+            @RequestParam(required = false) String estado,
+            @RequestParam(required = false) String titulo) {
+        return ResponseEntity.ok(promocionService.listarMisprocionesPaginado(userDetails.getId(), pageable, estado, titulo));
     }
 
     @GetMapping("/promociones/{id}")

@@ -123,6 +123,43 @@ public class UsuarioService {
         usuarioRepository.save(usuario);
     }
 
+    public Page<UsuarioDTO> listarPaginadoConFiltros(Pageable pageable, String criterio, String rol, Boolean activo) {
+        List<Usuario> usuarios = usuarioRepository.findAll();
+
+        if (criterio != null && !criterio.isBlank()) {
+            usuarios = usuarios.stream()
+                    .filter(u -> u.getNombre().toLowerCase().contains(criterio.toLowerCase()) ||
+                                u.getApellido().toLowerCase().contains(criterio.toLowerCase()) ||
+                                u.getEmail().toLowerCase().contains(criterio.toLowerCase()))
+                    .collect(Collectors.toList());
+        }
+
+        if (rol != null && !rol.isBlank()) {
+            try {
+                RolUsuario rolEnum = RolUsuario.valueOf(rol);
+                usuarios = usuarios.stream()
+                        .filter(u -> u.getRol() == rolEnum)
+                        .collect(Collectors.toList());
+            } catch (IllegalArgumentException e) {
+                log.warn("Rol inválido: {}", rol);
+            }
+        }
+
+        if (activo != null) {
+            usuarios = usuarios.stream()
+                    .filter(u -> u.getActivo() == activo)
+                    .collect(Collectors.toList());
+        }
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), usuarios.size());
+        List<UsuarioDTO> dtos = usuarios.subList(start, end).stream()
+                .map(this::convertirADTO)
+                .collect(Collectors.toList());
+
+        return new org.springframework.data.domain.PageImpl<>(dtos, pageable, usuarios.size());
+    }
+
     public Long contarPorRol(RolUsuario rol) {
         return usuarioRepository.countByRol(rol);
     }

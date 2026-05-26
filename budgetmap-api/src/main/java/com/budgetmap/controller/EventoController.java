@@ -19,7 +19,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "*")
 public class EventoController {
 
     @Autowired
@@ -55,10 +54,14 @@ public class EventoController {
         return ResponseEntity.ok(eventoService.listarPorLugar(lugarId));
     }
 
-    @GetMapping("/mis-eventos")
+    @GetMapping("/eventos/mis-eventos")
     @PreAuthorize("hasRole('ANFITRION')")
-    public ResponseEntity<List<EventoResponse>> listarMisEventos(@AuthenticationPrincipal UserDetailsImpl userDetails) {
-        return ResponseEntity.ok(eventoService.listarPorCreador(userDetails.getId()));
+    public ResponseEntity<Page<EventoResponse>> listarMisEventos(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            Pageable pageable,
+            @RequestParam(required = false) String tipo,
+            @RequestParam(required = false) String nombre) {
+        return ResponseEntity.ok(eventoService.listarMisEventosPaginado(userDetails.getId(), pageable, tipo, nombre));
     }
 
     @PostMapping("/eventos")

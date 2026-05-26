@@ -116,6 +116,43 @@ public class PQRSService {
         pqrsRepository.save(pqrs);
     }
 
+    public Page<PQRSResponse> listarPaginadosConFiltros(Pageable pageable, String estado, String prioridad, String tipo) {
+        List<PQRS> pqrsList = pqrsRepository.findAll();
+
+        if (estado != null && !estado.isBlank()) {
+            try {
+                EstadoPQRS estadoEnum = EstadoPQRS.valueOf(estado);
+                pqrsList = pqrsList.stream()
+                        .filter(p -> p.getEstado() == estadoEnum)
+                        .collect(Collectors.toList());
+            } catch (IllegalArgumentException e) {
+                log.warn("Estado inválido: {}", estado);
+            }
+        }
+
+        if (prioridad != null && !prioridad.isBlank()) {
+            pqrsList = pqrsList.stream()
+                    .filter(p -> p.getPrioridad() != null && p.getPrioridad().equalsIgnoreCase(prioridad))
+                    .collect(Collectors.toList());
+        }
+
+        if (tipo != null && !tipo.isBlank()) {
+            pqrsList = pqrsList.stream()
+                    .filter(p -> p.getTipo() != null && p.getTipo().name().equalsIgnoreCase(tipo))
+                    .collect(Collectors.toList());
+        }
+
+        pqrsList.sort((p1, p2) -> p2.getCreatedAt().compareTo(p1.getCreatedAt()));
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), pqrsList.size());
+        List<PQRSResponse> dtos = pqrsList.subList(start, end).stream()
+                .map(this::convertirAResponse)
+                .collect(Collectors.toList());
+
+        return new org.springframework.data.domain.PageImpl<>(dtos, pageable, pqrsList.size());
+    }
+
     public Long contarPorEstado(EstadoPQRS estado) {
         return pqrsRepository.countByEstado(estado);
     }

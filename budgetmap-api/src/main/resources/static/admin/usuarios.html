@@ -139,7 +139,7 @@
                 activo: estado
             });
 
-            const response = await fetch(`http://localhost:8080/api/admin/usuarios/paginados?${queryParams.toString()}`, {
+            const response = await fetch(`http://localhost:8080/api/usuarios/paginado?page=${paginaActual}&size=${size}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             
