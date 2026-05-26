@@ -59,61 +59,6 @@ testImplementation 'org.mockito:mockito-inline'
 
 ---
 
-
-
-### 8. **Logging Estructurado**
-**Estado actual:** Inconsistente (AuthService usa SLF4J, otros no)
-
-**Mejora:**
-```java
-// Agregar a pom.xml
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-logging</artifactId>
-</dependency>
-
-// En todos los servicios:
-private static final Logger logger = LoggerFactory.getLogger(ReservaService.class);
-
-public void confirmarAsistencia(Long reservaId) {
-    logger.info("Confirmando asistencia para reserva: {}", reservaId);
-    
-    Reserva reserva = reservaRepository.findById(reservaId)
-        .orElseThrow(() -> {
-            logger.error("Reserva no encontrada: {}", reservaId);
-            return new ResourceNotFoundException("Reserva", reservaId);
-        });
-    
-    logger.debug("Reserva encontrada: usuario={}, establecimiento={}", 
-                 reserva.getUsuario().getId(), 
-                 reserva.getEstablecimiento().getId());
-    
-    try {
-        puntosService.sumarPuntos(reserva.getUsuario(), 10 * reserva.getNumeroPersonas());
-        logger.info("Puntos sumados correctamente: usuario={}, puntos={}", 
-                   reserva.getUsuario().getId(), 10 * reserva.getNumeroPersonas());
-    } catch (Exception e) {
-        logger.error("Error sumando puntos para reserva: {}", reservaId, e);
-        throw e;
-    }
-}
-```
-
-**application.properties:**
-```properties
-logging.level.root=WARN
-logging.level.com.budgetmap=INFO
-logging.level.com.budgetmap.service=DEBUG
-logging.pattern.console=%d{yyyy-MM-dd HH:mm:ss} - %logger{36} - %msg%n
-logging.file.name=logs/budgetmap.log
-logging.file.max-size=10MB
-logging.file.max-history=10
-```
-
-**Timeline:** MEDIA (1 semana)
-
----
-
 ### 9. **Bean Validation - Validaciones en DTO**
 **Estado actual:** Decoradores sin @Valid en controladores
 
@@ -258,45 +203,6 @@ public class LugarService {
 
 ---
 
-### 12. **Índices de Base de Datos Faltantes**
-**Estado actual:** Solo email, rol, spatiales
-
-**Mejoras SQL:**
-```sql
--- Reservas
-ALTER TABLE reservas ADD INDEX idx_usuario_id (usuario_id);
-ALTER TABLE reservas ADD INDEX idx_establecimiento_id (establecimiento_id);
-ALTER TABLE reservas ADD INDEX idx_fecha_creacion (fecha_creacion);
-ALTER TABLE reservas ADD INDEX idx_estado (estado);
-ALTER TABLE reservas ADD UNIQUE INDEX idx_codigo_unico (codigo);
-
--- Transacciones
-ALTER TABLE transacciones ADD INDEX idx_usuario_id (usuario_id);
-ALTER TABLE transacciones ADD INDEX idx_estado (estado);
-ALTER TABLE transacciones ADD INDEX idx_fecha_creacion (fecha_creacion);
-
--- Eventos
-ALTER TABLE eventos ADD INDEX idx_lugar_id (lugar_id);
-ALTER TABLE eventos ADD INDEX idx_anfitrion_id (anfitrion_id);
-ALTER TABLE eventos ADD INDEX idx_fecha_inicio (fecha_inicio);
-
--- Promociones
-ALTER TABLE promociones ADD INDEX idx_establecimiento_id (establecimiento_id);
-ALTER TABLE promociones ADD INDEX idx_evento_id (evento_id);
-ALTER TABLE promociones ADD INDEX idx_estado (activo, fecha_fin);
-
--- Análitica
-ALTER TABLE analiticas_locales ADD INDEX idx_establecimiento_id (establecimiento_id);
-ALTER TABLE analiticas_locales ADD INDEX idx_fecha (fecha);
-
--- Notificaciones
-ALTER TABLE notificaciones ADD INDEX idx_usuario_id (usuario_id);
-ALTER TABLE notificaciones ADD INDEX idx_leida (leida);
-```
-
-**Timeline:** MEDIA (1 día)
-
----
 
 ### 13. **Paginación Consistente**
 **Estado actual:** Mixto - algunos endpoints paginaros, otros no
@@ -340,58 +246,6 @@ public ResponseEntity<PageResponse<LugarDTO>> obtenerLugares(
 ```
 
 **Timeline:** MEDIA (1 semana)
-
----
-
-### 14. **Validar Tokens JWT en Flask**
-**Estado actual:** Flask confía en Java sin verificar
-
-**Mejora:**
-```python
-# budgetmap-geo/auth.py
-import jwt
-from functools import wraps
-from flask import request, jsonify
-from datetime import datetime
-
-JWT_SECRET = os.getenv('JWT_SECRET', 'default-secret')
-
-def verify_jwt_token(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        token = None
-        if 'Authorization' in request.headers:
-            auth_header = request.headers['Authorization']
-            try:
-                token = auth_header.split(" ")[1]  # "Bearer <token>"
-            except IndexError:
-                return jsonify({"error": "Token inválido"}), 401
-        
-        if not token:
-            return jsonify({"error": "Token requerido"}), 401
-        
-        try:
-            payload = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
-            request.usuario_id = payload.get('sub')
-            request.usuario_rol = payload.get('rol')
-        except jwt.ExpiredSignatureError:
-            return jsonify({"error": "Token expirado"}), 401
-        except jwt.InvalidTokenError:
-            return jsonify({"error": "Token inválido"}), 401
-        
-        return f(*args, **kwargs)
-    return decorated_function
-
-# Usar en rutas
-@app.route('/api/filtros/config/<usuario_id>', methods=['GET'])
-@verify_jwt_token
-def get_config(usuario_id):
-    if str(request.usuario_id) != usuario_id:
-        return jsonify({"error": "No autorizado"}), 403
-    # ...
-```
-
-**Timeline:** MEDIA (3 días)
 
 ---
 
@@ -888,7 +742,6 @@ Limpiar en todos los archivos Java:
 
 | 3 | Sin tests | CRÍTICA | Testing | URGENTE | 3 semanas |
 
-| 8 | Logging estructurado | MEDIA | Mantenibilidad | MEDIA | 1 semana |
 | 9 | Bean Validation | MEDIA | Validación | MEDIA | 1 semana |
 
 | 11 | Caching | MEDIA | Performance | MEDIA | 1 semana |

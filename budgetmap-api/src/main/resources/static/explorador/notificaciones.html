@@ -3,120 +3,80 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Notificaciones - BudgetMap</title>
+  <title>Notificaciones | BudgetMap</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    // Seguridad: Solo exploradores
     const token = localStorage.getItem('jwt_token');
     if (!token) window.location.href = '/login.html';
   </script>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 min-h-screen">
+<body class="bg-slate-50 min-h-screen font-sans">
 
-  <nav class="bg-emerald-600 p-4 shadow-md text-white flex justify-between items-center sticky top-0 z-50">
-    <button onclick="location.href='/explorador/dashboard.html'" class="flex items-center gap-2 font-bold hover:text-lime-200 transition">
-      ⬅️ Volver
-    </button>
-    <span class="font-extrabold tracking-widest uppercase">Notificaciones</span>
-    <button onclick="marcarTodasLeidas()" class="text-[10px] bg-emerald-700 hover:bg-emerald-800 px-3 py-1 rounded-full font-bold transition">
-      Marcar todo como leído
-    </button>
+  <nav class="bg-gradient-to-r from-orange-500 to-amber-500 p-4 shadow-md text-white sticky top-0 z-50">
+    <div class="max-w-3xl mx-auto flex justify-between items-center">
+      <button onclick="location.href='dashboard.html'" class="font-bold text-sm tracking-widest uppercase hover:text-amber-200">⬅️ Radar</button>
+      <span class="font-black tracking-widest text-lg uppercase">Notificaciones</span>
+      <button onclick="marcarTodasLeidas()" class="text-[9px] bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-full font-bold uppercase tracking-widest transition backdrop-blur-sm">
+        Limpiar
+      </button>
+    </div>
   </nav>
 
-  <main class="max-w-2xl mx-auto mt-6 px-4 pb-10">
-    
-    <div class="flex gap-2 mb-6 overflow-x-auto pb-2 no-scrollbar">
-        <button class="bg-emerald-600 text-white px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap">Todas</button>
-        <button class="bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-4 py-1.5 rounded-full text-xs font-bold border border-gray-200 dark:border-gray-700 whitespace-nowrap">No leídas</button>
-    </div>
-
-    <div id="lista-notificaciones" class="space-y-3">
-        <div class="animate-pulse flex gap-4 p-4 bg-white dark:bg-gray-800 rounded-2xl">
-            <div class="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-            <div class="flex-1 space-y-2">
-                <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
-                <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-            </div>
-        </div>
-    </div>
-
-    <div id="notificaciones-vacias" class="hidden text-center py-20">
-        <div class="text-6xl mb-4">📭</div>
-        <p class="text-gray-500 font-bold">Todo al día. No tienes notificaciones nuevas.</p>
-    </div>
-
+  <main class="max-w-3xl mx-auto mt-6 px-4 pb-10 space-y-3" id="lista-notificaciones">
+    <p class="text-center text-orange-500 font-bold mt-10 animate-pulse">Cargando buzón...</p>
   </main>
 
   <script>
-    const userId = localStorage.getItem('user_id');
-
-    document.addEventListener("DOMContentLoaded", () => {
-        cargarNotificaciones();
-    });
+    document.addEventListener("DOMContentLoaded", () => cargarNotificaciones());
 
     async function cargarNotificaciones() {
-        const contenedor = document.getElementById('lista-notificaciones');
-        const vacio = document.getElementById('notificaciones-vacias');
-
+        const lista = document.getElementById('lista-notificaciones');
         try {
-            const response = await fetch(`http://localhost:8080/api/notificaciones`, {
+            const res = await fetch('http://localhost:8080/api/notificaciones/mis-notificaciones', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-
-            if (response.ok) {
-                const notificaciones = await response.json();
-                contenedor.innerHTML = '';
-
+            if (res.ok) {
+                const notificaciones = await res.json();
                 if (notificaciones.length === 0) {
-                    vacio.classList.remove('hidden');
+                    lista.innerHTML = '<p class="text-center text-slate-400 font-bold p-8">No tienes notificaciones nuevas.</p>';
                     return;
                 }
 
-                notificaciones.forEach(notif => {
-                    const iconInfo = getIconByTipo(notif.tipo);
-                    const isLeida = notif.leida;
-
-                    contenedor.innerHTML += `
-                        <div class="relative group p-4 rounded-2xl flex gap-4 transition duration-300 ${isLeida ? 'bg-white/50 dark:bg-gray-800/50 grayscale-[0.5]' : 'bg-white dark:bg-gray-800 shadow-md border-l-4 border-emerald-500'}" 
-                             onclick="marcarLeida(${notif.id})">
-                            
-                            <div class="flex-shrink-0 w-12 h-12 ${iconInfo.bg} rounded-full flex items-center justify-center text-xl shadow-inner">
-                                ${iconInfo.emoji}
-                            </div>
-
+                lista.innerHTML = '';
+                notificaciones.forEach(n => {
+                    const estilo = n.leida ? 'opacity-60 border-slate-100 bg-slate-50' : 'border-l-4 border-orange-500 bg-white shadow-sm';
+                    const bgIcon = obtenerIcono(n.tipo);
+                    
+                    lista.innerHTML += `
+                        <div onclick="marcarLeida(${n.id})" class="p-5 rounded-2xl border flex items-start gap-4 cursor-pointer hover:bg-slate-50 transition ${estilo}">
+                            <div class="w-10 h-10 rounded-full ${bgIcon.bg} flex items-center justify-center text-xl shrink-0">${bgIcon.emoji}</div>
                             <div class="flex-1">
-                                <div class="flex justify-between items-start">
-                                    <h3 class="text-sm font-black text-gray-800 dark:text-white">${notif.titulo}</h3>
-                                    <span class="text-[10px] text-gray-400 font-medium">${formatearFecha(notif.createdAt)}</span>
-                                </div>
-                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
-                                    ${notif.mensaje}
-                                </p>
+                                <h4 class="font-black text-slate-800 text-sm">${n.titulo}</h4>
+                                <p class="text-xs text-slate-600 mt-1 leading-relaxed">${n.mensaje}</p>
+                                <span class="text-[10px] font-bold text-slate-400 mt-2 block">${formatearFecha(n.createdAt)}</span>
                             </div>
-
-                            ${!isLeida ? '<div class="absolute top-4 right-4 w-2 h-2 bg-emerald-500 rounded-full animate-ping"></div>' : ''}
+                            ${!n.leida ? '<div class="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>' : ''}
                         </div>
                     `;
                 });
             }
-        } catch (error) {
-            console.error("Error cargando notificaciones");
-        }
+        } catch (e) { lista.innerHTML = '<p class="text-center text-red-500 font-bold p-8">Error al cargar alertas.</p>'; }
     }
 
-    function getIconByTipo(tipo) {
+    function obtenerIcono(tipo) {
         switch(tipo) {
-            case 'RESERVA_CONFIRMADA': return { emoji: '✅', bg: 'bg-green-100' };
-            case 'PROMOCION_NUEVA': return { emoji: '🏷️', bg: 'bg-lime-100' };
-            case 'ALERTA_PROXIMIDAD': return { emoji: '📍', bg: 'bg-emerald-100' };
+            case 'RESERVA_ESTADO': return { emoji: '✅', bg: 'bg-emerald-100' };
+            case 'PROMOCION_NUEVA': return { emoji: '🎟️', bg: 'bg-orange-100' };
+            case 'ALERTA_PROXIMIDAD': return { emoji: '📍', bg: 'bg-amber-100' };
             case 'PQRS_RESPUESTA': return { emoji: '✉️', bg: 'bg-blue-100' };
-            default: return { emoji: '🔔', bg: 'bg-gray-100' };
+            default: return { emoji: '🔔', bg: 'bg-slate-200' };
         }
     }
 
     function formatearFecha(fechaString) {
+        if(!fechaString) return 'Reciente';
         const fecha = new Date(fechaString);
-        return fecha.toLocaleDateString('es-ES', { hour: '2-digit', minute: '2-digit' });
+        return fecha.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
     }
 
     async function marcarLeida(id) {
@@ -125,25 +85,20 @@
                 method: 'PUT',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            cargarNotificaciones(); // Recargamos para actualizar el estilo visual
+            cargarNotificaciones();
         } catch (e) {}
     }
 
     async function marcarTodasLeidas() {
-        if(!confirm("¿Deseas marcar todas como leídas?")) return;
+        if(!confirm("¿Deseas marcar todas las notificaciones como leídas?")) return;
         try {
             await fetch(`http://localhost:8080/api/notificaciones/leer-todas`, {
                 method: 'PUT',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             cargarNotificaciones();
-        } catch (e) {}
+        } catch (e) { alert("Error de red."); }
     }
   </script>
-
-  <style>
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-  </style>
 </body>
 </html>

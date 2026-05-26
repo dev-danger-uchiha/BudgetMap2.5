@@ -16,7 +16,7 @@ public class AnaliticaLocal {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "establecimiento_id", nullable = false)
     private Establecimiento establecimiento;
 

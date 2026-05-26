@@ -3,152 +3,101 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Detalle del Sitio - BudgetMap</title>
+  <title>Detalles | BudgetMap</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    // Seguridad: Solo exploradores
     const token = localStorage.getItem('jwt_token');
     if (!token) window.location.href = '/login.html';
   </script>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 min-h-screen pb-20">
+<body class="bg-slate-50 font-sans pb-28">
 
-  <nav class="bg-emerald-600 p-4 shadow-md text-white flex justify-between items-center">
-    <button onclick="history.back()" class="flex items-center gap-2 font-bold hover:text-lime-200">
-      ⬅️ Volver al Mapa
-    </button>
-    <span class="font-extrabold tracking-widest">BUDGETMAP</span>
-    <div class="w-8"></div> </nav>
-
-  <main class="max-w-4xl mx-auto mt-6 px-4">
+  <header class="relative h-72 md:h-96 bg-slate-900">
+    <img id="det-img" src="https://via.placeholder.com/800x400" class="w-full h-full object-cover opacity-50">
+    <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent"></div>
     
-    <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden border border-gray-100 dark:border-gray-700">
-      <div class="h-64 md:h-80 bg-gray-200 relative">
-        <img id="detalle-imagen" src="" alt="Imagen del sitio" class="w-full h-full object-cover">
-        <div id="badge-categoria" class="absolute top-6 left-6 bg-lime-500 text-white px-4 py-1 rounded-full font-bold text-sm shadow-lg">
-          CATEGORÍA
-        </div>
-      </div>
-
-      <div class="p-8">
-        <div class="flex justify-between items-start">
-          <div>
-            <h1 id="detalle-nombre" class="text-3xl md:text-4xl font-black text-gray-800 dark:text-white">Cargando...</h1>
-            <p id="detalle-direccion" class="text-gray-500 dark:text-gray-400 mt-2 flex items-center gap-1">
-              📍 <span>Ubicación</span>
-            </p>
-          </div>
-          <div class="text-right">
-            <span id="detalle-precio" class="text-2xl font-black text-emerald-600">$0.00</span>
-            <p class="text-xs text-gray-400">Precio base / entrada</p>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-4 mt-8">
-          <div class="bg-emerald-50 dark:bg-emerald-900/30 p-4 rounded-2xl border border-emerald-100 dark:border-emerald-800">
-            <p class="text-xs text-emerald-600 dark:text-emerald-400 font-bold uppercase">Aforo Actual</p>
-            <p class="text-2xl font-black text-emerald-800 dark:text-emerald-200"><span id="aforo-actual">0</span> / <span id="aforo-max">0</span></p>
-            <div class="w-full bg-emerald-200 dark:bg-emerald-800 h-2 rounded-full mt-2 overflow-hidden">
-                <div id="aforo-bar" class="bg-emerald-500 h-full transition-all duration-500" style="width: 0%"></div>
-            </div>
-          </div>
-          <div class="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-2xl border border-blue-100 dark:border-blue-800">
-            <p class="text-xs text-blue-600 dark:text-blue-400 font-bold uppercase">Horario / Fecha</p>
-            <p id="detalle-horario" class="text-sm font-bold text-blue-800 dark:text-blue-200 mt-1">Cargando horario...</p>
-          </div>
-        </div>
-
-        <div class="mt-8">
-          <h2 class="font-bold text-gray-800 dark:text-white mb-2">Sobre este lugar</h2>
-          <p id="detalle-descripcion" class="text-gray-600 dark:text-gray-300 leading-relaxed">
-            Cargando descripción detallada...
-          </p>
-        </div>
-      </div>
+    <button onclick="history.back()" class="absolute top-6 left-6 bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-full font-bold hover:bg-white/40 transition">
+        ⬅️ Volver
+    </button>
+    
+    <div class="absolute bottom-6 left-6 right-6">
+        <span id="det-cat" class="bg-orange-500 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg">CATEGORÍA</span>
+        <h1 id="det-nombre" class="text-4xl md:text-5xl font-black text-white uppercase italic tracking-tighter mt-2 drop-shadow-md">Cargando...</h1>
+        <p id="det-dir" class="text-amber-200 text-sm font-bold mt-2">📍 Ubicación</p>
     </div>
+  </header>
 
-    <section class="mt-10">
-        <h2 class="text-2xl font-black text-gray-800 dark:text-white mb-6 flex items-center gap-2">
-            🏷️ Promociones Disponibles
-        </h2>
-        <div id="contenedor-promociones" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <p class="text-gray-400 italic">No hay promociones activas en este momento.</p>
+  <main class="max-w-3xl mx-auto px-6 mt-8">
+    <div class="grid grid-cols-2 gap-4 mb-8">
+        <div class="bg-white p-5 rounded-3xl shadow-sm border border-orange-100 text-center">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Aforo Disponible</p>
+            <p class="text-3xl font-black text-orange-500 mt-1"><span id="det-aforo">--</span></p>
         </div>
-    </section>
-
-    <div class="fixed bottom-0 left-0 right-0 p-4 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-t border-gray-200 dark:border-gray-700 z-50">
-        <div class="max-w-4xl mx-auto">
-            <button id="btn-reservar" class="w-full bg-gradient-to-r from-emerald-600 to-lime-500 text-white font-black py-4 rounded-2xl shadow-xl hover:shadow-2xl transition transform hover:scale-[1.01] active:scale-95">
-                RESERVAR CUPO AHORA
-            </button>
+        <div class="bg-white p-5 rounded-3xl shadow-sm border border-orange-100 text-center">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Precio / Costo</p>
+            <p id="det-precio" class="text-2xl font-black text-slate-800 mt-2">Gratis</p>
         </div>
     </div>
 
+    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 mb-8">
+        <h3 class="font-black text-slate-800 uppercase tracking-tight mb-2 text-lg">Acerca de</h3>
+        <p id="det-desc" class="text-sm text-slate-600 leading-relaxed">Cargando información detallada del sitio...</p>
+    </div>
+
+    <h3 class="font-black text-slate-800 uppercase tracking-tight mb-4 text-lg">🎟️ Promociones y Cupones</h3>
+    <div id="contenedor-promos" class="space-y-4 mb-8">
+        <p class="text-sm text-slate-400 font-bold italic p-4 text-center">Buscando promociones activas...</p>
+    </div>
   </main>
 
+  <div class="fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-md border-t border-slate-200 z-50">
+      <div class="max-w-3xl mx-auto flex gap-4">
+          <select id="reserva-personas" class="bg-slate-100 border border-slate-200 text-slate-800 font-bold rounded-2xl px-4 outline-none w-24 text-center">
+              <option value="1">1 Pax</option><option value="2">2 Pax</option><option value="3">3 Pax</option><option value="4">4 Pax</option>
+              <option value="5">5 Pax</option><option value="6">6 Pax</option>
+          </select>
+          <button onclick="procesarReserva()" id="btn-reservar" class="flex-1 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-black text-sm uppercase tracking-widest py-4 rounded-2xl shadow-xl shadow-orange-500/30 transform hover:scale-[1.02] transition-all">
+              Asegurar Cupo Ahora
+          </button>
+      </div>
+  </div>
+
   <script>
-    // 1. Obtener parámetros de la URL (?id=1&tipo=establecimiento)
     const params = new URLSearchParams(window.location.search);
     const id = params.get('id');
-    const tipo = params.get('tipo'); // 'establecimiento' o 'evento'
+    const tipo = params.get('tipo'); 
 
-    document.addEventListener("DOMContentLoaded", () => {
-        if (!id || !tipo) {
-            alert("Información insuficiente");
-            window.location.href = '/explorador/dashboard.html';
-            return;
-        }
-        cargarDatosDetalle();
-    });
+    document.addEventListener("DOMContentLoaded", async () => {
+        if (!id || !tipo) return;
 
-    async function cargarDatosDetalle() {
-        const endpoint = `http://localhost:8080/api/${tipo}s/${id}`;
-        
         try {
-            const response = await fetch(endpoint, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-
+            const url = tipo === 'establecimiento' 
+                ? `http://localhost:8080/api/establecimientos/${id}`
+                : `http://localhost:8080/api/eventos/${id}`;
+            
+            const response = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
             if (response.ok) {
                 const data = await response.json();
-                pintarInterfaz(data);
-                cargarPromociones();
+                document.getElementById('det-nombre').innerText = data.nombre;
+                document.getElementById('det-cat').innerText = data.categoria || data.tipoEvento || 'PÚBLICO';
+                document.getElementById('det-desc').innerText = data.descripcion || 'Sin descripción disponible.';
+                document.getElementById('det-aforo').innerText = data.aforoActual !== undefined ? data.aforoMaximo - data.aforoActual : '--';
+                document.getElementById('det-dir').innerText = `📍 ${data.direccion || (data.lugar ? data.lugar.direccion : 'Ubicación')}`;
+                
+                if(tipo === 'evento') {
+                    document.getElementById('det-precio').innerText = data.precio > 0 ? `$${data.precio}` : 'Gratis';
+                }
+
+                if (tipo === 'establecimiento') cargarPromos(id);
+                else document.getElementById('contenedor-promos').innerHTML = '<p class="text-sm text-slate-400 font-bold italic p-4">Los eventos no aplican cupones por ahora.</p>';
             }
-        } catch (error) {
-            console.error("Error cargando detalle:", error);
-        }
-    }
+        } catch (error) { console.error("Error al cargar detalle", error); }
+    });
 
-    function pintarInterfaz(data) {
-        document.getElementById('detalle-nombre').textContent = data.nombre;
-        document.getElementById('detalle-descripcion').textContent = data.descripcion;
-        document.getElementById('detalle-direccion').textContent = data.direccion || 'Lugar del evento';
-        document.getElementById('badge-categoria').textContent = data.categoria || data.tipoEvento;
-        document.getElementById('detalle-imagen').src = data.imagenUrl || 'https://via.placeholder.com/800x400?text=Sin+Imagen';
-        document.getElementById('detalle-precio').textContent = data.precio ? `$${data.precio}` : 'Gratis';
-        
-        // Aforo
-        const actual = data.aforoActual || 0;
-        const max = data.aforoMaximo || 100;
-        document.getElementById('aforo-actual').textContent = actual;
-        document.getElementById('aforo-max').textContent = max;
-        const porcentaje = (actual / max) * 100;
-        document.getElementById('aforo-bar').style.width = `${porcentaje}%`;
-
-        // Horario/Fecha
-        if(tipo === 'establecimiento') {
-            document.getElementById('detalle-horario').textContent = data.horarioAtencion || 'Consulta disponibilidad';
-        } else {
-            document.getElementById('detalle-horario').textContent = `${data.fechaInicio} | ${data.horaInicio}`;
-        }
-    }
-
-    async function cargarPromociones() {
-        const promoEndpoint = `http://localhost:8080/api/promociones/${tipo}/${id}/activas`;
-        const contenedor = document.getElementById('contenedor-promociones');
-
+    async function cargarPromos(estId) {
+        const contenedor = document.getElementById('contenedor-promos');
         try {
-            const response = await fetch(promoEndpoint, {
+            const response = await fetch(`http://localhost:8080/api/promociones/establecimiento/${estId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (response.ok) {
@@ -157,22 +106,56 @@
                     contenedor.innerHTML = '';
                     promociones.forEach(p => {
                         contenedor.innerHTML += `
-                            <div class="bg-white dark:bg-gray-800 p-5 rounded-2xl border-2 border-dashed border-lime-400 flex justify-between items-center shadow-sm">
+                            <div class="bg-white p-5 rounded-2xl border-2 border-dashed border-orange-300 flex justify-between items-center shadow-sm">
                                 <div>
-                                    <h4 class="font-black text-emerald-600 dark:text-lime-400 text-lg">${p.titulo}</h4>
-                                    <p class="text-xs text-gray-500">${p.descripcion}</p>
-                                    <span class="inline-block mt-2 bg-lime-100 text-lime-700 text-[10px] font-bold px-2 py-0.5 rounded uppercase">CÓDIGO: ${p.codigoCupon}</span>
+                                    <h4 class="font-black text-orange-600 text-lg">${p.titulo}</h4>
+                                    <p class="text-xs text-slate-500">${p.descripcion}</p>
+                                    <span class="inline-block mt-2 bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded uppercase">CÓDIGO: ${p.codigoCupon}</span>
                                 </div>
-                                <div class="text-center">
-                                    <span class="block text-2xl font-black text-gray-800 dark:text-white">-${p.descuentoPorcentaje}%</span>
-                                    <button class="mt-2 text-[10px] bg-gray-800 text-white px-3 py-1 rounded-full font-bold">COPIAR</button>
+                                <div class="text-center bg-slate-50 px-4 py-2 rounded-xl">
+                                    <span class="block text-2xl font-black text-slate-800">-${p.descuentoPorcentaje}%</span>
                                 </div>
                             </div>
                         `;
                     });
+                } else {
+                    contenedor.innerHTML = '<p class="text-sm text-slate-400 font-bold italic p-4">No hay promociones activas en este momento.</p>';
                 }
             }
-        } catch (e) {}
+        } catch (e) { contenedor.innerHTML = '<p class="text-red-500 text-sm">Error al cargar cupones.</p>'; }
+    }
+
+    async function procesarReserva() {
+        const btn = document.getElementById('btn-reservar');
+        btn.innerText = "PROCESANDO...";
+        btn.disabled = true;
+
+        const personas = document.getElementById('reserva-personas').value;
+        const payload = { numeroPersonas: parseInt(personas) };
+        if(tipo === 'establecimiento') payload.establecimientoId = parseInt(id);
+        else payload.eventoId = parseInt(id);
+
+        try {
+            const res = await fetch(`http://localhost:8080/api/reservas`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            
+            if(res.ok) {
+                alert("¡Reserva confirmada! Tu código digital ha sido generado.");
+                window.location.href = '/explorador/mis-reservas.html';
+            } else { 
+                const errorData = await res.json();
+                alert(`Error: ${errorData.message || "No hay aforo suficiente para esta cantidad de personas."}`); 
+                btn.innerText = "Asegurar Cupo Ahora";
+                btn.disabled = false;
+            }
+        } catch(e) { 
+            alert("Error crítico de red.");
+            btn.innerText = "Asegurar Cupo Ahora";
+            btn.disabled = false;
+        }
     }
   </script>
 </body>

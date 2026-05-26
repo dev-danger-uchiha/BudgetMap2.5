@@ -10,6 +10,7 @@ import com.budgetmap.model.enums.RolUsuario;
 import com.budgetmap.repository.UsuarioRepository;
 import com.budgetmap.security.JwtUtils;
 import com.budgetmap.security.UserDetailsImpl;
+import com.budgetmap.util.PasswordValidator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -75,7 +76,7 @@ public class AuthService {
 
         log.info("Iniciando registro de nuevo usuario con email: {}", emailNormalizado);
 
-        validarPassword(request.getPassword());
+        PasswordValidator.validar(request.getPassword());
 
         RolUsuario rolFinal = request.getRol() != null ? request.getRol() : RolUsuario.EXPLORADOR;
 
@@ -143,22 +144,6 @@ public class AuthService {
             return null;
         }
         return telefono.trim().replaceAll("[^0-9+]", "");
-    }
-
-    private void validarPassword(String password) {
-        if (password == null || password.length() < 8) {
-            throw new PasswordInvalidoException("La contraseña debe tener al menos 8 caracteres");
-        }
-
-        if (!password.matches(".*[A-Z].*")) {
-            throw new PasswordInvalidoException("La contraseña debe contener al menos una mayúscula");
-        }
-        if (!password.matches(".*[a-z].*")) {
-            throw new PasswordInvalidoException("La contraseña debe contener al menos una minúscula");
-        }
-        if (!password.matches(".*[0-9].*")) {
-            throw new PasswordInvalidoException("La contraseña debe contener al menos un número");
-        }
     }
 
     private UsuarioDTO convertirADTO(Usuario usuario) {

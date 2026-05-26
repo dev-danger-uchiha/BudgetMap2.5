@@ -3,208 +3,196 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Anfitrión - Gestión de Eventos</title>
+  <title>Gestión de Eventos | BudgetMap</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     const token = localStorage.getItem('jwt_token');
     if (!token || localStorage.getItem('user_rol') !== 'ANFITRION') window.location.href = '/login.html';
   </script>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 min-h-screen pb-20">
+<body class="bg-slate-50 min-h-screen text-slate-800 font-sans pb-20">
 
-  <nav class="bg-blue-700 p-4 shadow-lg text-white flex justify-between items-center sticky top-0 z-50">
-    <div class="flex items-center gap-2">
-       <span class="bg-white text-blue-700 px-2 py-0.5 rounded text-[10px] font-black uppercase">Anfitrión</span>
-       <span class="font-bold tracking-widest text-lg">BUDGETMAP</span>
-    </div>
-    <div class="flex gap-4 text-xs font-bold uppercase">
-        <a href="/anfitrion/mis-eventos.html" class="text-blue-200 border-b-2 border-blue-200">Mis Eventos</a>
-        <button onclick="localStorage.clear(); location.href='/login.html'" class="hover:text-red-300">Salir</button>
+  <nav class="bg-white border-b border-blue-100 p-4 sticky top-0 z-50 shadow-sm">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+      <div class="flex items-center gap-4">
+        <span class="bg-blue-600 text-white px-3 py-1 rounded-full font-black text-[10px] uppercase tracking-tighter">ANFITRIÓN</span>
+        <h1 class="font-black tracking-widest text-blue-900 uppercase">BUDGETMAP</h1>
+      </div>
+      <div class="flex gap-6 text-[10px] font-black uppercase tracking-widest text-slate-400">
+        <a href="/anfitrion/dashboard.html" class="hover:text-blue-600 transition">Resumen</a>
+        <a href="/anfitrion/mis-eventos.html" class="text-blue-600 border-b-2 border-blue-600 pb-1">Mis Eventos</a>
+      </div>
     </div>
   </nav>
 
-  <main class="max-w-6xl mx-auto mt-8 px-4 grid grid-cols-1 lg:grid-cols-3 gap-8">
+  <main class="max-w-7xl mx-auto mt-8 px-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
     
-    <div class="lg:col-span-1">
-      <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-700 sticky top-24">
-        <h2 class="text-xl font-black text-gray-800 dark:text-white mb-6">Crear Nuevo Evento 🎨</h2>
-        
-        <form id="eventoForm" class="space-y-4">
-          <div>
-            <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">Nombre:</label>
-            <input type="text" id="nombre" required class="w-full px-4 py-2 rounded-xl border dark:bg-gray-700 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-          </div>
-
-          <div>
-            <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">¿Dónde será el evento?</label>
-            <select id="lugarId" required class="w-full px-4 py-2 rounded-xl border dark:bg-gray-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500">
-                <option value="">Selecciona un sitio aprobado...</option>
+    <div class="lg:col-span-1 bg-white p-6 rounded-3xl border border-blue-100 shadow-sm h-fit sticky top-24">
+        <h3 class="font-black text-slate-900 uppercase tracking-tighter mb-6 border-b border-blue-50 pb-4">Programar Evento</h3>
+        <form id="eventoForm" class="flex flex-col gap-4">
+            <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase">Nombre del Evento</label>
+                <input type="text" id="nombre" required class="w-full mt-1 bg-slate-50 border rounded-xl p-3 text-sm outline-none focus:border-blue-500">
+            </div>
+            
+            <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase">Lugar Físico</label>
+                <select id="lugarId" required class="w-full mt-1 bg-slate-50 border rounded-xl p-3 text-sm outline-none focus:border-blue-500">
+                    <option value="">Cargando lugares...</option>
                 </select>
-            <p class="text-[9px] text-gray-400 mt-1 italic">Solo aparecen sitios aprobados por moderación.</p>
-          </div>
-
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">Tipo:</label>
-              <select id="tipo" class="w-full px-3 py-2 rounded-xl border dark:bg-gray-700 dark:text-white text-xs">
-                <option value="ARTISTICO">Concierto / Artístico</option>
-                <option value="CULTURAL">Cultural</option>
-                <option value="DEPORTIVO">Deportivo</option>
-                <option value="RECREATIVO">Feria / Recreativo</option>
-                <option value="VETERINARIO">Veterinario</option>
-              </select>
+                <p class="text-[9px] text-emerald-600 font-bold mt-1">Solo sitios verificados.</p>
             </div>
-            <div>
-              <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">Aforo Máx:</label>
-              <input type="number" id="aforo" required class="w-full px-3 py-2 rounded-xl border dark:bg-gray-700 dark:text-white text-xs">
-            </div>
-          </div>
 
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">Fecha:</label>
-              <input type="date" id="fecha" required class="w-full px-3 py-2 rounded-xl border dark:bg-gray-700 dark:text-white text-xs">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase">Categoría</label>
+                    <select id="tipo" class="w-full mt-1 bg-slate-50 border rounded-xl p-3 text-xs outline-none">
+                        <option value="ARTISTICO">Artístico/Concierto</option>
+                        <option value="CULTURAL">Cultural/Teatro</option>
+                        <option value="DEPORTIVO">Deportivo</option>
+                        <option value="RECREATIVO">Feria/Social</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase">Boletas (Aforo)</label>
+                    <input type="number" id="aforo" required class="w-full mt-1 bg-slate-50 border rounded-xl p-3 text-xs outline-none">
+                </div>
             </div>
-            <div>
-              <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">Hora:</label>
-              <input type="time" id="hora" required class="w-full px-3 py-2 rounded-xl border dark:bg-gray-700 dark:text-white text-xs">
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase">Fecha</label>
+                    <input type="date" id="fecha" required class="w-full mt-1 bg-slate-50 border rounded-xl p-3 text-xs outline-none">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase">Hora</label>
+                    <input type="time" id="hora" required class="w-full mt-1 bg-slate-50 border rounded-xl p-3 text-xs outline-none">
+                </div>
             </div>
-          </div>
 
-          <div>
-            <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">Precio Entrada ($):</label>
-            <input type="number" id="precio" placeholder="0 para gratis" class="w-full px-4 py-2 rounded-xl border dark:bg-gray-700 dark:text-white text-sm">
-          </div>
+            <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase">Costo de Entrada ($)</label>
+                <input type="number" id="precio" placeholder="Dejar en 0 si es Gratis" class="w-full mt-1 bg-slate-50 border rounded-xl p-3 text-sm outline-none focus:border-blue-500">
+            </div>
 
-          <button type="submit" class="w-full bg-blue-600 text-white font-black py-4 rounded-xl shadow-lg hover:bg-blue-500 transition transform active:scale-95">
-            PUBLICAR EVENTO
-          </button>
+            <button type="submit" id="btn-submit" class="w-full mt-4 bg-blue-600 text-white font-black py-4 rounded-xl text-xs uppercase hover:bg-blue-700 transition shadow-md">Publicar Evento</button>
         </form>
-      </div>
     </div>
 
     <div class="lg:col-span-2">
-      <div class="flex justify-between items-center mb-6">
-        <h3 class="text-2xl font-black text-gray-800 dark:text-white uppercase tracking-tighter">Eventos Activos</h3>
-        <span id="badge-total" class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold">0</span>
-      </div>
-      <div id="lista-eventos" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="flex justify-between items-end mb-6">
+            <h3 class="text-2xl font-black text-slate-900 italic tracking-tighter uppercase">Cartelera Activa</h3>
+            <span id="info-pag" class="text-xs font-bold text-slate-400">Pág 1</span>
+        </div>
+        
+        <div id="grid-eventos" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <p class="text-blue-600 font-bold animate-pulse text-sm">Cargando cartelera...</p>
+        </div>
+
+        <div class="mt-6 flex gap-2">
+            <button id="btn-prev" onclick="cargarEventos(paginaActual-1)" class="px-4 py-2 border border-blue-200 text-blue-700 rounded-lg text-xs font-bold hover:bg-blue-50 disabled:opacity-50">Anterior</button>
+            <button id="btn-next" onclick="cargarEventos(paginaActual+1)" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 disabled:opacity-50">Siguiente</button>
         </div>
     </div>
   </main>
 
   <script>
+    let paginaActual = 0;
+    let paginasTotales = 0;
+
     document.addEventListener("DOMContentLoaded", () => {
-        cargarLugaresDisponibles(); // Carga la lista para el SELECT
-        cargarMisEventos();
+        cargarLugares();
+        cargarEventos(0);
     });
 
-    // Función para llenar el SELECT con sitios donde se puede hacer eventos
-    async function cargarLugaresDisponibles() {
-        const select = document.getElementById('lugarId');
+    async function cargarLugares() {
         try {
-            // Consultamos lugares aprobados (parques, plazas, etc)
-            const response = await fetch('http://localhost:8080/api/lugares/aprobados', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (response.ok) {
-                const lugares = await response.json();
-                lugares.forEach(l => {
-                    const opt = document.createElement('option');
-                    opt.value = l.id;
-                    opt.textContent = `📍 ${l.nombre} (${l.tipo})`;
-                    select.appendChild(opt);
-                });
+            const res = await fetch('http://localhost:8080/api/lugares/aprobados', { headers: { 'Authorization': `Bearer ${token}` }});
+            if(res.ok) {
+                const lugares = await res.json();
+                const sel = document.getElementById('lugarId');
+                sel.innerHTML = '<option value="">Selecciona la locación...</option>';
+                lugares.forEach(l => sel.innerHTML += `<option value="${l.id}">${l.nombre} (${l.categoria})</option>`);
             }
-        } catch (e) { console.error("Error cargando lugares"); }
+        } catch(e) { console.error("Error cargando locaciones"); }
     }
 
-    async function cargarMisEventos() {
-        const contenedor = document.getElementById('lista-eventos');
+    async function cargarEventos(page) {
+        paginaActual = page;
+        const grid = document.getElementById('grid-eventos');
+        
         try {
-            const response = await fetch('http://localhost:8080/api/mis-eventos', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (response.ok) {
-                const eventos = await response.json();
-                document.getElementById('badge-total').textContent = eventos.length;
-                contenedor.innerHTML = eventos.length ? '' : '<p class="text-gray-400 italic">No hay eventos activos.</p>';
+            // Ajusta a tu endpoint paginado de eventos si lo tienes. Si no, usa el general y simulamos la paginación o quitas la paginación visual.
+            const res = await fetch(`http://localhost:8080/api/eventos/mis-eventos?page=${paginaActual}&size=4`, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (res.ok) {
+                const data = await res.json();
+                const eventos = data.content || data; // Soporte para paginado o Array plano
+                paginasTotales = data.totalPages || 1;
+                
+                document.getElementById('info-pag').innerText = `Pág ${paginaActual + 1} de ${paginasTotales}`;
+                document.getElementById('btn-prev').disabled = paginaActual === 0;
+                document.getElementById('btn-next').disabled = paginaActual >= paginasTotales - 1;
 
-                eventos.forEach(ev => {
-                    contenedor.innerHTML += `
-                        <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-lg border border-gray-100 dark:border-gray-700">
-                            <div class="flex justify-between mb-4">
-                                <span class="text-[10px] font-black bg-blue-50 text-blue-600 px-2 py-1 rounded uppercase">${ev.tipoEvento}</span>
-                                <button onclick="eliminarEvento(${ev.id})" class="text-red-400 hover:text-red-600">🗑️</button>
+                if(eventos.length === 0) { grid.innerHTML = '<p class="text-slate-400 text-sm p-4">No tienes eventos en cartelera.</p>'; return; }
+
+                grid.innerHTML = eventos.map(ev => `
+                    <div class="bg-white p-5 rounded-2xl border border-blue-100 shadow-sm relative group hover:shadow-md transition flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="bg-blue-50 text-blue-700 font-black text-[9px] px-2 py-1 rounded uppercase tracking-widest">${ev.tipoEvento}</span>
+                                <span class="text-emerald-600 font-black text-sm">$${ev.precio || 'Gratis'}</span>
                             </div>
-                            <h4 class="font-black text-gray-800 dark:text-white text-lg uppercase">${ev.nombre}</h4>
-                            <p class="text-xs text-emerald-600 font-bold mt-1">📍 En: ${ev.lugarNombre || 'Sitio asignado'}</p>
-                            
-                            <div class="mt-6 flex justify-between border-t dark:border-gray-700 pt-4">
-                                <div>
-                                    <p class="text-[9px] text-gray-400 font-bold uppercase">Asistencia</p>
-                                    <p class="text-sm font-black text-gray-700 dark:text-gray-300">${ev.aforoActual} / ${ev.aforoMaximo}</p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-[9px] text-gray-400 font-bold uppercase">Precio</p>
-                                    <p class="text-sm font-black text-blue-600">$${ev.precio}</p>
-                                </div>
-                            </div>
+                            <h4 class="font-black text-slate-800 text-lg uppercase tracking-tight leading-tight">${ev.nombre}</h4>
+                            <p class="text-xs text-slate-500 font-bold mt-2">📍 Locación Asignada ID: ${ev.lugarId}</p>
+                            <p class="text-[10px] text-slate-400 mt-1">📅 ${ev.fechaInicio} ⏰ ${ev.horaInicio}</p>
                         </div>
-                    `;
-                });
+                        <div class="mt-4 pt-4 border-t border-slate-50 flex justify-between items-center">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase">Boletas: <span class="text-blue-600">${ev.aforoActual || 0}</span> / ${ev.aforoMaximo}</span>
+                            <button onclick="eliminarEvento(${ev.id})" class="text-[10px] font-bold text-red-500 hover:text-red-700 bg-red-50 px-2 py-1 rounded">Cancelar</button>
+                        </div>
+                    </div>
+                `).join('');
             }
-        } catch (e) {}
+        } catch (e) { grid.innerHTML = '<p class="text-red-500">Error al cargar.</p>'; }
     }
 
     document.getElementById('eventoForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
+        e.preventDefault();
+        const btn = document.getElementById('btn-submit');
+        btn.disabled = true; btn.innerText = "Publicando...";
 
-    let horaVal = document.getElementById('hora').value;
-    if(horaVal.length === 5) horaVal += ":00"; 
+        let horaVal = document.getElementById('hora').value;
+        if(horaVal.length === 5) horaVal += ":00"; // Formato HH:MM:SS requerido por Spring
 
-    const data = {
-        nombre: document.getElementById('nombre').value,
-        tipoEvento: document.getElementById('tipo').value,
-        // Forzamos a que sean números enteros y decimales, no texto
-        aforoMaximo: parseInt(document.getElementById('aforo').value), 
-        fechaInicio: document.getElementById('fecha').value,
-        horaInicio: horaVal,
-        precio: parseFloat(document.getElementById('precio').value || 0),
-        lugarId: parseInt(document.getElementById('lugarId').value) 
-    };
+        const payload = {
+            nombre: document.getElementById('nombre').value,
+            tipoEvento: document.getElementById('tipo').value,
+            aforoMaximo: parseInt(document.getElementById('aforo').value), 
+            fechaInicio: document.getElementById('fecha').value,
+            horaInicio: horaVal,
+            precio: parseFloat(document.getElementById('precio').value || 0),
+            lugarId: parseInt(document.getElementById('lugarId').value) 
+        };
 
-    try {
-        const response = await fetch('http://localhost:8080/api/eventos', {
-            method: 'POST',
-            headers: { 
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json' 
-            },
-            body: JSON.stringify(data)
-        });
-
-        if (response.ok) {
-            alert("¡Evento creado y vinculado al lugar con éxito!");
-            document.getElementById('eventoForm').reset();
-            cargarMisEventos();
-        } else {
-            // Si hay un error, ahora lo veremos en pantalla
-            const errorData = await response.json();
-            alert("Error al guardar: " + (errorData.message || "Revisa los datos"));
-        }
-    } catch (error) { 
-        alert("Error de conexión con el servidor."); 
-    }
-});
+        try {
+            const res = await fetch('http://localhost:8080/api/eventos', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if(res.ok) {
+                alert("¡Evento agregado a la cartelera!");
+                document.getElementById('eventoForm').reset();
+                cargarEventos(0);
+            } else { alert("Verifica los datos del evento."); }
+        } catch(err) { alert("Error de red."); }
+        finally { btn.disabled = false; btn.innerText = "Publicar Evento"; }
+    });
 
     async function eliminarEvento(id) {
-        if(!confirm("¿Eliminar este evento?")) return;
-        await fetch(`http://localhost:8080/api/eventos/${id}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        cargarMisEventos();
+        if(!confirm("¿Deseas cancelar y borrar este evento?")) return;
+        const res = await fetch(`http://localhost:8080/api/eventos/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }});
+        if(res.ok) cargarEventos(paginaActual);
     }
   </script>
 </body>

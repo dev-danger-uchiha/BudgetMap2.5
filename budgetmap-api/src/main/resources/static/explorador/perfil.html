@@ -3,165 +3,105 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mi Perfil y Radar - BudgetMap</title>
+  <title>Mi Perfil y Radar | BudgetMap</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    // Seguridad: Solo exploradores
     const token = localStorage.getItem('jwt_token');
     if (!token) window.location.href = '/login.html';
   </script>
 </head>
+<body class="bg-slate-50 min-h-screen pb-10 font-sans">
 
-<body class="bg-gray-50 dark:bg-gray-900 min-h-screen pb-10">
-
-  <nav class="bg-emerald-600 p-4 shadow-md text-white flex justify-between items-center">
-    <button onclick="location.href='/explorador/dashboard.html'"
-      class="flex items-center gap-2 font-bold hover:text-lime-200 transition">
-      ⬅️ Volver al Radar
-    </button>
-    <span class="font-extrabold tracking-widest">MI PERFIL</span>
-    <div class="w-8"></div>
+  <nav class="bg-gradient-to-r from-orange-500 to-amber-500 p-4 shadow-md text-white sticky top-0 z-50">
+    <div class="max-w-3xl mx-auto flex justify-between items-center">
+        <button onclick="location.href='dashboard.html'" class="font-bold text-sm tracking-widest uppercase hover:text-amber-200">⬅️ Radar</button>
+        <span class="font-black tracking-widest uppercase text-lg">Mi Cuenta</span>
+        <div class="w-10"></div>
+    </div>
   </nav>
 
-  <main class="max-w-2xl mx-auto mt-8 px-4">
+  <main class="max-w-3xl mx-auto mt-8 px-6 grid grid-cols-1 md:grid-cols-2 gap-8">
 
-    <div class="bg-gradient-to-br from-emerald-500 to-lime-500 rounded-3xl p-8 text-white shadow-xl mb-8 relative overflow-hidden">
-      <div class="relative z-10">
-        <h2 id="perfil-nombre" class="text-3xl font-black italic uppercase">Cargando...</h2>
-        <p id="perfil-email" class="text-emerald-100 text-sm mb-6">usuario@correo.com</p>
-
-        <div class="bg-white/20 backdrop-blur-md rounded-2xl p-4 inline-block border border-white/30">
-          <p class="text-[10px] font-bold uppercase tracking-widest opacity-80">Puntos Acumulados</p>
-          <p class="text-4xl font-black flex items-center gap-2">
-            <span id="puntos-valor">0</span>
-            <span class="text-xl">🪙</span>
-          </p>
+    <div class="bg-slate-900 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden flex flex-col justify-between">
+        <div class="absolute top-0 right-0 w-32 h-32 bg-orange-500 rounded-full blur-3xl opacity-20 pointer-events-none"></div>
+        <div>
+            <h3 class="font-black text-amber-400 uppercase tracking-widest text-[10px] mb-2">Tu Membresía Actual</h3>
+            <div class="flex items-center gap-3 mb-6">
+                <span id="plan-actual" class="text-4xl font-black italic tracking-tighter uppercase">FREE</span>
+                <span id="saldo-puntos" class="bg-amber-500/20 text-amber-300 px-3 py-1 rounded-full text-xs font-bold border border-amber-500/30">0 Pts</span>
+            </div>
+            <ul class="text-xs text-slate-400 space-y-2 mb-8">
+                <li class="flex items-center gap-2">✅ Radar estándar (2km)</li>
+                <li class="flex items-center gap-2">✅ Reservas limitadas</li>
+                <li class="flex items-center gap-2 text-slate-600">❌ Cupones exclusivos PRO</li>
+                <li class="flex items-center gap-2 text-slate-600">❌ Experiencia sin Anuncios</li>
+            </ul>
         </div>
-      </div>
-      <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full"></div>
+        <button class="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white font-black py-4 rounded-xl text-xs uppercase tracking-widest hover:scale-[1.02] transition shadow-lg shadow-orange-500/30">
+            Hacer Upgrade a PRO ⭐
+        </button>
     </div>
 
-    <section class="bg-white dark:bg-gray-800 rounded-3xl shadow-lg p-8 border border-gray-100 dark:border-gray-700">
-      <h3 class="text-xl font-black text-gray-800 dark:text-white mb-6 flex items-center gap-2">
-        📡 Configuración del Radar
-      </h3>
-
-      <div class="space-y-8">
+    <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
         <div>
-          <div class="flex justify-between items-center mb-4">
-            <label class="font-bold text-gray-700 dark:text-gray-300">Radio de búsqueda:</label>
-            <span id="radio-display"
-              class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full font-black text-sm">500m</span>
-          </div>
-          <input type="range" id="radio-slider" min="500" max="5000" step="500" value="500"
-            class="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-emerald-500">
-          <div class="flex justify-between text-[10px] text-gray-400 mt-2 font-bold uppercase">
-            <span>Cercano (500m)</span>
-            <span>Máximo (5km)</span>
-          </div>
-        </div>
-
-        <hr class="border-gray-100 dark:border-gray-700">
-
-        <div class="space-y-4">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="font-bold text-gray-800 dark:text-white">Alertas de Promociones</p>
-              <p class="text-xs text-gray-500">Notificarme cuando haya descuentos cerca.</p>
+            <h3 class="font-black text-slate-800 uppercase tracking-tighter text-xl mb-6">Ajustes del Radar</h3>
+            
+            <div class="mb-6">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Alcance del Escáner</label>
+                    <span id="radio-display" class="text-sm font-black text-orange-600">2000m</span>
+                </div>
+                <input type="range" id="radio-slider" min="500" max="5000" step="500" value="2000" class="w-full accent-orange-500">
+                <p class="text-[9px] text-slate-400 mt-2">*Los usuarios PRO pueden ampliar el radar hasta 10km.</p>
             </div>
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" id="check-promo" class="sr-only peer" checked>
-              <div
-                class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500">
-              </div>
-            </label>
-          </div>
 
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="font-bold text-gray-800 dark:text-white">Alertas de Eventos</p>
-              <p class="text-xs text-gray-500">Notificarme sobre eventos culturales o deportivos.</p>
+            <div class="space-y-4">
+                <label class="flex items-center justify-between cursor-pointer">
+                    <span class="text-sm font-bold text-slate-700">Notificar Promociones</span>
+                    <input type="checkbox" id="check-promo" class="sr-only peer" checked>
+                    <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500 relative"></div>
+                </label>
+                <label class="flex items-center justify-between cursor-pointer">
+                    <span class="text-sm font-bold text-slate-700">Notificar Eventos</span>
+                    <input type="checkbox" id="check-evento" class="sr-only peer" checked>
+                    <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500 relative"></div>
+                </label>
             </div>
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" id="check-evento" class="sr-only peer" checked>
-              <div
-                class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500">
-              </div>
-            </label>
-          </div>
         </div>
-
-        <button id="btn-guardar-config"
-          class="w-full bg-gray-800 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-gray-700 transition">
-          GUARDAR CONFIGURACIÓN
+        <button id="btn-guardar-config" class="w-full mt-8 bg-slate-900 text-white font-black py-4 rounded-xl text-xs uppercase tracking-widest hover:bg-slate-800 transition shadow-md">
+            Guardar Cambios
         </button>
-      </div>
-    </section>
-
-    <button onclick="cerrarSesion()"
-      class="w-full mt-8 py-4 text-red-500 font-bold border-2 border-red-100 rounded-2xl hover:bg-red-50 transition">
-      Cerrar Sesión
-    </button>
-
+    </div>
   </main>
 
   <script>
-    const userId = localStorage.getItem('user_id');
-
-    document.addEventListener("DOMContentLoaded", () => {
-      cargarDatosPerfil();
-      cargarConfiguracionRadar();
-    });
-
-    async function cargarDatosPerfil() {
+    document.addEventListener("DOMContentLoaded", async () => {
       try {
-        const response = await fetch(`http://localhost:8080/api/perfil/${userId}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        if (response.ok) {
-          const user = await response.json();
-          document.getElementById('perfil-nombre').textContent = `${user.nombre} ${user.apellido}`;
-          document.getElementById('perfil-email').textContent = user.email;
-          document.getElementById('puntos-valor').textContent = user.puntosAcumulados || 0;
+        const resUser = await fetch('http://localhost:8080/api/usuarios/me', { headers: { 'Authorization': `Bearer ${token}` }});
+        if(resUser.ok) {
+            const user = await resUser.json();
+            document.getElementById('saldo-puntos').innerText = `${user.puntosAcumulados || 0} Pts`;
+            if(user.planId) document.getElementById('plan-actual').innerText = 'PRO';
         }
-      } catch (e) {
-        console.error("Error cargando perfil", e);
-      }
-    }
 
-    async function cargarConfiguracionRadar() {
-      const slider = document.getElementById('radio-slider');
-      const display = document.getElementById('radio-display');
-
-      try {
-        const response = await fetch(`http://localhost:8080/api/config-alertas/mi-radar`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        if (response.ok) {
-          const config = await response.json();
-          slider.value = config.radioMetros;
-          display.textContent = `${config.radioMetros}m`;
+        const resConfig = await fetch('http://localhost:8080/api/config-alertas/me', { headers: { 'Authorization': `Bearer ${token}` }});
+        if (resConfig.ok) {
+          const config = await resConfig.json();
+          document.getElementById('radio-slider').value = config.radioMetros;
+          document.getElementById('radio-display').textContent = `${config.radioMetros}m`;
           document.getElementById('check-promo').checked = config.notificarPromociones;
           document.getElementById('check-evento').checked = config.notificarEventos;
         }
-      } catch (e) {
-        console.error("Error cargando configuración de radar", e);
-      }
+      } catch (e) { console.error("Error cargando perfil", e); }
+    });
 
-      slider.addEventListener('input', () => {
-        display.textContent = `${slider.value}m`;
-      });
-    }
+    const slider = document.getElementById('radio-slider');
+    const display = document.getElementById('radio-display');
+    slider.addEventListener('input', () => display.textContent = `${slider.value}m`);
 
     document.getElementById('btn-guardar-config').addEventListener('click', async () => {
-      const nuevoRadio = document.getElementById('radio-slider').value;
-      const promo = document.getElementById('check-promo').checked;
-      const evento = document.getElementById('check-evento').checked;
-
+      const btn = document.getElementById('btn-guardar-config');
+      btn.innerText = 'Guardando...';
       try {
         const response = await fetch(`http://localhost:8080/api/config-alertas/radio`, {
           method: 'PUT',
@@ -170,24 +110,23 @@
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            radioMetros: nuevoRadio,
-            notificarPromociones: promo,
-            notificarEventos: evento
+            radioMetros: document.getElementById('radio-slider').value,
+            notificarPromociones: document.getElementById('check-promo').checked,
+            notificarEventos: document.getElementById('check-evento').checked
           })
         });
 
         if (response.ok) {
-          alert("¡Configuración actualizada! Tu radar ahora llegará más lejos.");
+          alert("¡Configuración de Radar actualizada correctamente!");
+        } else {
+          alert("Error al actualizar la configuración.");
         }
       } catch (e) {
-        alert("Error al guardar.");
+        alert("Error de conexión al servidor.");
+      } finally {
+        btn.innerText = 'GUARDAR CAMBIOS';
       }
     });
-
-    function cerrarSesion() {
-      localStorage.clear();
-      window.location.href = '/login.html';
-    }
   </script>
 </body>
 </html>

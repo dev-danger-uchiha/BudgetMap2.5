@@ -3,194 +3,127 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mis Reservas - BudgetMap</title>
+  <title>Mis Entradas | BudgetMap</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    // Seguridad: Solo exploradores
     const token = localStorage.getItem('jwt_token');
     if (!token) window.location.href = '/login.html';
   </script>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 min-h-screen font-sans">
+<body class="bg-slate-50 font-sans min-h-screen">
 
-  <nav class="bg-gradient-to-r from-emerald-600 to-lime-500 p-4 shadow-lg text-white">
-    <div class="max-w-4xl mx-auto flex justify-between items-center">
-      <button onclick="location.href='/explorador/dashboard.html'" class="flex items-center gap-2 font-bold hover:text-lime-200 transition">
-        ⬅️ Mi Radar
-      </button>
-      <span class="font-black tracking-tighter text-xl">MIS RESERVAS</span>
+  <nav class="bg-gradient-to-r from-orange-500 to-amber-500 p-4 shadow-lg text-white sticky top-0 z-50">
+    <div class="max-w-3xl mx-auto flex justify-between items-center">
+      <button onclick="location.href='dashboard.html'" class="font-bold text-sm tracking-widest uppercase hover:text-amber-200">⬅️ Radar</button>
+      <span class="font-black tracking-widest text-lg uppercase">Mis Accesos</span>
       <div class="w-8"></div>
     </div>
   </nav>
 
-  <main class="max-w-4xl mx-auto mt-6 px-4 pb-10">
-    
-    <div class="flex bg-white dark:bg-gray-800 p-1 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
-      <button onclick="cambiarTab('PENDIENTE')" id="tab-PENDIENTE" class="flex-1 py-3 text-sm font-bold rounded-xl transition-all duration-300 bg-emerald-600 text-white shadow-md">
-        Pendientes
-      </button>
-      <button onclick="cambiarTab('CONFIRMADA')" id="tab-CONFIRMADA" class="flex-1 py-3 text-sm font-bold rounded-xl transition-all duration-300 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">
-        Confirmadas
-      </button>
-      <button onclick="cambiarTab('HISTORIAL')" id="tab-HISTORIAL" class="flex-1 py-3 text-sm font-bold rounded-xl transition-all duration-300 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">
-        Historial
-      </button>
+  <main class="max-w-3xl mx-auto px-4 mt-8 pb-12">
+    <div class="flex bg-slate-200 p-1 rounded-2xl mb-8 shadow-inner">
+        <button onclick="cargarMisReservas('ACTIVA')" class="flex-1 py-3 text-xs font-black uppercase rounded-xl bg-white text-orange-600 shadow-sm transition">Próximos</button>
+        <button onclick="cargarMisReservas('HISTORIAL')" class="flex-1 py-3 text-xs font-black uppercase text-slate-500 hover:text-slate-800 transition">Historial</button>
     </div>
 
     <div id="lista-reservas" class="space-y-6">
-      <div class="animate-pulse bg-gray-200 dark:bg-gray-800 h-32 rounded-3xl"></div>
-      <div class="animate-pulse bg-gray-200 dark:bg-gray-800 h-32 rounded-3xl"></div>
+        <p class="text-center text-orange-500 font-bold mt-10 animate-pulse">Sincronizando billetera...</p>
     </div>
-
-    <div id="mensaje-vacio" class="hidden text-center py-20">
-      <div class="text-6xl mb-4">🎫</div>
-      <h3 class="text-xl font-bold text-gray-800 dark:text-white">No tienes reservas aquí</h3>
-      <p class="text-gray-500 mt-2">¡Explora el mapa y asegura tu cupo en los mejores sitios!</p>
-      <a href="/explorador/dashboard.html" class="inline-block mt-6 px-8 py-3 bg-emerald-600 text-white font-bold rounded-full shadow-lg">Ir al Radar</a>
-    </div>
-
   </main>
 
   <script>
-    let estadoActual = 'PENDIENTE';
+    let estadoActual = 'ACTIVA';
 
     document.addEventListener("DOMContentLoaded", () => {
-      cargarMisReservas(estadoActual);
+        cargarMisReservas('ACTIVA');
     });
 
-    function cambiarTab(nuevoEstado) {
-      document.querySelectorAll('[id^="tab-"]').forEach(btn => {
-        btn.classList.remove('bg-emerald-600', 'text-white', 'shadow-md');
-        btn.classList.add('text-gray-500');
-      });
-      
-      const btnActivo = document.getElementById(`tab-${nuevoEstado}`);
-      btnActivo.classList.add('bg-emerald-600', 'text-white', 'shadow-md');
-      btnActivo.classList.remove('text-gray-500');
-
-      estadoActual = nuevoEstado;
-      cargarMisReservas(nuevoEstado);
-    }
-
-    async function cargarMisReservas(estado) {
+    async function cargarMisReservas(filtroEstado) {
+      estadoActual = filtroEstado;
       const contenedor = document.getElementById('lista-reservas');
-      const vacio = document.getElementById('mensaje-vacio');
-      
-      contenedor.innerHTML = `
-        <div class="animate-pulse bg-gray-200 dark:bg-gray-800 h-32 rounded-3xl mb-4"></div>
-        <div class="animate-pulse bg-gray-200 dark:bg-gray-800 h-32 rounded-3xl"></div>
-      `;
-      vacio.classList.add('hidden');
+      contenedor.innerHTML = '<p class="text-center text-orange-500 font-bold mt-10 animate-pulse">Buscando entradas...</p>';
 
       try {
-        const response = await fetch(`http://localhost:8080/api/mis-reservas`, {
+        const response = await fetch('http://localhost:8080/api/reservas/mis-reservas', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
 
         if (response.ok) {
-          const todasLasReservas = await response.json();
-          
-          const reservas = todasLasReservas.filter(res => {
-             if (estado === 'HISTORIAL') {
-                 return ['PENDIENTE', 'CONFIRMADA', 'CANCELADA', 'COMPLETADA', 'RECHAZADA'].includes(res.estado);
-             }
-             return res.estado === estado;
-          });
-          
-          contenedor.innerHTML = '';
+          const reservas = await response.json();
+          let filtradas = reservas.filter(r => filtroEstado === 'ACTIVA' 
+                ? (r.estado === 'PENDIENTE' || r.estado === 'CONFIRMADA')
+                : (r.estado === 'CANCELADA' || r.estado === 'COMPLETADA' || r.estado === 'NO_ASISTIO')
+          );
 
-          if (reservas.length === 0) {
-            vacio.classList.remove('hidden');
+          if (filtradas.length === 0) {
+            contenedor.innerHTML = `<p class="text-center text-slate-400 font-bold mt-10">No tienes reservas en esta sección.</p>`;
             return;
           }
 
-          reservas.forEach(res => {
-            const fecha = new Date(res.fechaReserva).toLocaleDateString('es-CO', { 
-                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-            });
-
-            // Colores de estado para el Historial
-            let estiloEstado = 'bg-gray-100 text-gray-700';
-            if (res.estado === 'PENDIENTE') estiloEstado = 'bg-yellow-100 text-yellow-700';
-            if (res.estado === 'CONFIRMADA') estiloEstado = 'bg-blue-100 text-blue-700';
-            if (res.estado === 'COMPLETADA') estiloEstado = 'bg-emerald-100 text-emerald-700';
-            if (res.estado === 'CANCELADA' || res.estado === 'RECHAZADA') estiloEstado = 'bg-red-100 text-red-700';
-
+          contenedor.innerHTML = '';
+          filtradas.forEach(r => {
+            const esActiva = r.estado === 'CONFIRMADA' || r.estado === 'PENDIENTE';
+            const colorEstado = esActiva ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500';
+            
             contenedor.innerHTML += `
-              <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col md:flex-row mb-4">
-                <div class="p-6 flex-1 border-b md:border-b-0 md:border-r border-dashed border-gray-200 dark:border-gray-600 relative">
-                  <div class="flex justify-between items-start mb-4">
-                    <div class="flex gap-2">
-                        <span class="px-3 py-1 bg-lime-100 text-lime-700 text-[10px] font-black rounded-full uppercase tracking-wider">
-                          Establecimiento
-                        </span>
-                        <span class="font-bold text-[10px] px-2 py-1 rounded uppercase ${estiloEstado}">
-                          ${res.estado}
-                        </span>
-                    </div>
-                    <span class="font-mono text-gray-400 text-xs">ID: #${res.codigoReserva || res.id}</span>
-                  </div>
-                  
-                  <h3 class="text-xl font-black text-gray-800 dark:text-white leading-tight">
-                    ${res.nombreEstablecimiento || 'Lugar por definir'}
-                  </h3>
-                  
-                  <p class="text-sm text-emerald-600 font-bold mt-1 uppercase italic">${fecha} a las ${res.horaInicio.substring(0,5)}</p>
-                  
-                  <div class="hidden md:block absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-gray-50 dark:bg-gray-900 rounded-full border border-gray-100 dark:border-gray-700"></div>
-                </div>
+              <div class="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden flex flex-col md:flex-row relative transform transition ${esActiva ? 'hover:-translate-y-1' : 'opacity-70'}">
+                
+                <div class="hidden md:block absolute -left-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-slate-50 rounded-full border border-slate-100"></div>
+                <div class="hidden md:block absolute -right-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-slate-50 rounded-full border border-slate-100"></div>
 
-                <div class="p-6 md:w-48 bg-emerald-50 dark:bg-emerald-900/20 flex flex-col justify-center items-center text-center">
-                  <p class="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 uppercase mb-2">Cupos</p>
-                  <span class="text-4xl font-black text-emerald-600 dark:text-lime-400">${res.numeroPersonas || 1}</span>
-                  
-                  ${(res.estado === 'PENDIENTE' || res.estado === 'CONFIRMADA') ? `
-                    <button onclick="cancelarReserva(${res.id})" class="mt-4 text-xs font-bold text-red-500 border border-red-200 rounded px-3 py-1 hover:bg-red-50">
-                      Cancelar
-                    </button>
-                  ` : ''}
+                <div class="p-6 flex-1 border-b md:border-b-0 md:border-r-2 border-dashed border-slate-200">
+                    <div class="flex justify-between items-start">
+                        <span class="${colorEstado} text-[9px] font-black px-2 py-1 rounded uppercase tracking-widest">${r.estado}</span>
+                        <span class="text-[10px] text-slate-400 font-bold">${new Date(r.fechaReserva).toLocaleDateString()}</span>
+                    </div>
+                    <h3 class="text-2xl font-black text-slate-800 uppercase italic mt-3">${r.establecimientoNombre || r.eventoNombre || 'Reserva'}</h3>
+                    <p class="text-xs text-slate-500 font-bold mt-1">📍 Ver ubicación en el mapa</p>
+                    <div class="mt-6 flex gap-4">
+                        <div class="bg-slate-50 px-4 py-2 rounded-xl border border-slate-100">
+                            <p class="text-[9px] font-black text-slate-400 uppercase">Boletas</p>
+                            <p class="text-lg font-black text-orange-600">${r.numeroPersonas} Pax</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-6 md:w-56 bg-orange-50 flex flex-col items-center justify-center text-center">
+                    <p class="text-[9px] font-black text-orange-400 uppercase tracking-widest mb-1">CÓDIGO DE ACCESO</p>
+                    <span class="text-2xl font-black text-slate-900 tracking-widest font-mono border-b-2 border-orange-200 pb-1">${r.codigoReserva || 'N/A'}</span>
+                    
+                    ${esActiva ? `
+                    <div class="w-24 h-24 bg-white border border-slate-200 rounded-xl mt-4 flex items-center justify-center shadow-inner overflow-hidden p-1">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${r.codigoReserva}" class="w-full h-full mix-blend-multiply">
+                    </div>
+                    <button onclick="cancelarReserva(${r.id})" class="mt-4 text-[9px] text-red-500 font-bold uppercase underline">Cancelar Reserva</button>
+                    ` : ''}
                 </div>
               </div>
             `;
           });
         }
       } catch (error) {
-        contenedor.innerHTML = '<p class="text-center text-red-500 font-bold mt-10">Error de conexión.</p>';
+        contenedor.innerHTML = '<p class="text-center text-red-500 font-bold mt-10">Error de conexión con la billetera.</p>';
       }
     }
 
     async function cancelarReserva(id) {
-        if(!confirm("¿Estás seguro de que deseas cancelar esta reserva?")) return;
+        if(!confirm("¿Estás seguro de que deseas cancelar tu asistencia? Esta acción no se puede deshacer.")) return;
         
         try {
-            // CORRECCIÓN: Ahora usamos POST como lo dicta tu Controlador
             const response = await fetch(`http://localhost:8080/api/reservas/${id}/cancelar`, {
                 method: 'POST', 
                 headers: { 
                   'Authorization': `Bearer ${token}`,
                   'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ motivo: "Cancelado por el usuario" })
+                body: JSON.stringify({ motivo: "Cancelado por el explorador" })
             });
             if(response.ok) {
                 alert("Reserva cancelada exitosamente.");
                 cargarMisReservas(estadoActual);
-            } else {
-                alert("No se pudo cancelar la reserva.");
-            }
-        } catch (error) {
-            alert("Error de conexión al intentar cancelar.");
-        }
+            } else { alert("No se pudo cancelar la reserva en el servidor."); }
+        } catch (error) { alert("Error de conexión al intentar cancelar."); }
     }
   </script>
-
-  <style>
-    /* Estilo para simular el corte de ticket en móviles */
-    @media (max-width: 767px) {
-      .border-dashed {
-        border-bottom-width: 2px;
-      }
-    }
-  </style>
 </body>
 </html>

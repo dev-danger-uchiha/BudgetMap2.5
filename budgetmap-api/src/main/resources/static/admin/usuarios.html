@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin - Usuarios</title>
+  <title>Admin - Usuarios | BudgetMap</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
+    // 1. SEGURIDAD TOTAL: Validación inmediata
     const token = localStorage.getItem('jwt_token');
     const rol = localStorage.getItem('user_rol');
-    // Solo Administrador puede ver esta vista
     if (!token || !rol || !rol.includes('ADMINISTRADOR')) {
         window.location.href = '/login.html?denied=true';
     }
   </script>
 </head>
-<body class="bg-emerald-50 min-h-screen text-slate-800 font-sans">
+<body class="bg-emerald-50 min-h-screen text-slate-800 font-sans flex flex-col">
 
   <nav class="bg-white border-b border-emerald-100 p-4 sticky top-0 z-50 shadow-sm">
     <div class="max-w-7xl mx-auto flex justify-between items-center">
@@ -22,130 +22,210 @@
         <span class="bg-emerald-600 text-white px-3 py-1 rounded-full font-black text-[10px] uppercase tracking-tighter">ADMIN</span>
         <h1 class="font-black tracking-widest text-emerald-900">CONTROL CENTER</h1>
       </div>
-      <div class="flex gap-6 text-xs font-bold uppercase tracking-widest">
+      <div class="flex gap-6 text-xs font-bold uppercase tracking-widest hidden md:flex">
         <a href="/admin/aprobaciones.html" class="text-slate-500 hover:text-emerald-600 transition">Aprobaciones</a>
         <a href="/admin/pqrs.html" class="text-slate-500 hover:text-emerald-600 transition">Tickets PQRS</a>
         <a href="/admin/usuarios.html" class="text-emerald-600 border-b-2 border-emerald-600 pb-1">Usuarios</a>
         <a href="/admin/estadisticas.html" class="text-slate-500 hover:text-emerald-600 transition">Métricas</a>
       </div>
-      <button onclick="localStorage.clear(); location.href='/login.html'" class="text-[10px] text-slate-400 font-bold hover:text-red-500 transition">SALIR</button>
+      <button onclick="cerrarSesion()" class="text-[10px] text-slate-400 font-bold hover:text-red-500 transition">SALIR</button>
     </div>
   </nav>
 
-  <main class="max-w-6xl mx-auto mt-10 px-6 pb-12">
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
-        <div>
-            <h2 class="text-3xl font-black text-slate-900 italic uppercase tracking-tighter">Usuarios Registrados</h2>
-            <p class="text-emerald-600/70 text-sm font-medium">Administra roles y el estado de las cuentas de la plataforma.</p>
+  <main class="flex-1 max-w-7xl mx-auto w-full mt-8 px-6 pb-12">
+    
+    <div class="bg-white border border-emerald-100 rounded-3xl p-6 shadow-sm mb-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 border-b border-emerald-50 pb-6">
+            <div>
+                <h2 class="text-3xl font-black text-slate-900 italic uppercase tracking-tighter">Directorio de Usuarios</h2>
+                <p class="text-emerald-600/70 text-sm font-medium">Gestión integral, roles, planes y estado de cuentas.</p>
+            </div>
         </div>
-        <div class="flex gap-2 w-full md:w-auto">
-            <input type="text" id="buscador" placeholder="Buscar por email..." 
-                   class="bg-white border border-emerald-100 rounded-xl px-4 py-2 text-sm text-slate-800 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none w-full md:w-64 transition-all shadow-sm">
-            <button onclick="cargarUsuarios(document.getElementById('buscador').value)" 
-                    class="bg-emerald-600 text-white px-6 py-2 rounded-xl text-xs font-black uppercase hover:bg-emerald-700 transition-all shadow-md shadow-emerald-100"> 
-                Buscar 
-            </button>
-        </div>
+
+        <form id="form-filtros" class="grid grid-cols-1 md:grid-cols-4 gap-4" onsubmit="event.preventDefault(); cargarUsuarios(0);">
+            <div class="flex flex-col gap-1">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Búsqueda (Email/Nombre)</label>
+                <input type="text" id="filtro-texto" placeholder="Ej: Juan, admin@..." 
+                       class="bg-emerald-50/50 border border-emerald-100 rounded-xl px-4 py-2.5 text-sm focus:border-emerald-500 focus:bg-white outline-none transition-all">
+            </div>
+            <div class="flex flex-col gap-1">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Rol</label>
+                <select id="filtro-rol" class="bg-emerald-50/50 border border-emerald-100 rounded-xl px-4 py-2.5 text-sm focus:border-emerald-500 outline-none">
+                    <option value="">Todos los Roles</option>
+                    <option value="EXPLORADOR">Explorador</option>
+                    <option value="LOCAL_ALIADO">Local Aliado</option>
+                    <option value="ANFITRION">Anfitrión</option>
+                    <option value="MODERADOR">Moderador</option>
+                    <option value="ADMINISTRADOR">Administrador</option>
+                </select>
+            </div>
+            <div class="flex flex-col gap-1">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Estado</label>
+                <select id="filtro-estado" class="bg-emerald-50/50 border border-emerald-100 rounded-xl px-4 py-2.5 text-sm focus:border-emerald-500 outline-none">
+                    <option value="">Todos</option>
+                    <option value="true">Activos</option>
+                    <option value="false">Suspendidos</option>
+                </select>
+            </div>
+            <div class="flex items-end">
+                <button type="submit" class="w-full bg-emerald-600 text-white px-6 py-2.5 rounded-xl text-xs font-black uppercase hover:bg-emerald-700 shadow-md transition-all">
+                    Filtrar Resultados
+                </button>
+            </div>
+        </form>
     </div>
 
-    <div class="bg-white border border-emerald-100 rounded-3xl overflow-hidden shadow-xl shadow-emerald-900/5">
+    <div class="bg-white border border-emerald-100 rounded-3xl overflow-hidden shadow-sm">
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead class="bg-emerald-50/50 text-[10px] uppercase tracking-[0.2em] font-black text-emerald-800/60 border-b border-emerald-100">
                     <tr>
-                        <th class="p-5">Usuario / Email</th>
-                        <th class="p-5">Rol Asignado</th>
-                        <th class="p-5">Estado</th>
+                        <th class="p-5">Usuario / Contacto</th>
+                        <th class="p-5">Rol / Plan</th>
+                        <th class="p-5">Métricas</th>
+                        <th class="p-5 text-center">Estado</th>
                         <th class="p-5 text-right">Gestión</th>
                     </tr>
                 </thead>
                 <tbody id="tabla-usuarios" class="text-sm divide-y divide-emerald-50">
-                    <tr>
-                        <td colspan="4" class="p-12 text-center text-slate-400 italic animate-pulse">
-                            Cargando base de datos...
-                        </td>
-                    </tr>
-                </tbody>
+                    </tbody>
             </table>
+        </div>
+        
+        <div class="p-4 border-t border-emerald-100 bg-emerald-50/30 flex justify-between items-center">
+            <p class="text-xs text-slate-500 font-bold" id="info-paginacion">Mostrando página 1 de 1</p>
+            <div class="flex gap-2">
+                <button id="btn-prev" onclick="cambiarPagina(-1)" class="px-4 py-2 rounded-lg border border-emerald-200 text-emerald-700 text-xs font-bold hover:bg-emerald-100 disabled:opacity-50 transition-all">Anterior</button>
+                <button id="btn-next" onclick="cambiarPagina(1)" class="px-4 py-2 rounded-lg bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 disabled:opacity-50 shadow-sm transition-all">Siguiente</button>
+            </div>
         </div>
     </div>
   </main>
 
   <script>
-    document.addEventListener("DOMContentLoaded", () => cargarUsuarios());
+    // Variables de paginación
+    let paginaActual = 0;
+    const size = 10;
+    let paginasTotales = 0;
 
-    async function cargarUsuarios(criterio = "") {
+    document.addEventListener("DOMContentLoaded", () => {
+        cargarUsuarios(0);
+    });
+
+    function cerrarSesion() {
+        localStorage.clear();
+        window.location.href = '/login.html';
+    }
+
+    async function cargarUsuarios(pagina = 0) {
+        paginaActual = pagina;
         const tbody = document.getElementById('tabla-usuarios');
         
-        tbody.innerHTML = '<tr><td colspan="4" class="p-12 text-center text-emerald-600/50 italic animate-pulse font-bold uppercase tracking-widest text-xs">Sincronizando...</td></tr>';
+        // Recoger filtros
+        const texto = document.getElementById('filtro-texto').value;
+        const rolFiltro = document.getElementById('filtro-rol').value;
+        const estado = document.getElementById('filtro-estado').value;
+
+        tbody.innerHTML = '<tr><td colspan="5" class="p-12 text-center text-emerald-600/50 italic animate-pulse font-bold uppercase tracking-widest text-xs">Sincronizando con Base de Datos...</td></tr>';
         
         try {
-            const url = criterio 
-                ? `http://localhost:8080/api/usuarios/buscar?criterio=${encodeURIComponent(criterio)}`
-                : 'http://localhost:8080/api/usuarios';
+            // Construcción dinámica de la URL con multicriterio y paginación
+            // Ajusta este endpoint si tu backend usa nombres de parámetros diferentes
+            const queryParams = new URLSearchParams({
+                page: paginaActual,
+                size: size,
+                criterio: texto,
+                rol: rolFiltro,
+                activo: estado
+            });
 
-            const response = await fetch(url, {
+            const response = await fetch(`http://localhost:8080/api/admin/usuarios/paginados?${queryParams.toString()}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             
             if (response.ok) {
-                const usuarios = await response.json();
+                // Spring Boot devuelve un objeto "Page" { content: [], totalPages: X, number: Y }
+                const data = await response.json();
+                
+                // Si tu API no está paginada aún y devuelve un Array directo, 
+                // usa esto como fallback: const usuarios = Array.isArray(data) ? data : data.content;
+                const usuarios = data.content || data; 
+                paginasTotales = data.totalPages || 1;
+
                 tbody.innerHTML = '';
                 
                 if (usuarios.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4" class="p-12 text-center text-slate-400 italic font-medium">No se encontraron usuarios que coincidan con la búsqueda.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" class="p-12 text-center text-slate-400 italic font-medium">No se encontraron registros.</td></tr>';
+                    actualizarControlesPaginacion(0, 0);
                     return;
                 }
 
                 usuarios.forEach(user => {
-                    // Lógica de botones de estado
                     const btnEstado = user.activo 
-                        ? `<button onclick="cambiarEstado(${user.id}, false)" class="text-[10px] font-black text-red-500 hover:bg-red-50 transition-all uppercase tracking-widest border border-red-100 px-4 py-2 rounded-lg">Suspender</button>`
-                        : `<button onclick="cambiarEstado(${user.id}, true)" class="text-[10px] font-black text-emerald-600 hover:bg-emerald-50 transition-all uppercase tracking-widest border border-emerald-200 px-4 py-2 rounded-lg">Activar Cuenta</button>`;
+                        ? `<button onclick="cambiarEstado(${user.id}, false)" class="text-[10px] font-black text-red-500 hover:bg-red-50 transition-all uppercase tracking-widest border border-red-100 px-3 py-1.5 rounded-lg">Suspender</button>`
+                        : `<button onclick="cambiarEstado(${user.id}, true)" class="text-[10px] font-black text-emerald-600 hover:bg-emerald-50 transition-all uppercase tracking-widest border border-emerald-200 px-3 py-1.5 rounded-lg">Activar</button>`;
                     
                     const estadoTexto = user.activo 
-                        ? `<span class="flex items-center gap-1.5 text-emerald-600 font-bold text-[10px] uppercase tracking-widest"><span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span> Activo</span>`
-                        : `<span class="flex items-center gap-1.5 text-slate-400 font-bold text-[10px] uppercase tracking-widest"><span class="w-2 h-2 bg-slate-300 rounded-full"></span> Suspendido</span>`;
+                        ? `<span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full font-bold text-[9px] uppercase tracking-widest"><span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span> Activo</span>`
+                        : `<span class="inline-flex items-center gap-1.5 bg-red-50 text-red-600 px-2.5 py-1 rounded-full font-bold text-[9px] uppercase tracking-widest"><span class="w-1.5 h-1.5 bg-red-500 rounded-full"></span> Suspendido</span>`;
 
+                    // 4. NUEVAS FUNCIONALIDADES: Mostrar Puntos y Plan
+                    const planBadge = user.planId ? `<span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded text-[9px] ml-2">PRO</span>` : '';
+                    
                     tbody.innerHTML += `
                         <tr class="hover:bg-emerald-50/30 transition-all group">
                             <td class="p-5">
-                                <p class="font-black text-slate-900 italic uppercase tracking-tight">${user.nombre || 'Sin nombre registrado'}</p>
-                                <p class="text-xs text-emerald-700/60 font-medium">${user.email}</p>
+                                <p class="font-black text-slate-900 uppercase tracking-tight">${user.nombre || 'N/A'} ${user.apellido || ''}</p>
+                                <p class="text-xs text-slate-500 font-medium">${user.email}</p>
+                                <p class="text-[10px] text-emerald-600 mt-1">📞 ${user.telefono || 'Sin teléfono'}</p>
                             </td>
                             <td class="p-5">
-                                <span class="bg-white text-slate-700 px-3 py-1 rounded-full text-[10px] font-black uppercase border border-emerald-100 shadow-sm inline-block">${user.rol}</span>
+                                <div class="flex items-center">
+                                    <span class="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md text-[10px] font-black uppercase border border-slate-200">${user.rol}</span>
+                                    ${planBadge}
+                                </div>
                             </td>
-                            <td class="p-5">${estadoTexto}</td>
-                            <td class="p-5 text-right opacity-40 group-hover:opacity-100 transition-opacity">
+                            <td class="p-5">
+                                <div class="text-[10px] font-bold text-slate-500">
+                                    <p>⭐ Puntos: <span class="text-emerald-600">${user.puntosAcumulados || 0}</span></p>
+                                </div>
+                            </td>
+                            <td class="p-5 text-center">${estadoTexto}</td>
+                            <td class="p-5 text-right">
                                 ${btnEstado}
                             </td>
                         </tr>
                     `;
                 });
+
+                actualizarControlesPaginacion(data.number || 0, paginasTotales);
             } else {
-                tbody.innerHTML = '<tr><td colspan="4" class="p-12 text-center text-red-500 font-bold">Error 403: No tienes permisos para esta acción.</td></tr>';
+                if(response.status === 401 || response.status === 403) cerrarSesion();
+                tbody.innerHTML = '<tr><td colspan="5" class="p-12 text-center text-red-500 font-bold">Error 403: Permisos insuficientes.</td></tr>';
             }
         } catch (e) {
-            tbody.innerHTML = '<tr><td colspan="4" class="p-12 text-center text-red-500 font-bold">Error crítico: No se pudo conectar con el servidor.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" class="p-12 text-center text-red-500 font-bold">Error crítico de conexión.</td></tr>';
         }
     }
 
-    // Evento de búsqueda con Enter
-    document.getElementById('buscador').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            cargarUsuarios(e.target.value);
+    function cambiarPagina(delta) {
+        const nuevaPagina = paginaActual + delta;
+        if (nuevaPagina >= 0 && nuevaPagina < paginasTotales) {
+            cargarUsuarios(nuevaPagina);
         }
-    });
+    }
+
+    function actualizarControlesPaginacion(actual, total) {
+        document.getElementById('info-paginacion').innerText = `Mostrando página ${total === 0 ? 0 : actual + 1} de ${total}`;
+        document.getElementById('btn-prev').disabled = actual === 0;
+        document.getElementById('btn-next').disabled = actual >= total - 1 || total === 0;
+    }
 
     async function cambiarEstado(id, activar) {
-        const accion = activar ? 'activar' : 'suspender';
-        if(!confirm(`¿Confirmas que deseas ${accion} este acceso?`)) return;
+        if(!confirm(`¿Confirma que desea ${activar ? 'reactivar' : 'suspender'} esta cuenta?`)) return;
         
         try {
-            const url = `http://localhost:8080/api/usuarios/${id}/estado?activo=${activar}`;
-            
-            const response = await fetch(url, {
+            const response = await fetch(`http://localhost:8080/api/admin/usuarios/${id}/estado?activo=${activar}`, {
                 method: 'PUT',
                 headers: { 
                     'Authorization': `Bearer ${token}`,
@@ -154,14 +234,12 @@
             });
 
             if (response.ok) {
-                alert(`Estado actualizado: Usuario ${activar ? 'habilitado' : 'deshabilitado'}.`);
-                cargarUsuarios(document.getElementById('buscador').value);
+                cargarUsuarios(paginaActual);
             } else {
                 alert("La operación fue rechazada por el servidor.");
             }
         } catch(e) {
-            console.error(e);
-            alert("Error de comunicación.");
+            alert("Error de comunicación con el servidor.");
         }
     }
   </script>

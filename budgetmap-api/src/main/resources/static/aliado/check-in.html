@@ -3,103 +3,69 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Check-in - BudgetMap Aliados</title>
+  <title>Check-in Rápido | BudgetMap</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  
+  <script>
+    const token = localStorage.getItem('jwt_token');
+    if (!token || localStorage.getItem('user_rol') !== 'LOCAL_ALIADO') window.location.href = '/login.html';
+  </script>
 </head>
-<body class="bg-gray-900 min-h-screen text-white font-sans pb-10">
+<body class="bg-slate-900 min-h-screen text-white font-sans flex flex-col justify-center items-center p-6">
 
-  <nav class="p-4 flex justify-between items-center border-b border-gray-800">
-    <button onclick="location.href='/aliado/dashboard.html'" class="text-emerald-500 font-bold flex items-center gap-2">
-      ⬅️ Volver
-    </button>
-    <span class="font-black tracking-widest text-emerald-500">VALIDACIÓN DE ACCESO</span>
-    <div class="w-10"></div>
-  </nav>
+  <button onclick="location.href='dashboard.html'" class="absolute top-6 left-6 text-emerald-400 text-xs font-bold uppercase tracking-widest hover:text-white transition">
+    ◀ Volver al Panel
+  </button>
 
-  <main class="max-w-md mx-auto mt-10 px-6">
+  <div class="w-full max-w-sm bg-slate-800 p-8 rounded-3xl border border-emerald-900 shadow-2xl text-center">
+    <div class="w-16 h-16 bg-emerald-900/50 rounded-full flex items-center justify-center mx-auto mb-6 border border-emerald-500/30">
+        <svg class="w-8 h-8 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
+    </div>
+
+    <h2 class="text-xl font-black uppercase tracking-widest mb-2">Ingreso de Clientes</h2>
+    <p class="text-xs text-slate-400 mb-8">Digita el código de reserva proporcionado por el explorador.</p>
+
+    <input type="text" id="codigo-reserva" placeholder="EJ: RES-12345" class="w-full bg-slate-900 border border-slate-700 text-center rounded-xl p-4 text-xl font-black text-emerald-400 uppercase tracking-widest outline-none focus:border-emerald-500 transition-all mb-4">
     
-    <section class="text-center mb-12">
-      <h2 class="text-xl font-bold text-gray-400 uppercase tracking-widest mb-6">Ingresa el ID de Reserva</h2>
-      
-      <div class="bg-gray-800 rounded-3xl p-6 mb-8 border-2 border-emerald-500/30 shadow-2xl">
-        <input type="text" id="codigo-input" readonly placeholder="000000"
-               class="bg-transparent text-5xl font-black text-center w-full outline-none text-emerald-400 placeholder-gray-700 tracking-widest">
-      </div>
+    <button onclick="validarReserva()" id="btn-validar" class="w-full bg-emerald-600 text-white font-black py-4 rounded-xl text-sm uppercase tracking-widest hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-900/50">
+        Validar Acceso
+    </button>
+  </div>
 
-      <div class="grid grid-cols-3 gap-4">
-        <button onclick="addNum('1')" class="h-16 bg-gray-800 rounded-2xl text-2xl font-bold hover:bg-emerald-600 transition">1</button>
-        <button onclick="addNum('2')" class="h-16 bg-gray-800 rounded-2xl text-2xl font-bold hover:bg-emerald-600 transition">2</button>
-        <button onclick="addNum('3')" class="h-16 bg-gray-800 rounded-2xl text-2xl font-bold hover:bg-emerald-600 transition">3</button>
-        <button onclick="addNum('4')" class="h-16 bg-gray-800 rounded-2xl text-2xl font-bold hover:bg-emerald-600 transition">4</button>
-        <button onclick="addNum('5')" class="h-16 bg-gray-800 rounded-2xl text-2xl font-bold hover:bg-emerald-600 transition">5</button>
-        <button onclick="addNum('6')" class="h-16 bg-gray-800 rounded-2xl text-2xl font-bold hover:bg-emerald-600 transition">6</button>
-        <button onclick="addNum('7')" class="h-16 bg-gray-800 rounded-2xl text-2xl font-bold hover:bg-emerald-600 transition">7</button>
-        <button onclick="addNum('8')" class="h-16 bg-gray-800 rounded-2xl text-2xl font-bold hover:bg-emerald-600 transition">8</button>
-        <button onclick="addNum('9')" class="h-16 bg-gray-800 rounded-2xl text-2xl font-bold hover:bg-emerald-600 transition">9</button>
-        <button onclick="clearInput()" class="h-16 bg-red-900/30 text-red-500 rounded-2xl text-xl font-bold">C</button>
-        <button onclick="addNum('0')" class="h-16 bg-gray-800 rounded-2xl text-2xl font-bold hover:bg-emerald-600 transition">0</button>
-        <button onclick="procesarCheckIn()" class="h-16 bg-emerald-600 rounded-2xl text-2xl font-bold shadow-lg shadow-emerald-500/20">✓</button>
-      </div>
-    </section>
-
-    <section>
-      <h3 class="text-xs font-black text-gray-500 uppercase tracking-widest mb-4">Últimos ingresos</h3>
-      <div id="lista-llegadas" class="space-y-3">
-        <p class="text-center text-sm text-gray-600 italic">No hay ingresos recientes.</p>
-      </div>
-    </section>
-
-  </main>
-
-  <div id="modal-resultado" class="fixed inset-0 bg-black/80 flex items-center justify-center p-6 hidden z-[100]">
-      <div class="bg-white rounded-3xl p-8 max-w-xs w-full text-center space-y-4">
-          <div id="modal-icon" class="text-6xl">✅</div>
-          <h2 id="modal-title" class="text-2xl font-black text-gray-800">¡Acceso Válido!</h2>
-          <p id="modal-msg" class="text-gray-600 text-sm italic">Reserva de Juan Pérez para 2 personas confirmada.</p>
-          <button onclick="cerrarModal()" class="w-full bg-gray-900 text-white font-bold py-3 rounded-xl">ACEPTAR</button>
-      </div>
+  <div id="modal-resultado" class="fixed inset-0 bg-slate-900/90 hidden flex items-center justify-center z-50 p-6 backdrop-blur-sm">
+    <div class="bg-slate-800 p-8 rounded-3xl border border-slate-700 text-center max-w-sm w-full">
+        <div id="modal-icon" class="text-5xl mb-4">✅</div>
+        <h3 id="modal-title" class="text-xl font-black uppercase mb-2">Aprobado</h3>
+        <p id="modal-msg" class="text-sm text-slate-400 mb-8">Reserva válida para 2 personas.</p>
+        <button onclick="cerrarModal()" class="w-full bg-slate-700 text-white font-bold py-3 rounded-xl uppercase text-xs hover:bg-slate-600">Siguiente Cliente</button>
+    </div>
   </div>
 
   <script>
-    let currentInput = "";
-    const inputDisplay = document.getElementById('codigo-input');
-
-    function addNum(num) {
-      if (currentInput.length < 8) {
-        currentInput += num;
-        inputDisplay.value = currentInput;
-      }
-    }
-
-    function clearInput() {
-      currentInput = "";
-      inputDisplay.value = "";
-    }
-
-    async function procesarCheckIn() {
-      if (!currentInput) return;
-
-      try {
-        const response = await fetch(`http://localhost:8080/api/reservas/${currentInput}/confirmar`, {
-          method: 'PUT',
-          headers: { 
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (response.ok) {
-          const res = await response.json();
-          mostrarModal("✅", "¡Acceso Válido!", `Cliente: ${res.usuarioNombre}<br>Cupos: ${res.cantidadPersonas}`);
-          registrarLlegadaLocal(res);
-        } else {
-          mostrarModal("❌", "Código Inválido", "La reserva no existe, ya fue usada o está cancelada.");
+    async function validarReserva() {
+        const codigo = document.getElementById('codigo-reserva').value.trim();
+        if(!codigo) return;
+        
+        const btn = document.getElementById('btn-validar');
+        btn.innerText = 'VERIFICANDO...';
+        
+        try {
+            // Llama a tu endpoint de redención
+            const res = await fetch(`http://localhost:8080/api/reservas/redimir/${codigo}`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (res.ok) {
+                mostrarModal("✅", "ACCESO APROBADO", "La reserva ha sido redimida correctamente en el sistema.");
+            } else {
+                mostrarModal("❌", "CÓDIGO INVÁLIDO", "La reserva no existe, ya fue usada o no pertenece a este local.");
+            }
+        } catch (e) {
+            mostrarModal("⚠️", "ERROR DE RED", "No se pudo conectar con el servidor.");
+        } finally {
+            btn.innerText = 'Validar Acceso';
+            document.getElementById('codigo-reserva').value = '';
         }
-      } catch (e) {
-        mostrarModal("⚠️", "Error de Red", "No se pudo conectar con el servidor.");
-      }
-      clearInput();
     }
 
     function mostrarModal(icon, title, msg) {
@@ -111,21 +77,7 @@
 
     function cerrarModal() {
         document.getElementById('modal-resultado').classList.add('hidden');
-    }
-
-    function registrarLlegadaLocal(res) {
-        const lista = document.getElementById('lista-llegadas');
-        const item = document.createElement('div');
-        item.className = "bg-gray-800 p-4 rounded-2xl flex justify-between items-center animate-bounce";
-        item.innerHTML = `
-            <div>
-                <p class="font-bold text-sm text-emerald-400">${res.usuarioNombre}</p>
-                <p class="text-[10px] text-gray-500">${new Date().toLocaleTimeString()}</p>
-            </div>
-            <span class="bg-gray-700 px-3 py-1 rounded-lg text-xs font-bold text-white">x${res.cantidadPersonas} pax</span>
-        `;
-        if(lista.firstChild && lista.firstChild.nodeName === 'P') lista.innerHTML = '';
-        lista.prepend(item);
+        document.getElementById('codigo-reserva').focus();
     }
   </script>
 </body>

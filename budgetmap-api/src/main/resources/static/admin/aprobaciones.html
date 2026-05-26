@@ -3,10 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Moderación - Aprobaciones</title>
+  <title>Admin - Aprobaciones | BudgetMap</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    const token = localStorage.getItem('jwt_token');
+    const rol = localStorage.getItem('user_rol');
+    if (!token || !rol || (!rol.includes('ADMINISTRADOR') && !rol.includes('MODERADOR'))) {
+        window.location.href = '/login.html?denied=true';
+    }
+  </script>
 </head>
-<body class="bg-emerald-50 min-h-screen text-slate-800 font-sans">
+<body class="bg-emerald-50 min-h-screen text-slate-800 font-sans flex flex-col">
 
   <nav class="bg-white border-b border-emerald-100 p-4 sticky top-0 z-50 shadow-sm">
     <div class="max-w-7xl mx-auto flex justify-between items-center">
@@ -14,148 +21,140 @@
         <span class="bg-emerald-600 text-white px-3 py-1 rounded-full font-black text-[10px] uppercase tracking-tighter">ADMIN</span>
         <h1 class="font-black tracking-widest text-emerald-900">CONTROL CENTER</h1>
       </div>
-      <div class="flex gap-6 text-xs font-bold uppercase tracking-widest">
+      <div class="flex gap-6 text-xs font-bold uppercase tracking-widest hidden md:flex">
         <a href="/admin/aprobaciones.html" class="text-emerald-600 border-b-2 border-emerald-600 pb-1">Aprobaciones</a>
         <a href="/admin/pqrs.html" class="text-slate-500 hover:text-emerald-600 transition">Tickets PQRS</a>
+        <a href="/admin/usuarios.html" class="text-slate-500 hover:text-emerald-600 transition">Usuarios</a>
         <a href="/admin/estadisticas.html" class="text-slate-500 hover:text-emerald-600 transition">Métricas</a>
       </div>
-      <button onclick="localStorage.clear(); location.href='/login.html'" class="text-[10px] text-slate-400 font-bold hover:text-red-500 transition">SALIR</button>
+      <button onclick="cerrarSesion()" class="text-[10px] text-slate-400 font-bold hover:text-red-500 transition">SALIR</button>
     </div>
   </nav>
 
-  <main class="max-w-6xl mx-auto mt-10 px-6">
-    
-    <div class="flex justify-between items-end mb-8">
-        <div>
-            <h2 class="text-3xl font-black text-slate-900 italic uppercase tracking-tighter">Bandeja de Entrada</h2>
-            <p class="text-slate-500 text-sm">Revisa y valida las solicitudes de nuevos establecimientos y lugares.</p>
+  <main class="flex-1 max-w-7xl mx-auto w-full mt-8 px-6 pb-12">
+    <div class="bg-white border border-emerald-100 rounded-3xl p-6 shadow-sm mb-6">
+        <div class="flex justify-between items-center mb-6 border-b border-emerald-50 pb-6">
+            <div>
+                <h2 class="text-3xl font-black text-slate-900 italic uppercase tracking-tighter">Centro de Moderación</h2>
+                <p class="text-emerald-600/70 text-sm font-medium">Revisión de solicitudes de nuevos puntos en el mapa.</p>
+            </div>
         </div>
-        <div class="flex bg-white p-1 rounded-xl border border-emerald-100 shadow-sm">
-            <button onclick="cambiarTab('ESTABLECIMIENTO')" id="tab-ESTABLECIMIENTO" class="px-6 py-2 text-xs font-bold rounded-lg bg-emerald-600 text-white shadow-md transition-all">Establecimientos</button>
-            <button onclick="cambiarTab('LUGAR')" id="tab-LUGAR" class="px-6 py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-emerald-600 transition">Lugares Públicos</button>
-        </div>
+
+        <form class="grid grid-cols-1 md:grid-cols-3 gap-4" onsubmit="event.preventDefault(); cargarSolicitudes(0);">
+            <div class="flex flex-col gap-1">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tipo de Entidad</label>
+                <select id="filtro-tipo" class="bg-emerald-50/50 border border-emerald-100 rounded-xl px-4 py-2.5 text-sm focus:border-emerald-500 outline-none">
+                    <option value="ESTABLECIMIENTO">Establecimientos (Negocios)</option>
+                    <option value="LUGAR">Lugares (Públicos)</option>
+                </select>
+            </div>
+            <div class="flex flex-col gap-1">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Estado</label>
+                <select id="filtro-estado" class="bg-emerald-50/50 border border-emerald-100 rounded-xl px-4 py-2.5 text-sm focus:border-emerald-500 outline-none">
+                    <option value="PENDIENTE">Pendientes de Revisión</option>
+                    <option value="APROBADO">Aprobados</option>
+                    <option value="RECHAZADO">Rechazados</option>
+                </select>
+            </div>
+            <div class="flex items-end">
+                <button type="submit" class="w-full bg-emerald-600 text-white px-6 py-2.5 rounded-xl text-xs font-black uppercase hover:bg-emerald-700 shadow-md transition-all">Buscar</button>
+            </div>
+        </form>
     </div>
 
-    <div id="contenedor-solicitudes" class="space-y-4">
-        <div class="bg-white border border-emerald-100 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-center gap-6 animate-pulse">
-            <div class="w-full h-20 bg-emerald-50 rounded-xl"></div>
+    <div id="contenedor-solicitudes" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+        </div>
+
+    <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-emerald-100 shadow-sm">
+        <p class="text-xs text-slate-500 font-bold" id="info-paginacion">Mostrando página 1 de 1</p>
+        <div class="flex gap-2">
+            <button id="btn-prev" onclick="cambiarPagina(-1)" class="px-4 py-2 rounded-lg border border-emerald-200 text-emerald-700 text-xs font-bold hover:bg-emerald-50 disabled:opacity-50">Anterior</button>
+            <button id="btn-next" onclick="cambiarPagina(1)" class="px-4 py-2 rounded-lg bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 disabled:opacity-50">Siguiente</button>
         </div>
     </div>
-
-    <div id="mensaje-vacio" class="hidden text-center py-20 border-2 border-dashed border-emerald-200 rounded-3xl bg-white/50">
-        <p class="text-emerald-800/40 font-bold italic">No hay solicitudes pendientes por el momento. ¡Buen trabajo!</p>
-    </div>
-
   </main>
 
   <script>
-    let tipoActual = 'ESTABLECIMIENTO';
-    
-    const token = localStorage.getItem('jwt_token'); 
-    const rol = localStorage.getItem('user_rol');
+    let paginaActual = 0;
+    const size = 6; // Tarjetas por página
+    let paginasTotales = 0;
 
-    if (!token || !rol || !rol.includes('ADMINISTRADOR')) {
-        alert("Acceso denegado: Se requieren permisos de administrador.");
-        window.location.href = '/login.html?denied=true';
-    }
+    document.addEventListener("DOMContentLoaded", () => cargarSolicitudes(0));
 
-    document.addEventListener("DOMContentLoaded", () => {
-        cargarPendientes();
-    });
+    function cerrarSesion() { localStorage.clear(); window.location.href = '/login.html'; }
 
-    function cambiarTab(tipo) {
-        tipoActual = tipo;
-        document.querySelectorAll('button[id^="tab-"]').forEach(btn => {
-            btn.classList.remove('bg-emerald-600', 'text-white', 'shadow-md');
-            btn.classList.add('text-slate-400');
-        });
-        const activeBtn = document.getElementById(`tab-${tipo}`);
-        activeBtn.classList.add('bg-emerald-600', 'text-white', 'shadow-md');
-        activeBtn.classList.remove('text-slate-400');
-        cargarPendientes();
-    }
-
-    async function cargarPendientes() {
+    async function cargarSolicitudes(pagina = 0) {
+        paginaActual = pagina;
+        const tipo = document.getElementById('filtro-tipo').value;
+        const estado = document.getElementById('filtro-estado').value;
         const contenedor = document.getElementById('contenedor-solicitudes');
-        const vacio = document.getElementById('mensaje-vacio');
         
-        try {
-            const url = tipoActual === 'ESTABLECIMIENTO' 
-                ? 'http://localhost:8080/api/establecimientos/pendientes'
-                : 'http://localhost:8080/api/lugares/pendientes';
+        contenedor.innerHTML = '<p class="col-span-full text-center text-emerald-600 font-bold p-8 animate-pulse">Cargando...</p>';
 
-            const response = await fetch(url, {
-                headers: { 'Authorization': `Bearer ${token}` } 
+        try {
+            // Suponiendo un endpoint que soporta paginación: /api/establecimientos/admin/paginados?estado=PENDIENTE&page=0
+            const path = tipo === 'ESTABLECIMIENTO' ? 'establecimientos' : 'lugares';
+            const response = await fetch(`http://localhost:8080/api/${path}/admin/paginados?estado=${estado}&page=${paginaActual}&size=${size}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
             });
 
             if (response.ok) {
-                const lista = await response.json();
+                const data = await response.json();
+                const items = data.content || data;
+                paginasTotales = data.totalPages || 1;
                 contenedor.innerHTML = '';
-                
-                if (lista.length === 0) {
-                    vacio.classList.remove('hidden');
-                    return;
-                }
-                vacio.classList.add('hidden');
 
-                lista.forEach(item => {
-                    contenedor.innerHTML += `
-                        <div class="bg-white border border-emerald-100 rounded-2xl p-6 hover:shadow-lg hover:border-emerald-300 transition-all group">
-                            <div class="flex flex-col md:flex-row justify-between gap-6">
-                                <div class="flex gap-6">
-                                    <img src="${item.imagenUrl || 'https://via.placeholder.com/150'}" 
-                                         onerror="this.src='https://via.placeholder.com/150'" 
-                                         class="w-24 h-24 object-cover rounded-xl border border-emerald-50 shadow-sm">
-                                    <div>
-                                        <h3 class="text-xl font-black text-slate-900 uppercase italic">${item.nombre}</h3>
-                                        <p class="text-xs text-emerald-600 font-semibold mb-2">📍 ${item.direccion}</p>
-                                        <p class="text-sm text-slate-600 line-clamp-2 max-w-md">${item.descripcion}</p>
-                                        <div class="mt-3 flex gap-2">
-                                            <span class="text-[9px] font-bold bg-emerald-50 text-emerald-700 px-2 py-1 rounded uppercase tracking-widest">Cat: ${item.categoria || item.tipo}</span>
-                                            <span class="text-[9px] font-bold bg-slate-100 text-slate-600 px-2 py-1 rounded uppercase tracking-widest">Aforo: ${item.aforoMaximo || 'N/A'}</span>
-                                        </div>
-                                    </div>
+                if (items.length === 0) {
+                    contenedor.innerHTML = '<p class="col-span-full text-center text-slate-400 p-8 font-medium">No hay solicitudes en este estado.</p>';
+                } else {
+                    items.forEach(item => {
+                        const isPendiente = estado === 'PENDIENTE';
+                        const botones = isPendiente ? `
+                            <div class="flex gap-2 mt-4 pt-4 border-t border-emerald-50">
+                                <button onclick="procesar('${tipo}', ${item.id}, 'APROBAR')" class="flex-1 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest py-2 rounded-lg hover:bg-emerald-700">Aprobar</button>
+                                <button onclick="procesar('${tipo}', ${item.id}, 'RECHAZAR')" class="flex-1 border border-red-200 text-red-600 text-[10px] font-black uppercase tracking-widest py-2 rounded-lg hover:bg-red-50">Rechazar</button>
+                            </div>` : '';
+
+                        contenedor.innerHTML += `
+                            <div class="bg-white border border-emerald-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h3 class="font-black text-slate-800 uppercase tracking-tight text-lg">${item.nombre}</h3>
+                                    <span class="bg-slate-100 text-slate-600 text-[9px] font-bold px-2 py-1 rounded uppercase">${item.categoria}</span>
                                 </div>
-                                <div class="flex flex-row md:flex-col justify-center gap-3 w-full md:w-auto">
-                                    <button onclick="procesarSolicitud(${item.id}, 'APROBAR')" class="flex-1 bg-emerald-600 text-white text-xs font-black px-6 py-3 rounded-xl hover:bg-emerald-700 shadow-sm transition-all">APROBAR</button>
-                                    <button onclick="procesarSolicitud(${item.id}, 'RECHAZAR')" class="flex-1 bg-white text-red-500 border border-red-100 text-xs font-black px-6 py-3 rounded-xl hover:bg-red-50 transition-all">RECHAZAR</button>
-                                </div>
+                                <p class="text-xs text-slate-500 mb-3 line-clamp-2">${item.descripcion || 'Sin descripción'}</p>
+                                <p class="text-[10px] font-medium text-emerald-600">📍 ${item.direccion || 'Ubicación GPS'}</p>
+                                ${botones}
                             </div>
-                        </div>
-                    `;
-                });
-            } else {
-                console.error("Error del servidor:", response.status);
-                if(response.status === 403) alert("Tu usuario no tiene permisos de administrador.");
+                        `;
+                    });
+                }
+                actualizarControlesPaginacion(data.number || 0, paginasTotales);
             }
-        } catch (e) { console.error("Error de conexión:", e); }
+        } catch (e) { contenedor.innerHTML = '<p class="col-span-full text-center text-red-500">Error de conexión.</p>'; }
     }
 
-    async function procesarSolicitud(id, accion) {
-        const confirmacion = confirm(`¿Estás seguro de que deseas ${accion} esta solicitud?`);
-        if (!confirmacion) return;
+    function cambiarPagina(delta) {
+        if (paginaActual + delta >= 0 && paginaActual + delta < paginasTotales) cargarSolicitudes(paginaActual + delta);
+    }
 
-        const path = tipoActual === 'ESTABLECIMIENTO' ? 'establecimientos' : 'lugares';
-        const url = `http://localhost:8080/api/${path}/${id}/${accion.toLowerCase()}`;
+    function actualizarControlesPaginacion(actual, total) {
+        document.getElementById('info-paginacion').innerText = `Mostrando página ${total === 0 ? 0 : actual + 1} de ${total}`;
+        document.getElementById('btn-prev').disabled = actual === 0;
+        document.getElementById('btn-next').disabled = actual >= total - 1 || total === 0;
+    }
 
+    async function procesar(tipo, id, accion) {
+        if (!confirm(`¿${accion} esta solicitud?`)) return;
+        const path = tipo === 'ESTABLECIMIENTO' ? 'establecimientos' : 'lugares';
         try {
-            const response = await fetch(url, {
+            const res = await fetch(`http://localhost:8080/api/${path}/${id}/${accion.toLowerCase()}`, {
                 method: 'POST',
-                headers: { 
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json' 
-                }
+                headers: { 'Authorization': `Bearer ${token}` }
             });
-
-            if (response.ok) {
-                alert(`¡Solicitud procesada con éxito!`);
-                cargarPendientes();
-            } else {
-                alert("Hubo un problema al procesar la solicitud.");
-            }
-        } catch (e) { alert("Error al procesar la conexión con el servidor."); }
+            if (res.ok) { alert("¡Procesado!"); cargarSolicitudes(paginaActual); }
+            else alert("Error al procesar.");
+        } catch (e) { alert("Error de red."); }
     }
   </script>
-
 </body>
 </html>

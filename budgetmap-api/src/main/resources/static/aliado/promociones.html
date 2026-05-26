@@ -3,165 +3,146 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Promociones - BudgetMap Aliados</title>
+  <title>Promociones - BudgetMap</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     const token = localStorage.getItem('jwt_token');
     if (!token || localStorage.getItem('user_rol') !== 'LOCAL_ALIADO') window.location.href = '/login.html';
   </script>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 min-h-screen pb-20">
+<body class="bg-slate-50 min-h-screen text-slate-800 font-sans pb-20">
 
-  <nav class="bg-emerald-700 p-4 shadow-md text-white flex justify-between items-center sticky top-0 z-50">
-    <button onclick="location.href='/aliado/dashboard.html'" class="flex items-center gap-2 font-bold hover:text-lime-200 transition">
-      ⬅️ Panel Principal
-    </button>
-    <span class="font-black tracking-widest uppercase text-sm">Gestión de Promociones</span>
-    <div class="w-8"></div>
+  <nav class="bg-white border-b border-emerald-100 p-4 sticky top-0 z-50 shadow-sm">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+      <div class="flex items-center gap-4">
+        <span class="bg-emerald-600 text-white px-3 py-1 rounded-full font-black text-[10px] uppercase tracking-tighter">ALIADO</span>
+        <h1 class="font-black tracking-widest text-emerald-900">PANEL DE GESTIÓN</h1>
+      </div>
+      <div class="flex gap-6 text-[10px] font-black uppercase tracking-widest text-slate-400">
+        <a href="dashboard.html" class="hover:text-emerald-600 transition">Resumen</a>
+        <a href="mi-establecimiento.html" class="hover:text-emerald-600 transition">Mi Local</a>
+        <a href="promociones.html" class="text-emerald-600 border-b-2 border-emerald-600 pb-1">Promociones</a>
+      </div>
+    </div>
   </nav>
 
-  <main class="max-w-6xl mx-auto mt-8 px-4 grid grid-cols-1 lg:grid-cols-3 gap-8">
+  <main class="max-w-7xl mx-auto mt-8 px-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
     
-    <div class="lg:col-span-1">
-      <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-700 sticky top-24">
-        <h2 class="text-xl font-black text-gray-800 dark:text-white mb-6 flex items-center gap-2">
-          ✨ Nueva Promo
-        </h2>
-        <form id="promoForm" class="space-y-4">
-          <div>
-            <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">Título de la Oferta:</label>
-            <input type="text" id="titulo" placeholder="Ej: 2x1 en Hamburguesas" required 
-                   class="w-full px-4 py-2 rounded-xl border dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500 transition text-sm">
-          </div>
-          <div>
-            <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">Descripción corta:</label>
-            <textarea id="descripcion" rows="2" placeholder="Válido solo por hoy..." 
-                      class="w-full px-4 py-2 rounded-xl border dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500 transition text-sm resize-none"></textarea>
-          </div>
-          <div class="grid grid-cols-2 gap-3">
+    <div class="lg:col-span-1 bg-white p-6 rounded-3xl border border-emerald-100 shadow-sm h-fit">
+        <h3 class="font-black text-slate-900 uppercase tracking-tighter mb-6 border-b border-emerald-50 pb-4">Lanzar Nueva Promo</h3>
+        <form id="form-promo" class="flex flex-col gap-4">
             <div>
-              <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">% Descuento:</label>
-              <input type="number" id="descuento" min="1" max="100" required 
-                     class="w-full px-4 py-2 rounded-xl border dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500 transition text-sm">
+                <label class="text-[10px] font-bold text-slate-400 uppercase">Título (Ej: 2x1 en Cervezas)</label>
+                <input type="text" id="titulo" required class="w-full mt-1 bg-slate-50 border rounded-xl p-2 text-sm outline-none focus:border-emerald-500">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase">% Descuento</label>
+                    <input type="number" id="descuento" required class="w-full mt-1 bg-slate-50 border rounded-xl p-2 text-sm outline-none">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase">Límite Usos</label>
+                    <input type="number" id="usos" required class="w-full mt-1 bg-slate-50 border rounded-xl p-2 text-sm outline-none">
+                </div>
             </div>
             <div>
-              <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">Código:</label>
-              <input type="text" id="codigo" placeholder="PROMO20" required 
-                     class="w-full px-4 py-2 rounded-xl border dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500 transition text-sm uppercase">
+                <label class="text-[10px] font-bold text-slate-400 uppercase">Descripción / Términos</label>
+                <textarea id="desc-promo" rows="2" class="w-full mt-1 bg-slate-50 border rounded-xl p-2 text-sm outline-none resize-none"></textarea>
             </div>
-          </div>
-          <div>
-            <label class="block text-[10px] font-black uppercase text-gray-400 mb-1">Válido hasta:</label>
-            <input type="date" id="fechaFin" required 
-                   class="w-full px-4 py-2 rounded-xl border dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500 transition text-sm">
-          </div>
-          <button type="submit" class="w-full bg-emerald-600 text-white font-black py-3 rounded-xl shadow-lg hover:bg-emerald-500 transition transform active:scale-95 mt-4">
-            PUBLICAR PROMO
-          </button>
+            <button type="submit" class="w-full mt-2 bg-emerald-600 text-white font-black py-3 rounded-xl text-xs uppercase hover:bg-emerald-700 transition">Crear Promoción</button>
         </form>
-      </div>
     </div>
 
     <div class="lg:col-span-2">
-      <h3 class="text-2xl font-black text-gray-800 dark:text-white mb-6">Promociones Activas</h3>
-      <div id="lista-promos" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="animate-pulse bg-gray-200 dark:bg-gray-800 h-32 rounded-3xl"></div>
-      </div>
+        <div class="flex justify-between items-end mb-6">
+            <h3 class="text-2xl font-black text-slate-900 italic tracking-tighter uppercase">Inventario Activo</h3>
+            <span id="info-pag" class="text-xs font-bold text-slate-400">Pág 1</span>
+        </div>
+        
+        <div id="grid-promos" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            </div>
+
+        <div class="mt-6 flex gap-2">
+            <button id="btn-prev" onclick="cargarPromos(paginaActual-1)" class="px-4 py-2 border border-emerald-200 text-emerald-700 rounded-lg text-xs font-bold hover:bg-emerald-50 disabled:opacity-50">Anterior</button>
+            <button id="btn-next" onclick="cargarPromos(paginaActual+1)" class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-xs font-bold hover:bg-emerald-700 disabled:opacity-50">Siguiente</button>
+        </div>
     </div>
-
   </main>
-    <script>
-      let establecimientoId = null;
 
-      document.addEventListener("DOMContentLoaded", async () => {
-        await obtenerMiLocal();
-        configurarFormulario();
-      });
+  <script>
+    let paginaActual = 0;
+    let paginasTotales = 0;
 
-      async function obtenerMiLocal() {
+    document.addEventListener("DOMContentLoaded", () => cargarPromos(0));
+
+    async function cargarPromos(page) {
+        paginaActual = page;
+        const grid = document.getElementById('grid-promos');
+        grid.innerHTML = '<p class="p-4 text-emerald-600 text-sm font-bold animate-pulse">Cargando...</p>';
+
         try {
-          const res = await fetch('http://localhost:8080/api/establecimientos/mi-establecimiento', {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          if (res.ok) {
-            const est = await res.json();
-            establecimientoId = est.id;
-            cargarPromos();
-          }
-        } catch (e) { console.error("Error al obtener local", e); }
-      }
-
-      function configurarFormulario() {
-        document.getElementById('promoForm').addEventListener('submit', async (e) => {
-          e.preventDefault();
-          if (!establecimientoId) return alert("Error: No se detectó tu establecimiento.");
-
-          const data = {
-            titulo: document.getElementById('titulo').value,
-            descripcion: document.getElementById('descripcion').value,
-            descuentoPorcentaje: parseInt(document.getElementById('descuento').value),
-            codigoCupon: document.getElementById('codigo').value.toUpperCase(),
-            fechaInicio: new Date().toISOString().split('T')[0], // Hoy
-            fechaFin: document.getElementById('fechaFin').value,
-            establecimientoId: establecimientoId
-          };
-
-          const response = await fetch('http://localhost:8080/api/promociones', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-          });
-
-          if (response.ok) {
-            alert("¡Promoción publicada!");
-            location.reload();
-          }
-        });
-      }
-
-      async function cargarPromos() {
-        const contenedor = document.getElementById('lista-promos');
-        try {
-          const response = await fetch(`http://localhost:8080/api/promociones/mis-promociones`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-
-          if (response.ok) {
-            const promos = await response.json();
-            contenedor.innerHTML = promos.length ? '' : '<p class="text-gray-400 italic">Sin promociones.</p>';
-            
-            promos.forEach(p => {
-              contenedor.innerHTML += `
-                <div class="bg-white dark:bg-gray-800 p-5 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
-                  <div class="flex justify-between items-start">
-                    <div>
-                      <h4 class="font-black text-gray-800 dark:text-white">${p.titulo}</h4>
-                      <p class="text-xs text-gray-500">${p.descripcion}</p>
-                    </div>
-                    <span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-1 rounded-lg">-${p.descuentoPorcentaje}%</span>
-                  </div>
-                  <div class="mt-4 pt-4 border-t border-gray-50 flex justify-between items-center">
-                    <code class="text-[10px] bg-gray-100 px-2 py-1 rounded font-bold">${p.codigoCupon}</code>
-                    <button onclick="eliminarPromo(${p.id})" class="text-red-400 hover:text-red-600 text-xs font-bold">Eliminar</button>
-                  </div>
-                </div>`;
+            const res = await fetch(`http://localhost:8080/api/promociones/mis-promociones?page=${paginaActual}&size=4`, {
+                headers: { 'Authorization': `Bearer ${token}` }
             });
-          }
-        } catch (e) { console.error("Error al cargar promos", e); }
-      }
+            if (res.ok) {
+                const data = await res.json();
+                const promos = data.content || data;
+                paginasTotales = data.totalPages || 1;
+                
+                document.getElementById('info-pag').innerText = `Pág ${paginaActual + 1} de ${paginasTotales}`;
+                document.getElementById('btn-prev').disabled = paginaActual === 0;
+                document.getElementById('btn-next').disabled = paginaActual >= paginasTotales - 1;
 
-      async function eliminarPromo(id) {
-        if (!confirm("¿Eliminar promoción?")) return;
+                if(promos.length === 0) {
+                    grid.innerHTML = '<p class="text-slate-400 text-sm">No tienes promociones activas.</p>';
+                    return;
+                }
+
+                grid.innerHTML = promos.map(p => `
+                    <div class="bg-white p-5 rounded-2xl border border-emerald-100 shadow-sm relative overflow-hidden group hover:shadow-md transition">
+                        <div class="absolute top-0 right-0 bg-emerald-100 text-emerald-800 font-black text-[10px] px-3 py-1 rounded-bl-lg">-${p.descuentoPorcentaje}%</div>
+                        <h4 class="font-black text-slate-800 mt-2">${p.titulo}</h4>
+                        <p class="text-[10px] text-slate-500 mt-1 line-clamp-2">${p.descripcion}</p>
+                        <div class="mt-4 pt-3 border-t border-slate-50 flex justify-between items-center">
+                            <span class="text-[9px] font-bold text-slate-400 uppercase">Usos: ${p.usosActuales || 0}/${p.usosMaximos}</span>
+                            <button onclick="eliminarPromo(${p.id})" class="text-[10px] font-bold text-red-500 hover:text-red-700">Eliminar</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        } catch (e) { grid.innerHTML = '<p class="text-red-500">Error al cargar.</p>'; }
+    }
+
+    document.getElementById('form-promo').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const payload = {
+            titulo: document.getElementById('titulo').value,
+            descripcion: document.getElementById('desc-promo').value,
+            descuentoPorcentaje: parseInt(document.getElementById('descuento').value),
+            usosMaximos: parseInt(document.getElementById('usos').value)
+        };
+        try {
+            const res = await fetch('http://localhost:8080/api/promociones', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if(res.ok) {
+                alert("Promoción lanzada con éxito.");
+                document.getElementById('form-promo').reset();
+                cargarPromos(0);
+            }
+        } catch(err) { alert("Error al crear promo."); }
+    });
+
+    async function eliminarPromo(id) {
+        if(!confirm("¿Desactivar esta promoción?")) return;
+        // Petición DELETE a tu API
         const res = await fetch(`http://localhost:8080/api/promociones/${id}`, {
-          method: 'DELETE',
-          headers: { 'Authorization': `Bearer ${token}` }
+            method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }
         });
-        if (res.ok) cargarPromos();
-      }
-    </script>
-  
+        if(res.ok) cargarPromos(paginaActual);
+    }
+  </script>
 </body>
 </html>
