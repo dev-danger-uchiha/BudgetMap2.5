@@ -2,12 +2,14 @@ package com.budgetmap.service;
 
 import com.budgetmap.dto.PromocionRequest;
 import com.budgetmap.dto.PromocionResponse;
+import com.budgetmap.exception.ResourceNotFoundException;
 import com.budgetmap.model.Establecimiento;
 import com.budgetmap.model.Evento;
 import com.budgetmap.model.Promocion;
 import com.budgetmap.repository.EstablecimientoRepository;
 import com.budgetmap.repository.EventoRepository;
 import com.budgetmap.repository.PromocionRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,6 +20,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class PromocionService {
 
@@ -34,7 +37,7 @@ public class PromocionService {
         Establecimiento est = establecimientoRepository.findByPropietarioId(propietarioId)
                 .stream()
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("No tienes un establecimiento registrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("No tienes un establecimiento registrado"));
 
         return promocionRepository.findByEstablecimientoIdAndActivoTrue(est.getId())
                 .stream()
@@ -69,34 +72,32 @@ public class PromocionService {
 
     public PromocionResponse obtenerPorId(Long id) {
         Promocion promo = promocionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Promoción no encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException("Promoción no encontrada"));
         return convertirAResponse(promo);
     }
 
-    // --- ACCIONES (ESCRITURA) ---
-
     @Transactional
     public PromocionResponse crear(PromocionRequest request, Long propietarioId) {
+        log.info("Creando promoción para el propietario ID: {}", propietarioId);
         Establecimiento est = null;
         Evento evento = null;
 
-        // Lógica de asociación dual (Establecimiento o Evento)
         if (request.getEstablecimientoId() != null) {
             est = establecimientoRepository.findById(request.getEstablecimientoId())
-                    .orElseThrow(() -> new RuntimeException("Establecimiento no encontrado"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Establecimiento no encontrado"));
 
             if (!est.getPropietario().getId().equals(propietarioId)) {
-                throw new RuntimeException("No tienes permisos sobre este establecimiento");
+                throw new SecurityException("No tienes permisos sobre este establecimiento");
             }
         } else if (request.getEventoId() != null) {
             evento = eventoRepository.findById(request.getEventoId())
-                    .orElseThrow(() -> new RuntimeException("Evento no encontrado"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Evento no encontrado"));
 
             if (!evento.getCreador().getId().equals(propietarioId)) {
-                throw new RuntimeException("No tienes permisos sobre este evento");
+                throw new SecurityException("No tienes permisos sobre este evento");
             }
         } else {
-            throw new RuntimeException("La promoción debe estar asociada a un local o evento");
+            throw new IllegalArgumentException("La promoción debe estar asociada a un local o evento");
         }
 
         Promocion promo = Promocion.builder()
@@ -122,9 +123,8 @@ public class PromocionService {
     @Transactional
     public PromocionResponse actualizar(Long id, PromocionRequest request, Long propietarioId) {
         Promocion promo = promocionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Promoción no encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException("Promoción no encontrada"));
 
-        // Validar propiedad antes de editar
         validarPropiedad(promo, propietarioId);
 
         promo.setTitulo(request.getTitulo());
@@ -144,36 +144,35 @@ public class PromocionService {
     @Transactional
     public void desactivar(Long id, Long propietarioId) {
         Promocion promo = promocionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Promoción no encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException("Promoción no encontrada"));
 
         validarPropiedad(promo, propietarioId);
         promo.setActivo(false);
         promocionRepository.save(promo);
+        log.info("Promoción ID: {} desactivada.", id);
     }
 
     @Transactional
     public void registrarUso(Long id) {
         Promocion promo = promocionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Promoción no encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException("Promoción no encontrada"));
 
         if (promo.getUsosMaximos() != null && promo.getUsosActuales() >= promo.getUsosMaximos()) {
-            throw new RuntimeException("Límite de usos alcanzado");
+            throw new IllegalStateException("Límite de usos alcanzado");
         }
 
         promo.setUsosActuales(promo.getUsosActuales() + 1);
         promocionRepository.save(promo);
     }
 
-    // --- UTILIDADES ---
-
     private void validarPropiedad(Promocion promo, Long propietarioId) {
         if (promo.getEstablecimiento() != null &&
                 !promo.getEstablecimiento().getPropietario().getId().equals(propietarioId)) {
-            throw new RuntimeException("No tienes permisos para esta acción");
+            throw new SecurityException("No tienes permisos para esta acción");
         }
         if (promo.getEvento() != null &&
                 !promo.getEvento().getCreador().getId().equals(propietarioId)) {
-            throw new RuntimeException("No tienes permisos para esta acción");
+            throw new SecurityException("No tienes permisos para esta acción");
         }
     }
 

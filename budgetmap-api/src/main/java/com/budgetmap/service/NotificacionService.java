@@ -1,11 +1,13 @@
 package com.budgetmap.service;
 
 import com.budgetmap.dto.NotificacionResponse;
+import com.budgetmap.exception.ResourceNotFoundException;
 import com.budgetmap.model.Notificacion;
 import com.budgetmap.model.Usuario;
 import com.budgetmap.model.enums.TipoNotificacion;
 import com.budgetmap.repository.NotificacionRepository;
 import com.budgetmap.repository.UsuarioRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class NotificacionService {
 
@@ -45,8 +48,13 @@ public class NotificacionService {
     @Transactional
     public Notificacion crear(TipoNotificacion tipo, String titulo, String mensaje,
             Long usuarioId, Long referenciaId, String referenciaTipo) {
+        log.info("Creando notificación tipo {} para el usuario ID: {}", tipo, usuarioId);
+
         Usuario usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> {
+                    log.error("Fallo al crear notificación. Usuario ID {} no encontrado.", usuarioId);
+                    return new ResourceNotFoundException("Usuario no encontrado");
+                });
 
         Notificacion notificacion = Notificacion.builder()
                 .usuario(usuario)
@@ -59,21 +67,26 @@ public class NotificacionService {
                 .origen("SPRING")
                 .build();
 
-        return notificacionRepository.save(notificacion);
+        Notificacion guardada = notificacionRepository.save(notificacion);
+        log.debug("Notificación ID: {} guardada correctamente", guardada.getId());
+        return guardada;
     }
 
     @Transactional
     public void marcarComoLeida(Long id, Long usuarioId) {
+        log.debug("Marcando notificación ID: {} como leída para el usuario ID: {}", id, usuarioId);
         notificacionRepository.marcarComoLeida(id, usuarioId);
     }
 
     @Transactional
     public void marcarTodasComoLeidas(Long usuarioId) {
+        log.info("Marcando todas las notificaciones como leídas para el usuario ID: {}", usuarioId);
         notificacionRepository.marcarTodasComoLeidas(usuarioId);
     }
 
     @Transactional
     public void eliminar(Long id) {
+        log.info("Eliminando notificación ID: {}", id);
         notificacionRepository.deleteById(id);
     }
 

@@ -6,6 +6,7 @@ import com.budgetmap.model.Usuario;
 import com.budgetmap.model.enums.RolUsuario;
 import com.budgetmap.repository.UsuarioRepository;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class UsuarioService {
 
@@ -43,9 +45,9 @@ public class UsuarioService {
 
             usuarioRepository.save(admin);
 
-            System.out.println("\n[SEEDER] Usuario Administrador creado con éxito.");
-            System.out.println("[SEEDER] Email: " + adminEmail);
-            System.out.println("[SEEDER] Password: admin1234\n");
+            // Reemplazamos los System.out por logs profesionales
+            log.info("[SEEDER] Usuario Administrador creado con éxito.");
+            log.info("[SEEDER] Email: {} | Password: admin1234", adminEmail);
         }
     }
 
@@ -62,7 +64,10 @@ public class UsuarioService {
 
     public UsuarioDTO obtenerPorId(Long id) {
         Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> {
+                    log.error("Fallo al consultar usuario: ID {} no encontrado", id);
+                    return new ResourceNotFoundException("Usuario no encontrado");
+                });
         return convertirADTO(usuario);
     }
 
@@ -82,32 +87,38 @@ public class UsuarioService {
 
     @Transactional
     public void desactivarUsuario(Long id) {
+        log.warn("Desactivando usuario ID: {}", id);
         Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
         usuario.setActivo(false);
         usuarioRepository.save(usuario);
+        log.info("Usuario ID: {} desactivado exitosamente", id);
     }
 
     @Transactional
     public void activarUsuario(Long id) {
+        log.info("Activando usuario ID: {}", id);
         Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
         usuario.setActivo(true);
         usuarioRepository.save(usuario);
+        log.info("Usuario ID: {} activado exitosamente", id);
     }
 
     @Transactional
     public void cambiarRol(Long id, RolUsuario nuevoRol) {
+        log.info("Cambiando rol del usuario ID: {} a {}", id, nuevoRol);
         Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
         usuario.setRol(nuevoRol);
         usuarioRepository.save(usuario);
     }
 
     @Transactional
     public void sumarPuntos(Long id, Integer puntos) {
+        log.debug("Añadiendo {} puntos extra al usuario ID: {}", puntos, id);
         Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
         usuario.setPuntosAcumulados(usuario.getPuntosAcumulados() + puntos);
         usuarioRepository.save(usuario);
     }

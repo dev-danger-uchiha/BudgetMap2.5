@@ -142,6 +142,28 @@ public class GlobalExceptionHandler {
                 return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(error);
         }
 
+        @ExceptionHandler(RuntimeException.class)
+        @ResponseStatus(HttpStatus.BAD_REQUEST)
+        public ResponseEntity<ErrorResponse> handleRuntimeException(
+                        RuntimeException ex, WebRequest request) {
+
+                // Filtramos para no atrapar excepciones que ya tienen su propio handler
+                if (ex.getClass() != RuntimeException.class) {
+                    throw ex; 
+                }
+
+                log.warn("Excepción en tiempo de ejecución: {}", ex.getMessage());
+
+                ErrorResponse error = new ErrorResponse(
+                                LocalDateTime.now(),
+                                HttpStatus.BAD_REQUEST.value(),
+                                "Error en la solicitud",
+                                ex.getMessage(),
+                                request.getDescription(false).replace("uri=", ""));
+
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        }
+        
         @ExceptionHandler(Exception.class)
         public ResponseEntity<?> handleAllExceptions(Exception ex, WebRequest request) {
                 String path = request.getDescription(false).replace("uri=", "");

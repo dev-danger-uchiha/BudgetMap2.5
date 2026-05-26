@@ -10,6 +10,7 @@ import com.budgetmap.model.enums.RolUsuario;
 import com.budgetmap.repository.UsuarioRepository;
 import com.budgetmap.security.JwtUtils;
 import com.budgetmap.security.UserDetailsImpl;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,10 +22,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 public class AuthService {
-
-    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AuthService.class);
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -39,6 +39,7 @@ public class AuthService {
     private JwtUtils jwtUtils;
 
     public LoginResponse autenticar(LoginRequest loginRequest) {
+        log.info("Iniciando proceso de autenticación para el email: {}", loginRequest.getEmail());
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -62,7 +63,7 @@ public class AuthService {
                     .build();
 
         } catch (BadCredentialsException e) {
-            log.warn("Intento de autenticacion fallido para: {}", loginRequest.getEmail());
+            log.warn("Intento de autenticación fallido para: {}", loginRequest.getEmail());
             throw new CredencialesInvalidasException("Email o contraseña incorrectos");
         }
     }
@@ -71,6 +72,8 @@ public class AuthService {
     public UsuarioDTO registrar(RegistroRequest request) {
         String emailNormalizado = normalizarEmail(request.getEmail());
         String nombreNormalizado = normalizarNombre(request.getNombre());
+
+        log.info("Iniciando registro de nuevo usuario con email: {}", emailNormalizado);
 
         validarPassword(request.getPassword());
 
@@ -92,14 +95,13 @@ public class AuthService {
             Usuario guardado = usuarioRepository.save(usuario);
             usuarioRepository.flush();
 
-            log.info("Usuario registrado exitosamente: {}, rol: {}",
-                    guardado.getEmail(), guardado.getRol());
+            log.info("Usuario registrado exitosamente: {}, rol: {}", guardado.getEmail(), guardado.getRol());
 
             return convertirADTO(guardado);
 
         } catch (DataIntegrityViolationException e) {
             log.warn("Intento de registro con email duplicado: {}", emailNormalizado);
-            throw new EmailYaRegistradoException("El email ya esta registrado en el sistema");
+            throw new EmailYaRegistradoException("El email ya está registrado en el sistema");
 
         } catch (Exception e) {
             log.error("Error inesperado al registrar usuario: {}", e.getMessage(), e);
@@ -109,6 +111,7 @@ public class AuthService {
 
     @Transactional
     public UsuarioDTO registrarExplorador(RegistroRequest request) {
+        log.debug("Redirigiendo registro a flujo de EXPLORADOR por defecto para: {}", request.getEmail());
         RegistroRequest requestCopia = RegistroRequest.builder()
                 .nombre(request.getNombre())
                 .apellido(request.getApellido())
@@ -148,13 +151,13 @@ public class AuthService {
         }
 
         if (!password.matches(".*[A-Z].*")) {
-            throw new PasswordInvalidoException("La contraseña debe contener al menos una mayuscula");
+            throw new PasswordInvalidoException("La contraseña debe contener al menos una mayúscula");
         }
         if (!password.matches(".*[a-z].*")) {
-            throw new PasswordInvalidoException("La contraseña debe contener al menos una minuscula");
+            throw new PasswordInvalidoException("La contraseña debe contener al menos una minúscula");
         }
         if (!password.matches(".*[0-9].*")) {
-            throw new PasswordInvalidoException("La contraseña debe contener al menos un numero");
+            throw new PasswordInvalidoException("La contraseña debe contener al menos un número");
         }
     }
 

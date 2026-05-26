@@ -6,6 +6,7 @@ import com.budgetmap.model.AnaliticaLocal;
 import com.budgetmap.model.Establecimiento;
 import com.budgetmap.repository.AnaliticaLocalRepository;
 import com.budgetmap.repository.EstablecimientoRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +15,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class AnaliticaLocalService {
 
@@ -27,6 +29,7 @@ public class AnaliticaLocalService {
 
     @Transactional
     public void registrarVistaMapa(Long establecimientoId) {
+        log.debug("Registrando vista en mapa para el establecimiento ID: {}", establecimientoId);
         AnaliticaLocal stats = obtenerOCrearAnaliticaHoy(establecimientoId);
         stats.setVistasMapa(stats.getVistasMapa() + 1);
         analiticaRepository.save(stats);
@@ -34,6 +37,7 @@ public class AnaliticaLocalService {
 
     @Transactional
     public void registrarClicPerfil(Long establecimientoId) {
+        log.debug("Registrando clic en perfil para el establecimiento ID: {}", establecimientoId);
         AnaliticaLocal stats = obtenerOCrearAnaliticaHoy(establecimientoId);
         stats.setClicsPerfil(stats.getClicsPerfil() + 1);
         analiticaRepository.save(stats);
@@ -41,6 +45,7 @@ public class AnaliticaLocalService {
 
     @Transactional
     public void registrarVistaCupon(Long establecimientoId) {
+        log.debug("Registrando vista de cupón para el establecimiento ID: {}", establecimientoId);
         AnaliticaLocal stats = obtenerOCrearAnaliticaHoy(establecimientoId);
         stats.setCuponesVistos(stats.getCuponesVistos() + 1);
         analiticaRepository.save(stats);
@@ -48,9 +53,9 @@ public class AnaliticaLocalService {
 
     @Transactional
     public void actualizarExploradoresCercanos(Long establecimientoId, int cantidadDetectada) {
+        log.debug("Actualizando exploradores cercanos para el establecimiento ID: {}. Detectados: {}", establecimientoId, cantidadDetectada);
         AnaliticaLocal stats = obtenerOCrearAnaliticaHoy(establecimientoId);
         
-        // Un cálculo de promedio móvil simple para no sobrecargar la base de datos
         int promedioActual = stats.getExploradoresCercanosPromedio();
         if (promedioActual == 0) {
             stats.setExploradoresCercanosPromedio(cantidadDetectada);
@@ -65,6 +70,7 @@ public class AnaliticaLocalService {
     // --- MÉTODOS DE CONSULTA (Para el Dashboard del Aliado) ---
 
     public List<AnaliticaLocalDTO> obtenerHistorialEstablecimiento(Long establecimientoId) {
+        log.info("Consultando historial de analíticas para el establecimiento ID: {}", establecimientoId);
         List<AnaliticaLocal> historial = analiticaRepository.findByEstablecimientoIdOrderByFechaDesc(establecimientoId);
         
         return historial.stream().map(a -> AnaliticaLocalDTO.builder()
@@ -83,6 +89,7 @@ public class AnaliticaLocalService {
         
         return analiticaRepository.findByEstablecimientoIdAndFecha(establecimientoId, hoy)
                 .orElseGet(() -> {
+                    log.info("Creando nuevo registro de analítica para hoy en el establecimiento ID: {}", establecimientoId);
                     Establecimiento establecimiento = establecimientoRepository.findById(establecimientoId)
                             .orElseThrow(() -> new ResourceNotFoundException("Establecimiento no encontrado"));
                             

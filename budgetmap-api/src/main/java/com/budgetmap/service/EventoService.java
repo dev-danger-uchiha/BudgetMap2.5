@@ -2,6 +2,7 @@ package com.budgetmap.service;
 
 import com.budgetmap.dto.EventoRequest;
 import com.budgetmap.dto.EventoResponse;
+import com.budgetmap.exception.ResourceNotFoundException;
 import com.budgetmap.model.Establecimiento;
 import com.budgetmap.model.Evento;
 import com.budgetmap.model.Lugar;
@@ -10,6 +11,7 @@ import com.budgetmap.repository.EstablecimientoRepository;
 import com.budgetmap.repository.EventoRepository;
 import com.budgetmap.repository.LugarRepository;
 import com.budgetmap.repository.UsuarioRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +21,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class EventoService {
 
@@ -56,7 +59,10 @@ public class EventoService {
 
     public Evento obtenerPorIdEntity(Long id) {
         return eventoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Evento no encontrado"));
+                .orElseThrow(() -> {
+                    log.error("Intento de consulta a un evento inexistente: ID {}", id);
+                    return new ResourceNotFoundException("Evento no encontrado");
+                });
     }
 
     public EventoResponse obtenerPorId(Long id) {
@@ -75,20 +81,24 @@ public class EventoService {
 
     @Transactional
     public EventoResponse crear(EventoRequest request, Long creadorId) {
+        log.info("Iniciando creación de evento '{}' por el usuario ID: {}", request.getNombre(), creadorId);
+
         Usuario creador = usuarioRepository.findById(creadorId)
-                .orElseThrow(() -> new RuntimeException("Creador no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Creador no encontrado"));
 
         Lugar lugar = null;
         Establecimiento establecimiento = null;
+        
         // Validar dónde se realizará el evento
         if (request.getLugarId() != null) {
             lugar = lugarRepository.findById(request.getLugarId())
-                    .orElseThrow(() -> new RuntimeException("Lugar no encontrado"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Lugar no encontrado"));
         } else if (request.getEstablecimientoId() != null) {
             establecimiento = establecimientoRepository.findById(request.getEstablecimientoId())
-                    .orElseThrow(() -> new RuntimeException("Establecimiento no encontrado"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Establecimiento no encontrado"));
         } else {
-            throw new RuntimeException("El evento debe estar asociado a un Lugar o a un Establecimiento");
+            log.warn("Rechazo de creación: El evento no tiene Lugar ni Establecimiento asignado.");
+            throw new IllegalArgumentException("El evento debe estar asociado a un Lugar o a un Establecimiento");
         }
 
         Evento evento = Evento.builder()
@@ -110,15 +120,19 @@ public class EventoService {
                 .destacado(false)
                 .build();
 
-        return convertirAResponse(eventoRepository.save(evento));
+        Evento guardado = eventoRepository.save(evento);
+        log.info("Evento creado exitosamente con ID: {}", guardado.getId());
+        return convertirAResponse(guardado);
     }
 
     @Transactional
     public EventoResponse actualizar(Long id, EventoRequest request, Long creadorId) {
+        log.info("Usuario ID: {} solicita actualizar el evento ID: {}", creadorId, id);
         Evento evento = obtenerPorIdEntity(id);
 
         if (!evento.getCreador().getId().equals(creadorId)) {
-            throw new RuntimeException("No tiene permisos para editar este evento");
+            log.warn("Intento de edición no autorizada. Usuario ID: {} en Evento ID: {}", creadorId, id);
+            throw new SecurityException("No tiene permisos para editar este evento");
         }
 
         evento.setNombre(request.getNombre());
@@ -132,11 +146,13 @@ public class EventoService {
         evento.setPrecio(request.getPrecio());
         evento.setImagenUrl(request.getImagenUrl());
 
+        log.debug("Evento ID: {} actualizado correctamente", id);
         return convertirAResponse(eventoRepository.save(evento));
     }
 
     @Transactional
     public void destacar(Long id, Boolean destacado) {
+        log.info("Cambiando estado de destaque a {} para el evento ID: {}", destacado, id);
         Evento evento = obtenerPorIdEntity(id);
         evento.setDestacado(destacado);
         eventoRepository.save(evento);
@@ -144,14 +160,17 @@ public class EventoService {
 
     @Transactional
     public void eliminar(Long id, Long creadorId) {
+        log.info("Solicitud de eliminación de evento ID: {} por usuario ID: {}", id, creadorId);
         Evento evento = obtenerPorIdEntity(id);
 
         if (!evento.getCreador().getId().equals(creadorId)) {
-            throw new RuntimeException("No tiene permisos para eliminar este evento");
+            log.error("Intento de eliminación no autorizada. Usuario ID: {} en Evento ID: {}", creadorId, id);
+            throw new SecurityException("No tiene permisos para eliminar este evento");
         }
 
         evento.setActivo(false);
         eventoRepository.save(evento);
+        log.info("Evento ID: {} marcado como inactivo (Soft Delete).", id);
     }
 
     public List<EventoResponse> buscarPorRangoFechas(LocalDate inicio, LocalDate fin) {
@@ -159,7 +178,6 @@ public class EventoService {
                 .map(this::convertirAResponse).collect(Collectors.toList());
     }
 
-    // --- MAPPER ---
     private EventoResponse convertirAResponse(Evento evento) {
         return EventoResponse.builder()
                 .id(evento.getId())

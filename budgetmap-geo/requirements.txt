@@ -14,5 +14,7 @@ pandas
 fpdf==1.7.2
 python-dotenv==1.0.1
 PyJWT==2.8.0
+Flask-Limiter 
+redis
 
 # pip install -r requirements.txt

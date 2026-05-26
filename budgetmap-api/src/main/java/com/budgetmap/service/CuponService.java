@@ -9,6 +9,7 @@ import com.budgetmap.model.Usuario;
 import com.budgetmap.repository.CuponRedimidoRepository;
 import com.budgetmap.repository.EstablecimientoRepository;
 import com.budgetmap.repository.UsuarioRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class CuponService {
 
@@ -35,20 +37,23 @@ public class CuponService {
 
     @Transactional
     public CuponRedimidoDTO canjearCupon(Long usuarioId, CanjearCuponRequest request) {
+        log.info("Iniciando canje de cupón para el usuario ID: {} en el establecimiento ID: {}", usuarioId, request.getEstablecimientoId());
         
-        // 1. Descontar los puntos
         puntosService.restarPuntos(usuarioId, request.getCostoPuntos());
 
-        // 2. Traer las entidades
         Usuario usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+                .orElseThrow(() -> {
+                    log.error("Usuario no encontrado al intentar canjear cupón: ID {}", usuarioId);
+                    return new ResourceNotFoundException("Usuario no encontrado");
+                });
         Establecimiento local = establecimientoRepository.findById(request.getEstablecimientoId())
-                .orElseThrow(() -> new ResourceNotFoundException("Establecimiento no encontrado"));
+                .orElseThrow(() -> {
+                    log.error("Establecimiento no encontrado al intentar canjear cupón: ID {}", request.getEstablecimientoId());
+                    return new ResourceNotFoundException("Establecimiento no encontrado");
+                });
 
-        // 3. Generar código único
         String codigo = "BMAP-" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
 
-        // 4. Crear y guardar la entidad
         CuponRedimido nuevoCupon = CuponRedimido.builder()
                 .usuario(usuario)
                 .establecimiento(local)
@@ -61,12 +66,11 @@ public class CuponService {
                 .build();
 
         nuevoCupon = cuponRepository.save(nuevoCupon);
+        log.info("Cupón canjeado exitosamente. Código generado: {}", codigo);
 
-        // 5. Retornar el DTO limpio
         return mapearACuponDTO(nuevoCupon);
     }
 
-    // Obtener los cupones activos de un explorador
     public List<CuponRedimidoDTO> obtenerMisCupones(Long usuarioId) {
         return cuponRepository.findByUsuarioIdOrderByFechaRedencionDesc(usuarioId)
                 .stream()
@@ -74,7 +78,6 @@ public class CuponService {
                 .collect(Collectors.toList());
     }
 
-    // Mapper interno
     private CuponRedimidoDTO mapearACuponDTO(CuponRedimido cupon) {
         return CuponRedimidoDTO.builder()
                 .id(cupon.getId())
@@ -89,28 +92,32 @@ public class CuponService {
 
     @Transactional
     public CuponRedimidoDTO validarYQuemarCupon(String codigo, Long propietarioId) {
-        // 1. Buscar el cupón en la base de datos
+        log.info("Validando cupón con código: {} por el propietario ID: {}", codigo, propietarioId);
+        
         CuponRedimido cupon = cuponRepository.findByCodigoUnico(codigo)
-                .orElseThrow(() -> new RuntimeException("Cupón no encontrado o código inválido"));
+                .orElseThrow(() -> {
+                    log.warn("Intento de validar un cupón inexistente: {}", codigo);
+                    return new ResourceNotFoundException("Cupón no encontrado o código inválido");
+                });
 
-        // 2. Verificar que el Aliado que escanea sea el dueño del local
         if (!cupon.getEstablecimiento().getPropietario().getId().equals(propietarioId)) {
-            throw new RuntimeException("No tienes permisos para validar cupones de otro establecimiento");
+            log.warn("Alerta de seguridad: El usuario {} intentó validar un cupón del establecimiento {}", propietarioId, cupon.getEstablecimiento().getId());
+            throw new SecurityException("No tienes permisos para validar cupones de otro establecimiento");
         }
 
-        // 3. Verificar que no haya sido usado antes
         if (cupon.getUsado()) {
-            throw new RuntimeException("Este cupón ya fue redimido anteriormente");
+            log.warn("El cupón {} ya fue redimido anteriormente", codigo);
+            throw new IllegalStateException("Este cupón ya fue redimido anteriormente");
         }
 
-        // 4. Verificar la fecha de vencimiento
         if (cupon.getFechaExpiracion().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Este cupón ya ha expirado");
+            log.warn("Intento de validación de un cupón expirado: {}", codigo);
+            throw new IllegalStateException("Este cupón ya ha expirado");
         }
 
-        // 5. ¡Quemar el cupón!
         cupon.setUsado(true);
         cupon = cuponRepository.save(cupon);
+        log.info("Cupón {} quemado con éxito", codigo);
 
         return mapearACuponDTO(cupon);
     }

@@ -2,11 +2,13 @@ package com.budgetmap.service;
 
 import com.budgetmap.dto.PQRSRequest;
 import com.budgetmap.dto.PQRSResponse;
+import com.budgetmap.exception.ResourceNotFoundException;
 import com.budgetmap.model.PQRS;
 import com.budgetmap.model.Usuario;
 import com.budgetmap.model.enums.EstadoPQRS;
 import com.budgetmap.repository.PQRSRepository;
 import com.budgetmap.repository.UsuarioRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,6 +19,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class PQRSService {
 
@@ -50,7 +53,11 @@ public class PQRSService {
     }
 
     private PQRS obtenerEntityPorId(Long id) {
-        return pqrsRepository.findById(id).orElseThrow(() -> new RuntimeException("PQRS no encontrado"));
+        return pqrsRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.error("PQRS con ID {} no encontrado", id);
+                    return new ResourceNotFoundException("PQRS no encontrado");
+                });
     }
 
     public PQRSResponse obtenerPorId(Long id) {
@@ -59,8 +66,9 @@ public class PQRSService {
 
     @Transactional
     public PQRSResponse crear(PQRSRequest request, Long usuarioId) {
+        log.info("Creando nuevo ticket PQRS para usuario ID: {}", usuarioId);
         Usuario usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 
         PQRS pqrs = PQRS.builder()
                 .codigoTicket(generarCodigoTicket())
@@ -73,11 +81,14 @@ public class PQRSService {
                 .prioridad("MEDIA")
                 .build();
 
-        return convertirAResponse(pqrsRepository.save(pqrs));
+        PQRS guardado = pqrsRepository.save(pqrs);
+        log.info("Ticket PQRS creado con éxito. Código: {}", guardado.getCodigoTicket());
+        return convertirAResponse(guardado);
     }
 
     @Transactional
     public PQRSResponse responder(Long id, String respuesta, Long moderadorId) {
+        log.info("Moderador ID: {} respondiendo al ticket ID: {}", moderadorId, id);
         PQRS pqrs = obtenerEntityPorId(id);
 
         pqrs.setRespuesta(respuesta);
@@ -90,6 +101,7 @@ public class PQRSService {
 
     @Transactional
     public void asignarAModerador(Long id, Long moderadorId) {
+        log.info("Asignando ticket ID: {} al moderador ID: {}", id, moderadorId);
         PQRS pqrs = obtenerEntityPorId(id);
         pqrs.setModeradorAsignadoId(moderadorId);
         pqrs.setEstado(EstadoPQRS.EN_PROCESO);
@@ -98,6 +110,7 @@ public class PQRSService {
 
     @Transactional
     public void cerrar(Long id) {
+        log.info("Cerrando ticket PQRS ID: {}", id);
         PQRS pqrs = obtenerEntityPorId(id);
         pqrs.setEstado(EstadoPQRS.CERRADO);
         pqrsRepository.save(pqrs);

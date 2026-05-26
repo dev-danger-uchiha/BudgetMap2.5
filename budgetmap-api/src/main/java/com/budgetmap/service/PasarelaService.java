@@ -10,9 +10,11 @@ import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.preference.Preference;
 import com.mercadopago.client.payment.PaymentClient;
 import com.mercadopago.resources.payment.Payment;
+import com.budgetmap.exception.ResourceNotFoundException;
 import com.budgetmap.model.Transaccion;
 import com.budgetmap.model.enums.EstadoTransaccion;
 import com.budgetmap.repository.TransaccionRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import jakarta.annotation.PostConstruct;
@@ -24,10 +26,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.time.LocalDateTime;
 
+@Slf4j
 @Service
 public class PasarelaService {
 
-    // ¡Ahora sí está adentro de la clase!
     @Autowired
     private TransaccionRepository transaccionRepository;
 
@@ -40,10 +42,11 @@ public class PasarelaService {
     @PostConstruct
     public void init() {
         MercadoPagoConfig.setAccessToken(accessToken);
+        log.info("Mercado Pago configurado correctamente con el Access Token.");
     }
 
-    // Método 1: Genera el Link de Pago
     public String crearPreferenciaDePago(String tituloPlan, BigDecimal precioMensual, String referenciaInterna) {
+        log.info("Iniciando creación de preferencia de pago: {} - Ref: {}", tituloPlan, referenciaInterna);
         try {
             PreferenceItemRequest itemRequest = PreferenceItemRequest.builder()
                     .title(tituloPlan)
@@ -69,16 +72,18 @@ public class PasarelaService {
             PreferenceClient client = new PreferenceClient();
             Preference preference = client.create(preferenceRequest);
 
+            log.info("Preferencia de pago creada exitosamente. ID: {}", preference.getId());
             return preference.getInitPoint();
 
         } catch (MPException | MPApiException e) {
-            throw new RuntimeException("Error al comunicarse con la pasarela de pagos", e);
+            log.error("Error crítico al comunicarse con la pasarela de Mercado Pago", e);
+            throw new IllegalStateException("Error al comunicarse con la pasarela de pagos", e);
         }
     }
 
-    // Método 2: El Webhook (Atiende la llamada de Mercado Pago)
     @Transactional
     public void procesarNotificacionDePago(Long paymentId) {
+        log.info("Recibiendo webhook de Mercado Pago para el Payment ID: {}", paymentId);
         try {
             PaymentClient client = new PaymentClient();
             Payment payment = client.get(paymentId);
@@ -87,20 +92,25 @@ public class PasarelaService {
             String estadoPago = payment.getStatus(); 
 
             Transaccion transaccion = transaccionRepository.findByReferenciaPago(referenciaInterna)
-                    .orElseThrow(() -> new RuntimeException("Transacción no encontrada: " + referenciaInterna));
+                    .orElseThrow(() -> {
+                        log.error("Transacción no encontrada a partir del webhook: {}", referenciaInterna);
+                        return new ResourceNotFoundException("Transacción no encontrada: " + referenciaInterna);
+                    });
 
             if ("approved".equals(estadoPago)) {
+                log.info("Pago APROBADO para la transacción: {}", referenciaInterna);
                 transaccion.setEstado(EstadoTransaccion.EXITOSO);
                 var usuario = transaccion.getUsuario();
                 usuario.setFechaFinSuscripcion(LocalDateTime.now().plusDays(30));
             } else {
+                log.warn("Pago NO APROBADO. Estado reportado: {} para transacción: {}", estadoPago, referenciaInterna);
                 transaccion.setEstado(EstadoTransaccion.FALLIDO);
             }
 
             transaccionRepository.save(transaccion);
 
         } catch (MPException | MPApiException e) {
-            System.err.println("Error validando el pago con Mercado Pago: " + e.getMessage());
+            log.error("Error validando el pago con Mercado Pago para ID {}", paymentId, e);
         }
     }
 }

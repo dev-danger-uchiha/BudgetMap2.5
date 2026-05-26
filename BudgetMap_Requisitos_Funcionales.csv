@@ -1,0 +1,37 @@
+ID,Requerimiento,Prioridad,Estado,Estimado,Módulo
+RF-001,El software permitirá el registro de nuevos usuarios mediante correo electrónico y contraseña.,Alta,✅ Implementado,,Seguridad y Acceso
+RF-002,El software permitirá el inicio de sesión mediante la validación de credenciales.,Alta,✅ Implementado,,Seguridad y Acceso
+RF-003,El software permitirá la generación de un token JWT para el manejo de sesiones seguras.,Alta,✅ Implementado,,Seguridad y Acceso
+RF-004,El software permitirá el control de acceso basado en roles (ADMIN MODERADOR LOCAL_ALIADO ANFITRION EXPLORADOR).,Alta,✅ Implementado,,Seguridad y Acceso
+RF-005,El software permitirá validar la fortaleza de la contraseña y el formato del correo ingresado.,Media,⚠️ Parcial,2 días,Seguridad y Acceso
+RF-022,[NUEVO] El software permitirá la recuperación de contraseña olvidada mediante un enlace seguro por email con expiración de 30 minutos.,Alta,❌ Pendiente,1 semana,Seguridad y Acceso
+RF-023,[NUEVO] El software permitirá el logout de usuarios con revocación de token JWT mediante blacklist.,Alta,❌ Pendiente,3 días,Seguridad y Acceso
+RF-024,[NUEVO] El software permitirá bloquear temporalmente una cuenta tras 5 intentos fallidos de login en 15 minutos.,Alta,❌ Pendiente,3 días,Seguridad y Acceso
+RF-006,El sistema permitirá al administrador listar buscar y gestionar el estado de los usuarios.,Alta,✅ Implementado,,Usuarios y Gamificación
+RF-007,El sistema permitirá al usuario visualizar y editar su perfil y radio de búsqueda preferido.,Alta,✅ Implementado,,Usuarios y Gamificación
+RF-008,El sistema permitirá la acumulación de Tokens de puntos por cada reserva confirmada (10 puntos × número de personas).,Alta,✅ Implementado,,Usuarios y Gamificación
+RF-009,El sistema permitirá el canje de puntos acumulados por cupones o beneficios digitales con código único y expiración.,Media,❌ Pendiente,2 semanas,Usuarios y Gamificación
+RF-031,[NUEVO] El sistema permitirá visualizar el historial completo de puntos ganados y gastados con auditoría de transacciones.,Media,❌ Pendiente,3 días,Usuarios y Gamificación
+RF-032,[NUEVO] El sistema permitirá guardar búsquedas y filtros personalizados para acceso rápido.,Baja,❌ Pendiente,3 días,Usuarios y Gamificación
+RF-010,El software permitirá registrar lugares y establecimientos con coordenadas GPS exactas (Geometry SRID 4326).,Alta,✅ Implementado,,Radar y Geoposicionamiento
+RF-011,El software permitirá visualizar un Radar Dinámico de sitios en un radio definido por el usuario.,Alta,✅ Implementado,,Radar y Geoposicionamiento
+RF-012,El software permitirá gestionar el ciclo de aprobación de nuevos establecimientos y lugares (PENDIENTE → APROBADO/RECHAZADO).,Alta,✅ Implementado,,Radar y Geoposicionamiento
+RF-013,El software permitirá mostrar únicamente los establecimientos aprobados al público general.,Alta,✅ Implementado,,Radar y Geoposicionamiento
+RF-014,El software permitirá validar que un LOCAL_ALIADO posea solo un establecimiento activo mediante constraint en base de datos.,Media,⚠️ Parcial,1 día,Radar y Geoposicionamiento
+RF-026,[NUEVO] El software permitirá búsqueda avanzada de establecimientos con múltiples filtros (categoría precio horario calificación servicios distancia).,Media,❌ Pendiente,1 semana,Radar y Geoposicionamiento
+RF-015,El sistema permitirá a los anfitriones crear y gestionar eventos vinculados a una ubicación teniendo en cuenta las políticas y permisos legales.,Alta,✅ Implementado,,Eventos y Promociones
+RF-016,El sistema permitirá filtrar automáticamente y ocultar los eventos cuya fecha haya caducado mediante @Scheduled task.,Alta,⚠️ Parcial,1 día,Eventos y Promociones
+RF-017,El sistema permitirá crear promociones con rangos de fecha de inicio y fin obligatorios.,Alta,✅ Implementado,,Eventos y Promociones
+RF-018,El sistema permitirá gestionar cupones de descuento mediante códigos alfanuméricos únicos y validación de uso.,Media,⚠️ Parcial,Ver RF-009,Eventos y Promociones
+RF-033,[NUEVO] El sistema permitirá guardar filtros de búsqueda personalizados para acceso rápido.,Baja,❌ Pendiente,3 días,Eventos y Promociones
+RF-034,[NUEVO] El sistema permitirá un programa de referrals con bonificación de 50 puntos al usuario referidor y referido.,Baja,❌ Pendiente,1 semana,Eventos y Promociones
+RF-019,El software permitirá al Explorador realizar reservas y generar un código de confirmación único (UUID).,Alta,✅ Implementado,,Reservas y PQRS
+RF-020,El software permitirá al Aliado confirmar la asistencia del usuario mediante dicho código y otorgar puntos.,Alta,✅ Implementado,,Reservas y PQRS
+RF-021,El software permitirá la creación seguimiento y cierre de tickets de PQRS (Peticiones Quejas Reclamos Sugerencias).,Alta,✅ Implementado,,Reservas y PQRS
+RF-035,[NUEVO] El sistema permitirá búsqueda de historial de reservas con filtros avanzados (estado establecimiento fecha ordenamiento).,Media,❌ Pendiente,3 días,Reservas y PQRS
+RF-036,[NUEVO] El sistema permitirá cancelación de reservas con políticas de reembolso de puntos según días de anticipación.,Media,❌ Pendiente,1 semana,Reservas y PQRS
+RF-037,[NUEVO] El sistema permitirá notificación automática de confirmación de reserva y recordatorio 24 horas antes de la fecha.,Media,❌ Pendiente,Ver RF-027,Reservas y PQRS
+RF-025,[NUEVO] El software permitirá validación de email mediante double opt-in con enlace de confirmación válido 24 horas.,Media,❌ Pendiente,2 días,Perfil y Cuenta
+RF-029,[NUEVO] El software permitirá la eliminación de cuenta (derecho al olvido GDPR) con período de espera de 30 días y anónimización de datos.,Media,❌ Pendiente,3 días,Perfil y Cuenta
+RF-030,[NUEVO] El software permitirá guardar establecimientos como favoritos con notificación de nuevas promociones.,Baja,❌ Pendiente,3 días,Perfil y Cuenta
+RF-038,[NUEVO] El sistema permitirá a usuarios que completaron reservas escribir reseñas con calificación (1-5 estrellas) texto fotos y respuesta del LOCAL_ALIADO.,Media,❌ Pendiente,1.5 semanas,Reseñas y Calificaciones

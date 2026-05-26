@@ -4,6 +4,9 @@ import logging
 from functools import wraps
 from time import time
 
+# 1. IMPORTAMOS TU NUEVO CANDADO DE SEGURIDAD
+from auth import verify_jwt_token 
+
 logger = logging.getLogger(__name__)
 geo_bp = Blueprint('geo', __name__)
 
@@ -50,13 +53,17 @@ def handle_error(error, status_code=500):
         'error': message
     }), status_code
 
+# EL HEALTH CHECK SE QUEDA PÚBLICO
 @geo_bp.route('/health', methods=['GET'])
 @rate_limit
 def health():
     return jsonify({'status': 'OK', 'service': 'geo'})
 
+
+# 2. APLICAMOS EL CANDADO A LAS RUTAS PRIVADAS
 @geo_bp.route('/lugares/cercanos', methods=['GET'])
 @rate_limit
+@verify_jwt_token
 def lugares_cercanos():
     try:
         lat_str = request.args.get('lat')
@@ -93,6 +100,7 @@ def lugares_cercanos():
 
 @geo_bp.route('/establecimientos/cercanos', methods=['GET'])
 @rate_limit
+@verify_jwt_token
 def establecimientos_cercanos():
     try:
         lat_str = request.args.get('lat')
@@ -129,6 +137,7 @@ def establecimientos_cercanos():
 
 @geo_bp.route('/todo-cercano', methods=['GET'])
 @rate_limit
+@verify_jwt_token
 def todo_cercano():
     try:
         lat_str = request.args.get('lat')
@@ -162,6 +171,7 @@ def todo_cercano():
 
 @geo_bp.route('/distancia', methods=['GET'])
 @rate_limit
+@verify_jwt_token
 def calcular_distancia():
     try:
         lat1 = request.args.get('lat1')
@@ -196,6 +206,7 @@ def calcular_distancia():
 
 @geo_bp.route('/dentro-radio', methods=['POST'])
 @rate_limit
+@verify_jwt_token
 def dentro_radio():
     try:
         data = request.get_json()
@@ -239,6 +250,7 @@ def dentro_radio():
 
 @geo_bp.route('/geofence/verificar', methods=['POST'])
 @rate_limit
+@verify_jwt_token
 def verificar_geofence():
     try:
         data = request.get_json()
@@ -277,6 +289,7 @@ def verificar_geofence():
 
 @geo_bp.route('/bounding-box', methods=['GET'])
 @rate_limit
+@verify_jwt_token
 def bounding_box():
     try:
         lat_str = request.args.get('lat')

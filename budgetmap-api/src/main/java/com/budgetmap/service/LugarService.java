@@ -1,9 +1,11 @@
 package com.budgetmap.service;
 
 import com.budgetmap.dto.LugarRequest;
+import com.budgetmap.exception.ResourceNotFoundException;
 import com.budgetmap.model.Lugar;
 import com.budgetmap.model.enums.EstadoAprobacion;
 import com.budgetmap.repository.LugarRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
@@ -16,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Service
 public class LugarService {
 
@@ -42,11 +45,15 @@ public class LugarService {
 
     public Lugar obtenerPorId(Long id) {
         return lugarRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Lugar no encontrado"));
+                .orElseThrow(() -> {
+                    log.error("Lugar no encontrado con ID: {}", id);
+                    return new ResourceNotFoundException("Lugar no encontrado");
+                });
     }
 
     @Transactional
     public Lugar crear(LugarRequest request) {
+        log.info("Creando nuevo lugar público: {}", request.getNombre());
         Point puntoDeUbicacion = geometryFactory.createPoint(
                 new Coordinate(request.getLongitud(), request.getLatitud()));
 
@@ -64,15 +71,19 @@ public class LugarService {
                 .activo(true)
                 .build();
 
-        return lugarRepository.save(lugar);
+        Lugar guardado = lugarRepository.save(lugar);
+        log.info("Lugar creado exitosamente con ID: {}", guardado.getId());
+        return guardado;
     }
 
     @Transactional
     public Lugar actualizar(Long id, LugarRequest request) {
+        log.info("Actualizando lugar ID: {}", id);
         Lugar lugar = obtenerPorId(id);
 
         if (!lugar.getLatitud().equals(request.getLatitud()) ||
                 !lugar.getLongitud().equals(request.getLongitud())) {
+            log.debug("Actualizando coordenadas geográficas del lugar ID: {}", id);
             Point nuevoPunto = geometryFactory.createPoint(
                     new Coordinate(request.getLongitud(), request.getLatitud()));
             lugar.setUbicacion(nuevoPunto);
@@ -92,6 +103,7 @@ public class LugarService {
 
     @Transactional
     public void aprobar(Long id, Long moderadorId) {
+        log.info("Moderador ID: {} aprobando lugar ID: {}", moderadorId, id);
         Lugar lugar = obtenerPorId(id);
         lugar.setEstado(EstadoAprobacion.APROBADO);
         lugar.setModeradorId(moderadorId);
@@ -102,6 +114,7 @@ public class LugarService {
 
     @Transactional
     public void rechazar(Long id, Long moderadorId, String motivo) {
+        log.warn("Moderador ID: {} rechazando lugar ID: {}. Motivo: {}", moderadorId, id, motivo);
         Lugar lugar = obtenerPorId(id);
         lugar.setEstado(EstadoAprobacion.RECHAZADO);
         lugar.setModeradorId(moderadorId);
@@ -111,13 +124,14 @@ public class LugarService {
 
     @Transactional
     public void eliminar(Long id) {
+        log.info("Eliminando (Soft Delete) lugar ID: {}", id);
         Lugar lugar = obtenerPorId(id);
         lugar.setActivo(false);
         lugarRepository.save(lugar);
     }
 
     public List<Lugar> buscarCercanos(Double latitud, Double longitud, Double radioKm) {
-        String pointWKT = String.format("POINT(%.8f %.8f)", longitud, latitud);
+        String pointWKT = String.format(java.util.Locale.US, "POINT(%.8f %.8f)", longitud, latitud);
         Double radioMetros = radioKm * 1000;
         return lugarRepository.findLugaresCercanos(pointWKT, radioMetros);
     }
