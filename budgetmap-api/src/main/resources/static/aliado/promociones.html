@@ -10,7 +10,7 @@
     if (!token || localStorage.getItem('user_rol') !== 'LOCAL_ALIADO') window.location.href = '/login.html';
   </script>
 </head>
-<body class="bg-slate-50 min-h-screen text-slate-800 font-sans pb-20">
+<body class="bg-slate-50 h-screen overflow-hidden text-slate-800 font-sans flex flex-col">
 
   <nav class="bg-white border-b border-emerald-100 p-4 sticky top-0 z-50 shadow-sm">
     <div class="max-w-7xl mx-auto flex justify-between items-center">
@@ -26,74 +26,68 @@
     </div>
   </nav>
 
-  <main class="max-w-7xl mx-auto mt-8 px-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
+  <main class="flex-1 max-w-7xl mx-auto w-full p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6 min-h-0">
     
-    <div class="lg:col-span-1 bg-white p-6 rounded-3xl border border-emerald-100 shadow-sm h-fit">
-        <h3 class="font-black text-slate-900 uppercase tracking-tighter mb-6 border-b border-emerald-50 pb-4">Lanzar Nueva Promo</h3>
-        <form id="form-promo" class="flex flex-col gap-4">
+    <div class="lg:col-span-4 bg-white p-5 rounded-2xl border border-emerald-100 shadow-sm flex flex-col min-h-0 overflow-y-auto">
+        <h3 class="font-black text-slate-900 uppercase tracking-tighter mb-4 border-b border-emerald-50 pb-3">Lanzar Nueva Promo</h3>
+        <form id="form-promo" class="flex flex-col gap-3">
             <div>
                 <label class="text-[10px] font-bold text-slate-400 uppercase">Título (Ej: 2x1 en Cervezas)</label>
-                <input type="text" id="titulo" required class="w-full mt-1 bg-slate-50 border rounded-xl p-2 text-sm outline-none focus:border-emerald-500">
+                <input type="text" id="titulo" required class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-emerald-500 focus:bg-white transition-colors">
             </div>
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-2 gap-3">
                 <div>
                     <label class="text-[10px] font-bold text-slate-400 uppercase">% Descuento</label>
-                    <input type="number" id="descuento" required class="w-full mt-1 bg-slate-50 border rounded-xl p-2 text-sm outline-none">
+                    <input type="number" id="descuento" required class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-emerald-500 focus:bg-white transition-colors">
                 </div>
                 <div>
                     <label class="text-[10px] font-bold text-slate-400 uppercase">Límite Usos</label>
-                    <input type="number" id="usos" required class="w-full mt-1 bg-slate-50 border rounded-xl p-2 text-sm outline-none">
+                    <input type="number" id="usos" required class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-emerald-500 focus:bg-white transition-colors">
                 </div>
             </div>
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-2 gap-3">
                 <div>
                     <label class="text-[10px] font-bold text-slate-400 uppercase">Fecha Inicio</label>
-                    <input type="datetime-local" id="fecha-inicio" required class="w-full mt-1 bg-slate-50 border rounded-xl p-2 text-sm outline-none">
+                    <input type="datetime-local" id="fecha-inicio" required class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-emerald-500 focus:bg-white transition-colors">
                 </div>
                 <div>
                     <label class="text-[10px] font-bold text-slate-400 uppercase">Fecha Fin</label>
-                    <input type="datetime-local" id="fecha-fin" required class="w-full mt-1 bg-slate-50 border rounded-xl p-2 text-sm outline-none">
+                    <input type="datetime-local" id="fecha-fin" required class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-emerald-500 focus:bg-white transition-colors">
                 </div>
             </div>
             <div>
                 <label class="text-[10px] font-bold text-slate-400 uppercase">Descripción / Términos</label>
-                <textarea id="desc-promo" rows="2" class="w-full mt-1 bg-slate-50 border rounded-xl p-2 text-sm outline-none resize-none"></textarea>
+                <textarea id="desc-promo" rows="2" class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs outline-none resize-none focus:border-emerald-500 focus:bg-white transition-colors"></textarea>
             </div>
-            <button type="submit" class="w-full mt-2 bg-emerald-600 text-white font-black py-3 rounded-xl text-xs uppercase hover:bg-emerald-700 transition">Crear Promoción</button>
+            <button type="submit" class="w-full mt-2 bg-emerald-600 text-white font-black py-3 rounded-xl text-[10px] tracking-widest uppercase hover:bg-emerald-700 shadow-md transition-all">Lanzar Campaña</button>
         </form>
     </div>
 
-    <div class="lg:col-span-2">
-        <div class="flex justify-between items-end mb-6">
-            <h3 class="text-2xl font-black text-slate-900 italic tracking-tighter uppercase">Inventario Activo</h3>
-            <span id="info-pag" class="text-xs font-bold text-slate-400">Pág 1</span>
-        </div>
-
-        <div class="bg-white border border-emerald-100 rounded-3xl p-4 shadow-sm mb-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div class="flex flex-col gap-1">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Búsqueda (Título)</label>
-                    <input type="text" id="filtro-titulo" placeholder="Ej: 2x1..."
-                           class="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-sm outline-none focus:border-emerald-500" onchange="cargarPromos(0)">
-                </div>
-                <div class="flex flex-col gap-1">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Estado</label>
-                    <select id="filtro-estado" class="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-sm outline-none focus:border-emerald-500" onchange="cargarPromos(0)">
+    <div class="lg:col-span-8 bg-white border border-emerald-100 rounded-2xl p-5 shadow-sm flex flex-col min-h-0">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 pb-3 border-b border-emerald-50 gap-4">
+            <div>
+                <h3 class="text-xl font-black text-slate-900 italic tracking-tighter uppercase">Inventario Activo</h3>
+                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Control de Campañas</p>
+            </div>
+            <div class="flex gap-2 items-center bg-slate-50 p-1.5 rounded-lg border border-slate-100 w-full sm:w-auto">
+                <input type="text" id="filtro-titulo" placeholder="Filtrar..."
+                       class="w-full sm:w-auto bg-white border border-slate-200 rounded-md px-3 py-1.5 text-xs outline-none focus:border-emerald-500 transition-colors" onchange="cargarPromos(0)">
+                <select id="filtro-estado" class="bg-white border border-slate-200 rounded-md px-3 py-1.5 text-xs outline-none focus:border-emerald-500 transition-colors" onchange="cargarPromos(0)">
                         <option value="">Todas</option>
                         <option value="ACTIVA">Activa</option>
                         <option value="VENCIDA">Vencida</option>
                         <option value="AGOTADA">Agotada</option>
                     </select>
-                </div>
             </div>
         </div>
 
-        <div id="grid-promos" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div id="grid-promos" class="flex-1 overflow-y-auto grid grid-cols-1 xl:grid-cols-2 gap-3 pr-2 content-start">
             </div>
 
-        <div class="mt-6 flex gap-2">
-            <button id="btn-prev" onclick="cargarPromos(paginaActual-1)" class="px-4 py-2 border border-emerald-200 text-emerald-700 rounded-lg text-xs font-bold hover:bg-emerald-50 disabled:opacity-50">Anterior</button>
-            <button id="btn-next" onclick="cargarPromos(paginaActual+1)" class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-xs font-bold hover:bg-emerald-700 disabled:opacity-50">Siguiente</button>
+        <div class="mt-4 pt-3 border-t border-emerald-50 flex justify-between items-center bg-white">
+            <button id="btn-prev" onclick="cargarPromos(paginaActual-1)" class="text-[10px] font-black uppercase tracking-widest text-emerald-600 px-3 py-1.5 rounded-lg border border-emerald-200 hover:bg-emerald-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all">◀ Ant</button>
+            <span id="info-pag" class="text-[10px] text-slate-500 font-black tracking-widest uppercase">Pág 1/1</span>
+            <button id="btn-next" onclick="cargarPromos(paginaActual+1)" class="text-[10px] font-black uppercase tracking-widest text-emerald-600 px-3 py-1.5 rounded-lg border border-emerald-200 hover:bg-emerald-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all">Sig ▶</button>
         </div>
     </div>
   </main>
@@ -151,15 +145,20 @@
                     }
 
                     return `
-                        <div class="bg-white p-5 rounded-2xl border ${p.estado === 'ACTIVA' ? 'border-emerald-100' : 'border-slate-200 opacity-70'} shadow-sm relative overflow-hidden group hover:shadow-md transition">
-                            <div class="absolute top-0 right-0 ${badgeEstilo} font-black text-[10px] px-3 py-1 rounded-bl-lg flex gap-2">
-                                <span>-${p.descuentoPorcentaje}%</span> | <span>${badgeTexto}</span>
+                        <div class="bg-slate-50 p-4 rounded-xl border ${p.estado === 'ACTIVA' ? 'border-emerald-200' : 'border-slate-200 opacity-80'} flex flex-col justify-between group hover:shadow-md transition-all">
+                            <div>
+                                <div class="flex justify-between items-start mb-1 gap-2">
+                                    <h4 class="font-black text-slate-800 text-sm leading-tight line-clamp-1" title="${p.titulo}">${p.titulo}</h4>
+                                    <span class="${badgeEstilo} font-black text-[8px] px-2 py-0.5 rounded uppercase tracking-widest shrink-0 border border-white/20">${badgeTexto}</span>
+                                </div>
+                                <p class="text-[10px] text-slate-500 line-clamp-2 leading-relaxed mb-3">${p.descripcion}</p>
                             </div>
-                            <h4 class="font-black text-slate-800 mt-2 pr-16">${p.titulo}</h4>
-                            <p class="text-[10px] text-slate-500 mt-1 line-clamp-2">${p.descripcion}</p>
-                            <div class="mt-4 pt-3 border-t border-slate-50 flex justify-between items-center">
-                                <span class="text-[9px] font-bold text-slate-400 uppercase">Usos: ${p.usosActuales || 0}/${p.usosMaximos}</span>
-                                ${p.estado === 'ACTIVA' ? `<button onclick="eliminarPromo(${p.id})" class="text-[10px] font-bold text-red-500 hover:text-red-700">Desactivar</button>` : `<span class="text-[10px] text-slate-400 font-bold">Finalizada</span>`}
+                            <div class="mt-auto pt-3 border-t border-slate-200 flex justify-between items-center">
+                                <div class="flex gap-2">
+                                    <span class="text-[10px] font-black text-emerald-700 bg-white px-2 py-1 rounded border border-emerald-100 shadow-sm" title="Descuento">-${p.descuentoPorcentaje}%</span>
+                                    <span class="text-[10px] font-bold text-slate-500 flex items-center bg-white px-2 py-1 rounded border border-slate-200 shadow-sm" title="Usos Actuales">🎟️ ${p.usosActuales || 0}/${p.usosMaximos}</span>
+                                </div>
+                                ${p.estado === 'ACTIVA' ? `<button onclick="eliminarPromo(${p.id})" class="text-[9px] font-black tracking-widest text-red-500 hover:bg-red-50 px-2 py-1.5 rounded transition-colors uppercase border border-transparent hover:border-red-100">Desactivar</button>` : `<span class="text-[9px] text-slate-400 font-bold tracking-widest uppercase">FIN</span>`}
                             </div>
                         </div>
                     `;
