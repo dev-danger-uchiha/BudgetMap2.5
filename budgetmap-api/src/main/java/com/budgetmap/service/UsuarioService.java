@@ -164,6 +164,50 @@ public class UsuarioService {
         return usuarioRepository.countByRol(rol);
     }
 
+    @Transactional
+    public void cambiarEstadoConValidacion(Long id, boolean activo, Long adminActualId) {
+        if (id.equals(adminActualId)) {
+            log.warn("Intento de cambiar estado del usuario actual. Admin ID: {}", adminActualId);
+            throw new RuntimeException("No puedes cambiar tu propio estado. Contacta a otro administrador.");
+        }
+
+        if (activo) {
+            activarUsuario(id);
+        } else {
+            desactivarUsuario(id);
+        }
+    }
+
+    @Transactional
+    public UsuarioDTO crearUsuario(String nombre, String apellido, String email, String password, String rol) {
+        log.info("Creando nuevo usuario: {}", email);
+
+        if (usuarioRepository.existsByEmail(email)) {
+            throw new RuntimeException("El email ya está registrado");
+        }
+
+        try {
+            RolUsuario rolEnum = RolUsuario.valueOf(rol.toUpperCase());
+
+            Usuario usuario = Usuario.builder()
+                    .nombre(nombre)
+                    .apellido(apellido)
+                    .email(email)
+                    .password(passwordEncoder.encode(password))
+                    .rol(rolEnum)
+                    .puntosAcumulados(0)
+                    .activo(true)
+                    .emailVerificado(true)
+                    .build();
+
+            Usuario guardado = usuarioRepository.save(usuario);
+            log.info("Usuario creado exitosamente con ID: {}", guardado.getId());
+            return convertirADTO(guardado);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Rol inválido: " + rol);
+        }
+    }
+
     private UsuarioDTO convertirADTO(Usuario usuario) {
         return UsuarioDTO.builder()
                 .id(usuario.getId())

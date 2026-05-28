@@ -40,6 +40,9 @@
                 <h2 class="text-3xl font-black text-slate-900 italic uppercase tracking-tighter">Directorio de Usuarios</h2>
                 <p class="text-emerald-600/70 text-sm font-medium">Gestión integral, roles, planes y estado de cuentas.</p>
             </div>
+            <button onclick="abrirModalCrearUsuario()" class="bg-emerald-600 text-white px-6 py-2.5 rounded-xl text-xs font-black uppercase hover:bg-emerald-700 shadow-md transition-all">
+                ➕ Crear Usuario
+            </button>
         </div>
 
         <form id="form-filtros" class="grid grid-cols-1 md:grid-cols-4 gap-4" onsubmit="event.preventDefault(); cargarUsuarios(0);">
@@ -102,44 +105,151 @@
     </div>
   </main>
 
+  <!-- Modal Crear Usuario -->
+  <div id="modalCrearUsuario" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-3xl p-6 shadow-2xl max-w-md w-full">
+        <h3 class="text-2xl font-black text-slate-900 uppercase tracking-tighter mb-6">Crear Nuevo Usuario</h3>
+
+        <form id="formCrearUsuario" onsubmit="guardarNuevoUsuario(event)" class="flex flex-col gap-4">
+            <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nombre</label>
+                <input type="text" id="nuevoNombre" required class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm outline-none focus:border-emerald-500">
+            </div>
+
+            <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Apellido</label>
+                <input type="text" id="nuevoApellido" required class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm outline-none focus:border-emerald-500">
+            </div>
+
+            <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Email</label>
+                <input type="email" id="nuevoEmail" required class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm outline-none focus:border-emerald-500">
+            </div>
+
+            <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Contraseña</label>
+                <input type="password" id="nuevoPassword" required class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm outline-none focus:border-emerald-500">
+            </div>
+
+            <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Rol</label>
+                <select id="nuevoRol" required class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm outline-none focus:border-emerald-500">
+                    <option value="">Selecciona un rol</option>
+                    <option value="EXPLORADOR">Explorador</option>
+                    <option value="LOCAL_ALIADO">Local Aliado</option>
+                    <option value="ANFITRION">Anfitrión</option>
+                    <option value="MODERADOR">Moderador</option>
+                    <option value="ADMINISTRADOR">Administrador</option>
+                </select>
+            </div>
+
+            <div class="flex gap-3 mt-4">
+                <button type="button" onclick="cerrarModalCrearUsuario()" class="flex-1 bg-slate-200 text-slate-700 px-4 py-3 rounded-xl text-xs font-black uppercase hover:bg-slate-300 transition">
+                    Cancelar
+                </button>
+                <button type="submit" class="flex-1 bg-emerald-600 text-white px-4 py-3 rounded-xl text-xs font-black uppercase hover:bg-emerald-700 transition">
+                    Crear
+                </button>
+            </div>
+        </form>
+    </div>
+  </div>
+
   <script>
     // Variables de paginación
     let paginaActual = 0;
     const size = 10;
     let paginasTotales = 0;
+    let usuarioActualId = null;
 
     document.addEventListener("DOMContentLoaded", () => {
+        obtenerUsuarioActual();
         cargarUsuarios(0);
     });
+
+    async function obtenerUsuarioActual() {
+        try {
+            const res = await fetch('http://localhost:8080/api/perfil', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const user = await res.json();
+                usuarioActualId = user.id;
+            }
+        } catch (e) {
+            console.error("Error obteniendo usuario actual");
+        }
+    }
 
     function cerrarSesion() {
         localStorage.clear();
         window.location.href = '/login.html';
     }
 
+    function abrirModalCrearUsuario() {
+        document.getElementById('modalCrearUsuario').classList.remove('hidden');
+    }
+
+    function cerrarModalCrearUsuario() {
+        document.getElementById('modalCrearUsuario').classList.add('hidden');
+        document.getElementById('formCrearUsuario').reset();
+    }
+
+    async function guardarNuevoUsuario(event) {
+        event.preventDefault();
+
+        const payload = {
+            nombre: document.getElementById('nuevoNombre').value,
+            apellido: document.getElementById('nuevoApellido').value,
+            email: document.getElementById('nuevoEmail').value,
+            password: document.getElementById('nuevoPassword').value,
+            rol: document.getElementById('nuevoRol').value
+        };
+
+        try {
+            const res = await fetch('http://localhost:8080/api/usuarios/crear', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                alert('Usuario creado exitosamente');
+                cerrarModalCrearUsuario();
+                cargarUsuarios(0);
+            } else {
+                const error = await res.text();
+                alert('Error: ' + error);
+            }
+        } catch (e) {
+            alert('Error de comunicación: ' + e.message);
+        }
+    }
+
     async function cargarUsuarios(pagina = 0) {
         paginaActual = pagina;
         const tbody = document.getElementById('tabla-usuarios');
-        
+
         // Recoger filtros
         const texto = document.getElementById('filtro-texto').value;
         const rolFiltro = document.getElementById('filtro-rol').value;
         const estado = document.getElementById('filtro-estado').value;
 
         tbody.innerHTML = '<tr><td colspan="5" class="p-12 text-center text-emerald-600/50 italic animate-pulse font-bold uppercase tracking-widest text-xs">Sincronizando con Base de Datos...</td></tr>';
-        
-        try {
-            // Construcción dinámica de la URL con multicriterio y paginación
-            // Ajusta este endpoint si tu backend usa nombres de parámetros diferentes
-            const queryParams = new URLSearchParams({
-                page: paginaActual,
-                size: size,
-                criterio: texto,
-                rol: rolFiltro,
-                activo: estado
-            });
 
-            const response = await fetch(`http://localhost:8080/api/usuarios/paginado?page=${paginaActual}&size=${size}`, {
+        try {
+            const params = new URLSearchParams({
+                page: paginaActual,
+                size: size
+            });
+            if (texto) params.append('criterio', texto);
+            if (rolFiltro) params.append('rol', rolFiltro);
+            if (estado) params.append('activo', estado);
+
+            const response = await fetch(`http://localhost:8080/api/usuarios/paginado?${params}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             
@@ -222,12 +332,17 @@
     }
 
     async function cambiarEstado(id, activar) {
+        if (id === usuarioActualId) {
+            alert('No puedes cambiar tu propio estado. Contacta a otro administrador.');
+            return;
+        }
+
         if(!confirm(`¿Confirma que desea ${activar ? 'reactivar' : 'suspender'} esta cuenta?`)) return;
-        
+
         try {
-            const response = await fetch(`http://localhost:8080/api/admin/usuarios/${id}/estado?activo=${activar}`, {
+            const response = await fetch(`http://localhost:8080/api/usuarios/${id}/estado?activo=${activar}`, {
                 method: 'PUT',
-                headers: { 
+                headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
@@ -236,7 +351,8 @@
             if (response.ok) {
                 cargarUsuarios(paginaActual);
             } else {
-                alert("La operación fue rechazada por el servidor.");
+                const error = await response.text();
+                alert("Error: " + error);
             }
         } catch(e) {
             alert("Error de comunicación con el servidor.");

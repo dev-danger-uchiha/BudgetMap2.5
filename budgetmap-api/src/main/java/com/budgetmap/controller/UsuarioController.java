@@ -60,14 +60,27 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarioService.buscarPorNombreOEmail(criterio));
     }
 
+    @PostMapping("/usuarios/crear")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<UsuarioDTO> crearUsuario(
+            @RequestBody Map<String, String> body,
+            @AuthenticationPrincipal UserDetailsImpl adminActual) {
+        return ResponseEntity.ok(usuarioService.crearUsuario(
+                body.get("nombre"),
+                body.get("apellido"),
+                body.get("email"),
+                body.get("password"),
+                body.get("rol")
+        ));
+    }
+
     @PutMapping("/usuarios/{id}/estado")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
-    public ResponseEntity<Void> cambiarEstado(@PathVariable Long id, @RequestParam boolean activo) {
-        if (activo) {
-            usuarioService.activarUsuario(id);
-        } else {
-            usuarioService.desactivarUsuario(id);
-        }
+    public ResponseEntity<Void> cambiarEstado(
+            @PathVariable Long id,
+            @RequestParam boolean activo,
+            @AuthenticationPrincipal UserDetailsImpl adminActual) {
+        usuarioService.cambiarEstadoConValidacion(id, activo, adminActual.getId());
         return ResponseEntity.ok().build();
     }
 

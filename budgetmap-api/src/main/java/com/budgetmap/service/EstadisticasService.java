@@ -2,9 +2,9 @@ package com.budgetmap.service;
 
 import com.budgetmap.dto.DashboardStatsResponse;
 import com.budgetmap.model.enums.CategoriaEstablecimiento;
-import com.budgetmap.repository.EstablecimientoRepository;
-import com.budgetmap.repository.LugarRepository;
-import com.budgetmap.repository.UsuarioRepository;
+import com.budgetmap.model.enums.EstadoAprobacion;
+import com.budgetmap.model.enums.EstadoPQRS;
+import com.budgetmap.repository.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,20 +26,29 @@ public class EstadisticasService {
     @Autowired
     private LugarRepository lugarRepository;
 
+    @Autowired
+    private ReservaRepository reservaRepository;
+
+    @Autowired
+    private PQRSRepository pqrsRepository;
+
     public DashboardStatsResponse obtenerResumenGeneral() {
         log.info("Calculando estadísticas generales para el dashboard de administración...");
-        
-        // 1. Conteos básicos (Los números grandes del dashboard)
+
+        // 1. Conteos básicos
         long usuarios = usuarioRepository.count();
         long est = establecimientoRepository.count();
+        long estAprobados = establecimientoRepository.countByEstado(EstadoAprobacion.APROBADO);
         long lug = lugarRepository.count();
+        long reservas = reservaRepository.count();
+        long ticketsPendientes = pqrsRepository.countByEstado(EstadoPQRS.ABIERTO);
 
-        // 2. Registros Mensuales de Usuarios (Para las barras Ene-Abr)
+        // 2. Registros Mensuales de Usuarios
         Map<String, Long> registrosMensuales = new HashMap<>();
         String[] nombresMeses = { "ENE", "FEB", "MAR", "ABR", "MAY", "JUN" };
         int anioActual = LocalDateTime.now().getYear();
 
-        for (int i = 1; i <= 4; i++) { // Solo los primeros 4 meses para tu gráfica actual
+        for (int i = 1; i <= 4; i++) {
             LocalDateTime inicio = LocalDateTime.of(anioActual, i, 1, 0, 0);
             LocalDateTime fin = inicio.plusMonths(1).minusNanos(1);
 
@@ -47,7 +56,7 @@ public class EstadisticasService {
             registrosMensuales.put(nombresMeses[i - 1], totalMes);
         }
 
-        // 3. Distribución por Categoría (Para la barra de colores)
+        // 3. Distribución por Categoría
         Map<String, Long> porCategoria = new HashMap<>();
         porCategoria.put("RESTAURANTE", establecimientoRepository.countByCategoria(CategoriaEstablecimiento.RESTAURANTE));
         porCategoria.put("BAR", establecimientoRepository.countByCategoria(CategoriaEstablecimiento.BAR));
@@ -59,12 +68,16 @@ public class EstadisticasService {
         porCategoria.put("GIMNASIO", establecimientoRepository.countByCategoria(CategoriaEstablecimiento.GIMNASIO));
         porCategoria.put("OTRO", establecimientoRepository.countByCategoria(CategoriaEstablecimiento.OTRO));
 
-        log.debug("Estadísticas calculadas: {} usuarios, {} establecimientos, {} lugares.", usuarios, est, lug);
+        log.debug("Estadísticas calculadas: {} usuarios, {} establecimientos ({} aprobados), {} reservas, {} tickets pendientes.",
+                usuarios, est, estAprobados, reservas, ticketsPendientes);
 
         return DashboardStatsResponse.builder()
                 .totalUsuarios(usuarios)
                 .totalEstablecimientos(est)
+                .totalEstablecimientosAprobados(estAprobados)
                 .totalLugares(lug)
+                .totalReservas(reservas)
+                .ticketsPendientes(ticketsPendientes)
                 .establecimientosPorCategoria(porCategoria)
                 .registrosMensuales(registrosMensuales)
                 .build();

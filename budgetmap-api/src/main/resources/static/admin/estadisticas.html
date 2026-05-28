@@ -77,13 +77,12 @@
 
     async function cargarMetricas() {
         try {
-            // Ajusta este endpoint a tu backend analítico real
-            const res = await fetch(`http://localhost:8080/api/admin/estadisticas/global`, {
+            const res = await fetch(`http://localhost:8080/api/admin/metrics/summary`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
                 datosGlobales = await res.json();
-                
+
                 document.getElementById('stat-usuarios').innerText = datosGlobales.totalUsuarios || 0;
                 document.getElementById('stat-locales').innerText = datosGlobales.totalEstablecimientosAprobados || 0;
                 document.getElementById('stat-reservas').innerText = datosGlobales.totalReservas || 0;
@@ -92,7 +91,7 @@
                 const catList = document.getElementById('lista-categorias');
                 catList.innerHTML = '';
                 const cats = datosGlobales.establecimientosPorCategoria || {};
-                
+
                 if (Object.keys(cats).length === 0) {
                     catList.innerHTML = '<p class="text-xs text-slate-400 font-bold">Sin datos de categorías aún.</p>';
                 }
@@ -105,8 +104,14 @@
                         </div>
                     `;
                 });
+            } else {
+                document.getElementById('stat-usuarios').innerText = 'Error';
+                console.error("Error al cargar métricas:", res.status);
             }
-        } catch (e) { console.error("Error al cargar métricas"); }
+        } catch (e) {
+            console.error("Error al cargar métricas:", e);
+            document.getElementById('stat-usuarios').innerText = 'Conexión fallida';
+        }
     }
 
     function generarPDF() {
