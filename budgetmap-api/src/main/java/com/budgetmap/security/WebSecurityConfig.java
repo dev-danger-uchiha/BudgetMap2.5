@@ -108,6 +108,7 @@ public class WebSecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/establecimientos/aprobados/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/eventos/activos/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/promociones/activas/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/usuarios/leaderboard").permitAll()
 
                 // ======================================================
                 // 3. RUTAS COMPARTIDAS / COMUNES (Cualquier Rol Autenticado)

@@ -98,7 +98,15 @@ public class PromocionService {
                 throw new PromocionException("No tienes permisos sobre este evento");
             }
         } else {
-            throw new PromocionException("La promoción debe estar asociada a un local o evento");
+            // Auto-asignar el establecimiento del usuario si no se envía explícitamente en el JSON
+            est = establecimientoRepository.findByPropietarioId(propietarioId)
+                    .stream()
+                    .findFirst()
+                    .orElse(null);
+            
+            if (est == null) {
+                throw new PromocionException("La promoción debe estar asociada a un local o evento y no tienes un establecimiento registrado");
+            }
         }
 
         Promocion promo = Promocion.builder()

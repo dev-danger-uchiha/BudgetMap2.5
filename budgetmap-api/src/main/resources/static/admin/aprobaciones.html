@@ -55,8 +55,11 @@
                     <option value="LUGAR">Lugar</option>
                 </select>
             </div>
-            <div class="flex items-end">
-                <button onclick="cargarSolicitudesUnificadas()" class="w-full bg-emerald-600 text-white px-6 py-2.5 rounded-xl text-xs font-black uppercase hover:bg-emerald-700 shadow-md transition-all">
+            <div class="flex items-end gap-2">
+                <button onclick="limpiarFiltros()" class="w-1/3 bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-xs font-black uppercase hover:bg-slate-300 transition-all" title="Limpiar Filtros">
+                    Limpiar
+                </button>
+                <button onclick="cargarSolicitudesUnificadas()" class="w-2/3 bg-emerald-600 text-white px-6 py-2.5 rounded-xl text-xs font-black uppercase hover:bg-emerald-700 shadow-md transition-all">
                     Filtrar
                 </button>
             </div>
@@ -159,6 +162,12 @@
         document.getElementById('info-paginacion').innerText = `Pág ${paginaActual + 1} de ${paginasTotales}`;
         document.getElementById('btn-prev').disabled = paginaActual === 0;
         document.getElementById('btn-next').disabled = paginaActual >= paginasTotales - 1;
+    }
+
+    function limpiarFiltros() {
+        document.getElementById('filtro-nombre').value = '';
+        document.getElementById('filtro-tipo').value = '';
+        cargarSolicitudesUnificadas();
     }
 
     async function procesar(tipo, id, accion) {

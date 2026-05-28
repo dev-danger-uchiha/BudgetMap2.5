@@ -60,6 +60,11 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarioService.buscarPorNombreOEmail(criterio));
     }
 
+    @GetMapping("/usuarios/leaderboard")
+    public ResponseEntity<List<UsuarioDTO>> obtenerLeaderboard(@RequestParam(defaultValue = "5") int top) {
+        return ResponseEntity.ok(usuarioService.obtenerLeaderboard(top));
+    }
+
     @PostMapping("/usuarios/crear")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<UsuarioDTO> crearUsuario(

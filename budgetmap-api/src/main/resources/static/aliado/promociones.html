@@ -45,6 +45,16 @@
                     <input type="number" id="usos" required class="w-full mt-1 bg-slate-50 border rounded-xl p-2 text-sm outline-none">
                 </div>
             </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase">Fecha Inicio</label>
+                    <input type="datetime-local" id="fecha-inicio" required class="w-full mt-1 bg-slate-50 border rounded-xl p-2 text-sm outline-none">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase">Fecha Fin</label>
+                    <input type="datetime-local" id="fecha-fin" required class="w-full mt-1 bg-slate-50 border rounded-xl p-2 text-sm outline-none">
+                </div>
+            </div>
             <div>
                 <label class="text-[10px] font-bold text-slate-400 uppercase">Descripción / Términos</label>
                 <textarea id="desc-promo" rows="2" class="w-full mt-1 bg-slate-50 border rounded-xl p-2 text-sm outline-none resize-none"></textarea>
@@ -127,17 +137,33 @@
                     return;
                 }
 
-                grid.innerHTML = promos.map(p => `
-                    <div class="bg-white p-5 rounded-2xl border border-emerald-100 shadow-sm relative overflow-hidden group hover:shadow-md transition">
-                        <div class="absolute top-0 right-0 bg-emerald-100 text-emerald-800 font-black text-[10px] px-3 py-1 rounded-bl-lg">-${p.descuentoPorcentaje}%</div>
-                        <h4 class="font-black text-slate-800 mt-2">${p.titulo}</h4>
-                        <p class="text-[10px] text-slate-500 mt-1 line-clamp-2">${p.descripcion}</p>
-                        <div class="mt-4 pt-3 border-t border-slate-50 flex justify-between items-center">
-                            <span class="text-[9px] font-bold text-slate-400 uppercase">Usos: ${p.usosActuales || 0}/${p.usosMaximos}</span>
-                            <button onclick="eliminarPromo(${p.id})" class="text-[10px] font-bold text-red-500 hover:text-red-700">Eliminar</button>
+                grid.innerHTML = promos.map(p => {
+                    // Lógica visual basada en el estado dictado por el backend
+                    let badgeEstilo = "bg-emerald-100 text-emerald-800";
+                    let badgeTexto = "ACTIVA";
+                    
+                    if (p.estado === 'VENCIDA') {
+                        badgeEstilo = "bg-slate-200 text-slate-500"; badgeTexto = "VENCIDA";
+                    } else if (p.estado === 'AGOTADA') {
+                        badgeEstilo = "bg-orange-100 text-orange-700"; badgeTexto = "AGOTADA";
+                    } else if (p.estado === 'INACTIVA') {
+                        badgeEstilo = "bg-red-100 text-red-700"; badgeTexto = "DESACTIVADA";
+                    }
+
+                    return `
+                        <div class="bg-white p-5 rounded-2xl border ${p.estado === 'ACTIVA' ? 'border-emerald-100' : 'border-slate-200 opacity-70'} shadow-sm relative overflow-hidden group hover:shadow-md transition">
+                            <div class="absolute top-0 right-0 ${badgeEstilo} font-black text-[10px] px-3 py-1 rounded-bl-lg flex gap-2">
+                                <span>-${p.descuentoPorcentaje}%</span> | <span>${badgeTexto}</span>
+                            </div>
+                            <h4 class="font-black text-slate-800 mt-2 pr-16">${p.titulo}</h4>
+                            <p class="text-[10px] text-slate-500 mt-1 line-clamp-2">${p.descripcion}</p>
+                            <div class="mt-4 pt-3 border-t border-slate-50 flex justify-between items-center">
+                                <span class="text-[9px] font-bold text-slate-400 uppercase">Usos: ${p.usosActuales || 0}/${p.usosMaximos}</span>
+                                ${p.estado === 'ACTIVA' ? `<button onclick="eliminarPromo(${p.id})" class="text-[10px] font-bold text-red-500 hover:text-red-700">Desactivar</button>` : `<span class="text-[10px] text-slate-400 font-bold">Finalizada</span>`}
+                            </div>
                         </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
             }
         } catch (e) { grid.innerHTML = '<p class="text-red-500">Error al cargar.</p>'; }
     }
@@ -148,7 +174,9 @@
             titulo: document.getElementById('titulo').value,
             descripcion: document.getElementById('desc-promo').value,
             descuentoPorcentaje: parseInt(document.getElementById('descuento').value),
-            usosMaximos: parseInt(document.getElementById('usos').value)
+            usosMaximos: parseInt(document.getElementById('usos').value),
+            fechaInicio: document.getElementById('fecha-inicio').value,
+            fechaFin: document.getElementById('fecha-fin').value
         };
         try {
             const res = await fetch('http://localhost:8080/api/promociones', {

@@ -9,6 +9,7 @@
     const token = localStorage.getItem('jwt_token');
     if (!token || localStorage.getItem('user_rol') !== 'LOCAL_ALIADO') window.location.href = '/login.html';
   </script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-800 font-sans pb-20">
 
@@ -45,6 +46,18 @@
         <form id="establecimientoForm" class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <input type="hidden" id="est-id">
             
+            <!-- SECCIÓN: Previsualización de Imagen -->
+            <div class="md:col-span-2 flex flex-col items-center mb-4">
+                <div class="w-full h-48 bg-slate-100 border-2 border-dashed border-slate-300 rounded-2xl flex items-center justify-center overflow-hidden relative group">
+                    <img id="img-preview" src="" class="w-full h-full object-cover hidden" alt="Previsualización del local">
+                    <span id="img-placeholder" class="text-slate-400 text-sm font-bold uppercase tracking-widest text-center px-4">📸 Previsualización de Imagen</span>
+                </div>
+            </div>
+            <div class="md:col-span-2">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">URL de la Imagen Promocional</label>
+                <input type="url" id="imagenUrl" placeholder="https://..." class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm outline-none focus:border-emerald-500 focus:bg-white transition-all">
+            </div>
+
             <div class="md:col-span-2">
                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nombre Comercial</label>
                 <input type="text" id="nombre" required class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm outline-none focus:border-emerald-500 focus:bg-white transition-all">
@@ -67,17 +80,24 @@
 
             <div class="md:col-span-2">
                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Dirección Física</label>
-                <input type="text" id="direccion" required class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm outline-none focus:border-emerald-500 focus:bg-white transition-all">
+                <div class="flex gap-2 mt-1">
+                    <input type="text" id="direccion" placeholder="Ingresa tu dirección y presiona Buscar..." required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm outline-none focus:border-emerald-500 focus:bg-white transition-all">
+                    <button type="button" onclick="buscarDireccion()" class="bg-slate-200 text-slate-700 px-6 py-3 rounded-xl text-xs font-black uppercase hover:bg-slate-300 transition-all">Buscar</button>
+                </div>
+                <!-- Contenedor del Mapa -->
+                <div id="map" class="w-full h-64 bg-slate-200 rounded-xl mt-3 shadow-inner z-0"></div>
+                <p class="text-[9px] text-slate-400 mt-2">* Puedes arrastrar el pin azul en el mapa para ajustar la ubicación exacta.</p>
             </div>
 
+            <!-- Campos de coordenadas ahora son de solo lectura para preservar la integridad de los datos espaciales -->
             <div>
                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Latitud</label>
-                <input type="number" step="any" id="latitud" required class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm outline-none focus:border-emerald-500 focus:bg-white transition-all">
+                <input type="number" step="any" id="latitud" readonly required class="w-full mt-1 bg-slate-100 text-slate-500 font-mono border border-slate-200 rounded-xl p-3 text-sm outline-none cursor-not-allowed">
             </div>
 
             <div>
                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Longitud</label>
-                <input type="number" step="any" id="longitud" required class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm outline-none focus:border-emerald-500 focus:bg-white transition-all">
+                <input type="number" step="any" id="longitud" readonly required class="w-full mt-1 bg-slate-100 text-slate-500 font-mono border border-slate-200 rounded-xl p-3 text-sm outline-none cursor-not-allowed">
             </div>
 
             <div>
@@ -103,8 +123,13 @@
     </div>
   </main>
 
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
+    let map, marker;
+
     document.addEventListener("DOMContentLoaded", async () => {
+        inicializarMapa(); // Inicializamos el mapa antes de cargar los datos
+        
         try {
             const res = await fetch('http://localhost:8080/api/establecimientos/mi-establecimiento', {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -121,6 +146,16 @@
                 document.getElementById('aforoMaximo').value = est.aforoMaximo;
                 document.getElementById('telefono').value = est.telefono;
                 document.getElementById('descripcion').value = est.descripcion;
+                document.getElementById('imagenUrl').value = est.imagenUrl || '';
+                
+                actualizarPreviewImagen(est.imagenUrl);
+
+                // Si ya tiene coordenadas, actualizar el mapa
+                if(est.latitud && est.longitud && map) {
+                    const pos = [est.latitud, est.longitud];
+                    map.setView(pos, 17);
+                    marker.setLatLng(pos);
+                }
 
                 const badge = document.getElementById('badge-estado');
                 badge.innerText = est.estado;
@@ -130,8 +165,87 @@
         } catch(e) { console.warn("Nuevo establecimiento. Por favor, llena los datos."); }
     });
 
+    // --- 1. Lógica de Previsualización de Imagen ---
+    const urlInput = document.getElementById('imagenUrl');
+    const imgPreview = document.getElementById('img-preview');
+    const imgPlaceholder = document.getElementById('img-placeholder');
+
+    function actualizarPreviewImagen(url) {
+        if(url && url.startsWith('http')) {
+            imgPreview.src = url;
+            imgPreview.classList.remove('hidden');
+            imgPlaceholder.classList.add('hidden');
+        } else {
+            imgPreview.classList.add('hidden');
+            imgPlaceholder.classList.remove('hidden');
+        }
+    }
+    urlInput.addEventListener('input', (e) => actualizarPreviewImagen(e.target.value));
+
+    // --- 2. Integración Leaflet y OpenStreetMap (Nominatim) ---
+    function inicializarMapa() {
+        // Centro por defecto (Ej: Bogotá, Colombia)
+        const defaultCenter = [4.6097, -74.0817];
+        
+        map = L.map('map').setView(defaultCenter, 13);
+        
+        // Usamos la misma capa de diseño limpio (CartoDB) que en tu Dashboard
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        marker = L.marker(defaultCenter, { draggable: true }).addTo(map);
+
+        // Evento: Al arrastrar el pin manualmente, actualizar lat/lng ocultos
+        marker.on('dragend', function() {
+            const pos = marker.getLatLng();
+            document.getElementById('latitud').value = pos.lat.toFixed(6);
+            document.getElementById('longitud').value = pos.lng.toFixed(6);
+        });
+    }
+
+    async function buscarDireccion() {
+        const direccion = document.getElementById('direccion').value;
+        if (!direccion) return;
+        
+        const btn = document.querySelector('button[onclick="buscarDireccion()"]');
+        const textoOriginal = btn.innerText;
+        btn.innerText = '⏳';
+        
+        try {
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(direccion)}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            if (data && data.length > 0) {
+                const lat = parseFloat(data[0].lat);
+                const lon = parseFloat(data[0].lon);
+                
+                map.setView([lat, lon], 17);
+                marker.setLatLng([lat, lon]);
+                
+                document.getElementById('latitud').value = lat.toFixed(6);
+                document.getElementById('longitud').value = lon.toFixed(6);
+            } else {
+                alert("No se encontró la dirección. Intenta agregar la ciudad, ej: 'Cra 15 #93, Bogotá'");
+            }
+        } catch (e) {
+            alert("Error al conectar con el servicio de búsqueda.");
+        } finally {
+            btn.innerText = textoOriginal;
+        }
+    }
+
     document.getElementById('establecimientoForm').addEventListener('submit', async (e) => {
         e.preventDefault();
+
+        // Validación de Integridad de Datos Espaciales
+        const lat = parseFloat(document.getElementById('latitud').value);
+        const lng = parseFloat(document.getElementById('longitud').value);
+        if (isNaN(lat) || isNaN(lng)) {
+            return alert("Coordenadas no detectadas. Por favor, selecciona una dirección válida en el mapa.");
+        }
+
         const btn = document.getElementById('btn-guardar');
         btn.innerText = 'GUARDANDO...'; btn.disabled = true;
 
@@ -145,7 +259,8 @@
             longitud: parseFloat(document.getElementById('longitud').value),
             aforoMaximo: parseInt(document.getElementById('aforoMaximo').value),
             telefono: document.getElementById('telefono').value,
-            descripcion: document.getElementById('descripcion').value
+            descripcion: document.getElementById('descripcion').value,
+            imagenUrl: document.getElementById('imagenUrl').value
         };
 
         const method = id ? 'PUT' : 'POST';

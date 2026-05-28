@@ -62,6 +62,17 @@ public class UsuarioService {
                 .map(this::convertirADTO);
     }
 
+    public List<UsuarioDTO> obtenerLeaderboard(int limite) {
+        return usuarioRepository.findAll().stream()
+                .filter(u -> Boolean.TRUE.equals(u.getActivo()))
+                .sorted((u1, u2) -> Integer.compare(
+                        u2.getPuntosAcumulados() != null ? u2.getPuntosAcumulados() : 0,
+                        u1.getPuntosAcumulados() != null ? u1.getPuntosAcumulados() : 0))
+                .limit(limite)
+                .map(this::convertirADTO)
+                .collect(Collectors.toList());
+    }
+
     public UsuarioDTO obtenerPorId(Long id) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> {
