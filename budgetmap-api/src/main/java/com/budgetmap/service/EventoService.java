@@ -18,7 +18,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.budgetmap.model.enums.EstadoAprobacion;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,6 +42,40 @@ public class EventoService {
 
     public List<EventoResponse> listarTodos() {
         return eventoRepository.findAll().stream().map(this::convertirAResponse).collect(Collectors.toList());
+    }
+
+    public List<EventoResponse> listarPendientesAprobacion() {
+        return eventoRepository.findByEstado(EstadoAprobacion.PENDIENTE).stream()
+                .map(this::convertirAResponse).collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void aprobar(Long id, Long moderadorId) {
+        log.info("Moderador ID: {} aprobando evento ID: {}", moderadorId, id);
+        Evento evento = obtenerPorIdEntity(id);
+        
+        Usuario moderador = usuarioRepository.findById(moderadorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Moderador no encontrado"));
+
+        evento.setEstado(EstadoAprobacion.APROBADO);
+        evento.setModerador(moderador);
+        evento.setFechaAprobacion(LocalDateTime.now());
+        evento.setMotivoRechazo(null);
+        eventoRepository.save(evento);
+    }
+
+    @Transactional
+    public void rechazar(Long id, Long moderadorId, String motivo) {
+        log.warn("Moderador ID: {} rechazando evento ID: {}. Motivo: {}", moderadorId, id, motivo);
+        Evento evento = obtenerPorIdEntity(id);
+        
+        Usuario moderador = usuarioRepository.findById(moderadorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Moderador no encontrado"));
+
+        evento.setEstado(EstadoAprobacion.RECHAZADO);
+        evento.setModerador(moderador);
+        evento.setMotivoRechazo(motivo);
+        eventoRepository.save(evento);
     }
 
     public List<EventoResponse> listarActivos() {
@@ -203,6 +239,19 @@ public class EventoService {
                 .collect(Collectors.toList());
 
         return new org.springframework.data.domain.PageImpl<>(dtos, pageable, eventos.size());
+    }
+
+    public java.util.Map<String, Object> obtenerEstadisticasAnfitrion(Long creadorId) {
+        List<Evento> eventos = eventoRepository.findByCreadorIdAndActivoTrue(creadorId);
+        long totalEventos = eventos.size();
+        long totalReservas = eventos.stream().mapToLong(e -> e.getAforoActual() != null ? e.getAforoActual() : 0).sum();
+        double recaudacionEstimada = eventos.stream().mapToDouble(e -> (e.getAforoActual() != null ? e.getAforoActual() : 0) * (e.getPrecio() != null ? e.getPrecio().doubleValue() : 0.0)).sum();
+
+        java.util.Map<String, Object> stats = new java.util.HashMap<>();
+        stats.put("totalEventos", totalEventos);
+        stats.put("totalReservas", totalReservas);
+        stats.put("recaudacionEstimada", recaudacionEstimada);
+        return stats;
     }
 
     private EventoResponse convertirAResponse(Evento evento) {

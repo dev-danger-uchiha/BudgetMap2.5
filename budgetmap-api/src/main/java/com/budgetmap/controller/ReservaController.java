@@ -29,7 +29,7 @@ public class ReservaController {
     }
 
     @PutMapping("/reservas/confirmar/{codigo}")
-    @PreAuthorize("hasRole('LOCAL_ALIADO')")
+    @PreAuthorize("hasAnyRole('LOCAL_ALIADO', 'ANFITRION')")
     public ResponseEntity<ReservaResponse> confirmarAsistencia(
             @PathVariable String codigo,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {

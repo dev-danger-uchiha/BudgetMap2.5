@@ -71,8 +71,7 @@
       if (!currentInput) return;
       
       try {
-        // En tu backend, este endpoint debe confirmar el uso del ticket/reserva para el evento
-        const res = await fetch(`http://localhost:8080/api/reservas/${currentInput}/confirmar`, {
+        const res = await fetch(`http://localhost:8080/api/reservas/confirmar/${currentInput}`, {
           method: 'PUT',
           headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
         });

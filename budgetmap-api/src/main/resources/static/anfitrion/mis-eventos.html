@@ -223,6 +223,10 @@
         const res = await fetch(`http://localhost:8080/api/eventos/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }});
         if(res.ok) cargarEventos(paginaActual);
     }
+
+    function cerrarSesion() {
+        localStorage.clear(); sessionStorage.clear(); window.location.href = '/login.html';
+    }
   </script>
 </body>
 </html>

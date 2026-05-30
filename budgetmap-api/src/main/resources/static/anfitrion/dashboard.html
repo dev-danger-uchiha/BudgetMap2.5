@@ -94,8 +94,9 @@
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if(res.ok) {
-                const eventos = await res.json();
-                document.getElementById('stat-eventos').innerText = eventos.length || 0;
+                const data = await res.json();
+                const eventos = data.content || data;
+                document.getElementById('stat-eventos').innerText = data.totalElements || eventos.length || 0;
                 // Sumar ingresos manualmente como fallback
                 const ingresos = eventos.reduce((acc, ev) => acc + ((ev.aforoActual || 0) * (ev.precio || 0)), 0);
                 document.getElementById('stat-ingresos').innerText = `$${ingresos}`;

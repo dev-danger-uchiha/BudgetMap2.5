@@ -77,7 +77,7 @@ public class Evento {
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(name = "estado", nullable = false, length = 20) // Agregamos name = "estado"
     private com.budgetmap.model.enums.EstadoAprobacion estado = com.budgetmap.model.enums.EstadoAprobacion.PENDIENTE;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -90,7 +90,6 @@ public class Evento {
     @Column(name = "motivo_rechazo", length = 500)
     private String motivoRechazo;
 
-    // --- NUEVO CAMPO: FILTRO INDEX ---
     @Builder.Default
     @Column(name = "destacado", nullable = false)
     private Boolean destacado = false;

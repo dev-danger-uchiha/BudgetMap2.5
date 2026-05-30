@@ -1,5 +1,6 @@
 package com.budgetmap.controller;
 
+import com.budgetmap.dto.AprobacionRequest;
 import com.budgetmap.dto.EventoRequest;
 import com.budgetmap.dto.EventoResponse;
 import com.budgetmap.security.UserDetailsImpl;
@@ -27,6 +28,34 @@ public class EventoController {
     @GetMapping("/eventos")
     public ResponseEntity<List<EventoResponse>> listarTodos() {
         return ResponseEntity.ok(eventoService.listarTodos());
+    }
+
+    @GetMapping("/eventos/pendientes")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'MODERADOR')")
+    public ResponseEntity<List<EventoResponse>> listarPendientes() {
+        return ResponseEntity.ok(eventoService.listarPendientesAprobacion());
+    }
+
+    @PostMapping("/eventos/{id}/aprobar")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'MODERADOR')")
+    public ResponseEntity<Void> aprobar(@PathVariable Long id, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        eventoService.aprobar(id, userDetails.getId());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/eventos/{id}/rechazar")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'MODERADOR')")
+    public ResponseEntity<Void> rechazar(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @RequestBody(required = false) AprobacionRequest request) {
+
+        String motivo = (request != null && request.getMotivoRechazo() != null)
+                ? request.getMotivoRechazo()
+                : "El evento no cumple con los criterios para ser público.";
+
+        eventoService.rechazar(id, userDetails.getId(), motivo);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/eventos/activos")
@@ -62,6 +91,12 @@ public class EventoController {
             @RequestParam(required = false) String tipo,
             @RequestParam(required = false) String nombre) {
         return ResponseEntity.ok(eventoService.listarMisEventosPaginado(userDetails.getId(), pageable, tipo, nombre));
+    }
+
+    @GetMapping("/eventos/mis-estadisticas")
+    @PreAuthorize("hasRole('ANFITRION')")
+    public ResponseEntity<java.util.Map<String, Object>> misEstadisticas(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return ResponseEntity.ok(eventoService.obtenerEstadisticasAnfitrion(userDetails.getId()));
     }
 
     @PostMapping("/eventos")

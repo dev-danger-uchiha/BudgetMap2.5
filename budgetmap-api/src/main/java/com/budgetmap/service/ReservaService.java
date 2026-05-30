@@ -125,8 +125,15 @@ public class ReservaService {
         Reserva reserva = reservaRepository.findByCodigoReserva(codigoReserva)
                 .orElseThrow(() -> new ResourceNotFoundException("Reserva no encontrada"));
 
-        if (!reserva.getEstablecimiento().getPropietario().getId().equals(propietarioId)) {
-            logger.warn("Intento de confirmación no autorizada. Código: {}, Propietario ID: {}", codigoReserva, propietarioId);
+        boolean tienePermiso = false;
+        if (reserva.getEstablecimiento() != null) {
+            tienePermiso = reserva.getEstablecimiento().getPropietario().getId().equals(propietarioId);
+        } else if (reserva.getEvento() != null) {
+            tienePermiso = reserva.getEvento().getCreador().getId().equals(propietarioId);
+        }
+
+        if (!tienePermiso) {
+            logger.warn("Intento de confirmación no autorizada. Código: {}, Usuario ID: {}", codigoReserva, propietarioId);
             throw new SecurityException("No tiene permisos para gestionar esta reserva");
         }
 

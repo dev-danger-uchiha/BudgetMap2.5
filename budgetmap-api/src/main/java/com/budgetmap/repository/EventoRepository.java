@@ -15,6 +15,9 @@ public interface EventoRepository extends JpaRepository<Evento, Long> {
 
     List<Evento> findByLugarId(Long lugarId);
 
+    @Query("SELECT e FROM Evento e WHERE e.estado = :estado")
+    List<Evento> findByEstado(@Param("estado") com.budgetmap.model.enums.EstadoAprobacion estado);
+
     List<Evento> findByCreadorIdAndActivoTrue(Long creadorId);
 
     Page<Evento> findByActivoTrueAndFechaInicioGreaterThanEqualOrderByFechaInicioAsc(LocalDate fecha,
