@@ -83,7 +83,7 @@
                     <h3 id="det-asunto" class="text-2xl font-black text-slate-800 uppercase tracking-tight">Cargando...</h3>
                     <span id="det-prioridad" class="px-3 py-1 text-[10px] font-black uppercase rounded-full border"></span>
                 </div>
-                <p class="text-xs text-slate-500 font-bold">Ticket: <span id="det-codigo" class="text-emerald-600"></span> | Usuario ID: <span id="det-usuario"></span></p>
+                <p class="text-xs text-slate-500 font-bold">Ticket: <span id="det-codigo" class="text-emerald-600"></span> | Usuario: <span id="det-usuario"></span></p>
             </div>
             
             <div class="p-6 flex-1 overflow-y-auto">
@@ -181,7 +181,7 @@
                 const t = await res.json();
                 document.getElementById('det-asunto').innerText = t.asunto;
                 document.getElementById('det-codigo').innerText = t.codigoTicket;
-                document.getElementById('det-usuario').innerText = t.usuarioId;
+                document.getElementById('det-usuario').innerText = t.usuarioEmail || t.usuarioNombre || t.usuarioId;
                 document.getElementById('det-prioridad').innerText = t.prioridad;
                 document.getElementById('det-prioridad').className = `px-3 py-1 text-[10px] font-black uppercase rounded-full border ${t.prioridad === 'ALTA' ? 'bg-red-50 text-red-600 border-red-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200'}`;
                 document.getElementById('det-descripcion').innerText = t.descripcion;

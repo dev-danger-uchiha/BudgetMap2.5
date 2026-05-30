@@ -75,6 +75,21 @@ public class Evento {
     @Column(nullable = false)
     private Boolean activo = true;
 
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private com.budgetmap.model.enums.EstadoAprobacion estado = com.budgetmap.model.enums.EstadoAprobacion.PENDIENTE;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "moderador_id")
+    private Usuario moderador;
+
+    @Column(name = "fecha_aprobacion")
+    private LocalDateTime fechaAprobacion;
+
+    @Column(name = "motivo_rechazo", length = 500)
+    private String motivoRechazo;
+
     // --- NUEVO CAMPO: FILTRO INDEX ---
     @Builder.Default
     @Column(name = "destacado", nullable = false)
@@ -94,6 +109,8 @@ public class Evento {
             aforoActual = 0;
         if (activo == null)
             activo = true;
+        if (estado == null)
+            estado = com.budgetmap.model.enums.EstadoAprobacion.PENDIENTE;
         if (destacado == null)
             destacado = false;
         if (precio == null)

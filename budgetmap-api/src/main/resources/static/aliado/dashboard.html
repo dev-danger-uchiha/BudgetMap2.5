@@ -25,8 +25,8 @@
       
       <div class="flex gap-6 text-[10px] font-black uppercase tracking-widest">
         <a href="/aliado/dashboard.html" class="text-emerald-600 border-b-2 border-emerald-600 pb-1">Resumen</a>
-        <a href="/aliado/promociones.html" class="text-slate-400 hover:text-emerald-600 transition">Promos</a>
         <a href="/aliado/mi-establecimiento.html" class="text-slate-400 hover:text-emerald-600 transition">Mi Local</a>
+        <a href="/aliado/promociones.html" class="text-slate-400 hover:text-emerald-600 transition">Promociones</a>
       </div>
 
       <button onclick="cerrarSesion()" class="text-[10px] text-slate-400 font-black uppercase hover:text-red-500 transition tracking-widest border border-slate-100 px-3 py-1.5 rounded-xl hover:bg-red-50">
@@ -108,25 +108,26 @@
 
     async function cargarContadorPromos(establecimientoId) {
         try {
-            const res = await fetch(`http://localhost:8080/api/promociones/mi-establecimiento/${establecimientoId}`, {
+            const res = await fetch(`http://localhost:8080/api/promociones/establecimiento/${establecimientoId}/activas`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
                 const promos = await res.json();
-                document.getElementById('stat-promos').textContent = promos.length;
+                document.getElementById('stat-promos').textContent = promos.length || 0;
             }
         } catch (e) { document.getElementById('stat-promos').textContent = "0"; }
     }
 
     async function cargarContadorReservas(establecimientoId) {
         try {
-            // Reemplazar con tu endpoint real de conteo diario si difiere
-            const res = await fetch(`http://localhost:8080/api/reservas/establecimiento/${establecimientoId}/hoy`, {
+            const res = await fetch(`http://localhost:8080/api/mis-reservas/establecimiento/${establecimientoId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
                 const reservas = await res.json();
-                document.getElementById('stat-reservas').textContent = reservas.length || 0;
+                const hoy = new Date().toISOString().split('T')[0];
+                const reservasHoy = reservas.filter(r => r.fechaReserva === hoy && r.estado !== 'CANCELADA' && r.estado !== 'COMPLETADA');
+                document.getElementById('stat-reservas').textContent = reservasHoy.length || 0;
             }
         } catch (e) { document.getElementById('stat-reservas').textContent = "0"; }
     }

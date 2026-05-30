@@ -26,8 +26,8 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
     @Query("SELECT r FROM Reserva r WHERE r.establecimiento.id = :estId AND r.fechaReserva = :fecha AND r.estado IN ('CONFIRMADA', 'PENDIENTE')")
     List<Reserva> findReservasActivasPorFecha(@Param("estId") Long establecimientoId, @Param("fecha") LocalDate fecha);
 
-    @Query("SELECT SUM(r.numeroPersonas) FROM Reserva r WHERE r.establecimiento.id = :estId AND r.fechaReserva = :fecha AND r.estado IN ('CONFIRMADA', 'PENDIENTE')")
-    Integer sumAforoByEstablecimientoAndFecha(@Param("estId") Long establecimientoId, @Param("fecha") LocalDate fecha);
+    @Query("SELECT COALESCE(SUM(r.numeroPersonas), 0) FROM Reserva r WHERE r.establecimiento.id = :estId AND r.fechaReserva = :fecha AND r.estado = 'CONFIRMADA'")
+    Integer sumAforoByEstablecimientoAndFecha(@Param("estId") Long estId, @Param("fecha") LocalDate fecha);
 
     @Query("SELECT r FROM Reserva r WHERE r.usuario.id = :usuarioId AND r.estado = :estado")
     List<Reserva> findByUsuarioAndEstado(@Param("usuarioId") Long usuarioId, @Param("estado") EstadoReserva estado);

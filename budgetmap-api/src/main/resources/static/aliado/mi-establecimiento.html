@@ -53,6 +53,8 @@
         
         <form id="establecimientoForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <input type="hidden" id="est-id">
+            <input type="hidden" id="latitud">
+            <input type="hidden" id="longitud">
             
             <!-- SECCIÓN: Previsualización de Imagen -->
             <div class="md:col-span-2 flex flex-col items-center mb-4">
@@ -124,7 +126,7 @@
         inicializarMapa(); // Inicializamos el mapa antes de cargar los datos
         
         try {
-            const res = await fetch('/api/establecimientos/mi-establecimiento', {
+            const res = await fetch('http://localhost:8080/api/establecimientos/mi-establecimiento', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if(res.ok) {
@@ -257,7 +259,7 @@
         };
 
         const method = id ? 'PUT' : 'POST';
-        const url = id ? `/api/establecimientos/${id}` : `/api/establecimientos`;
+        const url = id ? `http://localhost:8080/api/establecimientos/${id}` : `http://localhost:8080/api/establecimientos`;
 
         try {
             const response = await fetch(url, {

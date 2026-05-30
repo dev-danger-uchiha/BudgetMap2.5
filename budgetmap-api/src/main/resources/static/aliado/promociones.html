@@ -31,9 +31,15 @@
     <div class="lg:col-span-4 bg-white p-5 rounded-2xl border border-emerald-100 shadow-sm flex flex-col min-h-0 overflow-y-auto">
         <h3 class="font-black text-slate-900 uppercase tracking-tighter mb-4 border-b border-emerald-50 pb-3">Lanzar Nueva Promo</h3>
         <form id="form-promo" class="flex flex-col gap-3">
-            <div>
-                <label class="text-[10px] font-bold text-slate-400 uppercase">Título (Ej: 2x1 en Cervezas)</label>
-                <input type="text" id="titulo" required class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-emerald-500 focus:bg-white transition-colors">
+            <div class="grid grid-cols-2 gap-3">
+                <div class="col-span-2 sm:col-span-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase">Título (Ej: 2x1 en Cervezas)</label>
+                    <input type="text" id="titulo" required class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-emerald-500 focus:bg-white transition-colors">
+                </div>
+                <div class="col-span-2 sm:col-span-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase">Código Promocional</label>
+                    <input type="text" id="codigo" required class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-emerald-500 focus:bg-white transition-colors uppercase" placeholder="Ej: VERANO2026">
+                </div>
             </div>
             <div class="grid grid-cols-2 gap-3">
                 <div>
@@ -132,24 +138,35 @@
                 }
 
                 grid.innerHTML = promos.map(p => {
-                    // Lógica visual basada en el estado dictado por el backend
+                    let estadoVirtual = 'ACTIVA';
+                    if (p.activo === false) {
+                        estadoVirtual = 'INACTIVA';
+                    } else if (p.usosMaximos > 0 && (p.usosActuales || 0) >= p.usosMaximos) {
+                        estadoVirtual = 'AGOTADA';
+                    } else if (p.fechaFin && new Date(p.fechaFin + 'T23:59:59') < new Date()) {
+                        estadoVirtual = 'VENCIDA';
+                    }
+
                     let badgeEstilo = "bg-emerald-100 text-emerald-800";
                     let badgeTexto = "ACTIVA";
                     
-                    if (p.estado === 'VENCIDA') {
+                    if (estadoVirtual === 'VENCIDA') {
                         badgeEstilo = "bg-slate-200 text-slate-500"; badgeTexto = "VENCIDA";
-                    } else if (p.estado === 'AGOTADA') {
+                    } else if (estadoVirtual === 'AGOTADA') {
                         badgeEstilo = "bg-orange-100 text-orange-700"; badgeTexto = "AGOTADA";
-                    } else if (p.estado === 'INACTIVA') {
+                    } else if (estadoVirtual === 'INACTIVA') {
                         badgeEstilo = "bg-red-100 text-red-700"; badgeTexto = "DESACTIVADA";
                     }
 
                     return `
-                        <div class="bg-slate-50 p-4 rounded-xl border ${p.estado === 'ACTIVA' ? 'border-emerald-200' : 'border-slate-200 opacity-80'} flex flex-col justify-between group hover:shadow-md transition-all">
+                        <div class="bg-slate-50 p-4 rounded-xl border ${estadoVirtual === 'ACTIVA' ? 'border-emerald-200' : 'border-slate-200 opacity-80'} flex flex-col justify-between group hover:shadow-md transition-all">
                             <div>
                                 <div class="flex justify-between items-start mb-1 gap-2">
                                     <h4 class="font-black text-slate-800 text-sm leading-tight line-clamp-1" title="${p.titulo}">${p.titulo}</h4>
-                                    <span class="${badgeEstilo} font-black text-[8px] px-2 py-0.5 rounded uppercase tracking-widest shrink-0 border border-white/20">${badgeTexto}</span>
+                                    <div class="flex gap-1 items-center shrink-0">
+                                        ${p.codigoCupon ? `<span class="text-[9px] font-black text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100 uppercase tracking-widest" title="Código">${p.codigoCupon}</span>` : ''}
+                                        <span class="${badgeEstilo} font-black text-[8px] px-2 py-0.5 rounded uppercase tracking-widest border border-white/20">${badgeTexto}</span>
+                                    </div>
                                 </div>
                                 <p class="text-[10px] text-slate-500 line-clamp-2 leading-relaxed mb-3">${p.descripcion}</p>
                             </div>
@@ -158,7 +175,7 @@
                                     <span class="text-[10px] font-black text-emerald-700 bg-white px-2 py-1 rounded border border-emerald-100 shadow-sm" title="Descuento">-${p.descuentoPorcentaje}%</span>
                                     <span class="text-[10px] font-bold text-slate-500 flex items-center bg-white px-2 py-1 rounded border border-slate-200 shadow-sm" title="Usos Actuales">🎟️ ${p.usosActuales || 0}/${p.usosMaximos}</span>
                                 </div>
-                                ${p.estado === 'ACTIVA' ? `<button onclick="eliminarPromo(${p.id})" class="text-[9px] font-black tracking-widest text-red-500 hover:bg-red-50 px-2 py-1.5 rounded transition-colors uppercase border border-transparent hover:border-red-100">Desactivar</button>` : `<span class="text-[9px] text-slate-400 font-bold tracking-widest uppercase">FIN</span>`}
+                                ${estadoVirtual === 'ACTIVA' ? `<button onclick="eliminarPromo(${p.id})" class="text-[9px] font-black tracking-widest text-red-500 hover:bg-red-50 px-2 py-1.5 rounded transition-colors uppercase border border-transparent hover:border-red-100">Desactivar</button>` : `<span class="text-[9px] text-slate-400 font-bold tracking-widest uppercase">FIN</span>`}
                             </div>
                         </div>
                     `;
@@ -171,6 +188,7 @@
         e.preventDefault();
         const payload = {
             titulo: document.getElementById('titulo').value,
+            codigoCupon: document.getElementById('codigo').value.toUpperCase(),
             descripcion: document.getElementById('desc-promo').value,
             descuentoPorcentaje: parseInt(document.getElementById('descuento').value),
             usosMaximos: parseInt(document.getElementById('usos').value),

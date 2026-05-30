@@ -30,6 +30,8 @@ public class EventoResponse {
     private String imagenUrl;
     private Boolean activo;
     private Boolean destacado;
+    private com.budgetmap.model.enums.EstadoAprobacion estado;
+    private String motivoRechazo;
     private LocalDateTime createdAt;
     private Long creadorId;
     private String creadorNombre;
