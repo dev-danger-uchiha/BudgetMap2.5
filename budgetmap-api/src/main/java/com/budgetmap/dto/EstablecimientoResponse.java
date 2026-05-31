@@ -23,6 +23,7 @@ public class EstablecimientoResponse {
     private Double latitud;
     private Double longitud;
     private String imagenUrl;
+    private String rutPdfUrl;
     private Integer aforoMaximo;
     private Integer aforoActual;
     private String telefono;

@@ -27,6 +27,7 @@ public class EstablecimientoRequest {
     @NotNull(message = "La longitud es obligatoria")
     private Double longitud;
     private String imagenUrl;
+    private String rutPdfUrl;
     private Integer aforoMaximo;
     private String telefono;
     private String horarioAtencion;

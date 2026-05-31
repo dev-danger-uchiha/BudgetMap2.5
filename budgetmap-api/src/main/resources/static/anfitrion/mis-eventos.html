@@ -1,232 +1,303 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestión de Eventos | BudgetMap</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    const token = localStorage.getItem('jwt_token');
-    if (!token || localStorage.getItem('user_rol') !== 'ANFITRION') window.location.href = '/login.html';
-  </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Eventos | BudgetMap</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        const token = localStorage.getItem('jwt_token');
+        if (!token || localStorage.getItem('user_rol') !== 'ANFITRION') window.location.href = '/login.html';
+    </script>
 </head>
+
 <body class="bg-slate-50 min-h-screen text-slate-800 font-sans pb-20">
 
-  <nav class="bg-white border-b border-blue-100 p-4 sticky top-0 z-50 shadow-sm">
-    <div class="max-w-7xl mx-auto flex justify-between items-center">
-      <div class="flex items-center gap-4">
-        <span class="bg-blue-600 text-white px-3 py-1 rounded-full font-black text-[10px] uppercase tracking-tighter">ANFITRIÓN</span>
-        <h1 class="font-black tracking-widest text-blue-900 uppercase">BUDGETMAP</h1>
-      </div>
-      <div class="flex gap-6 text-[10px] font-black uppercase tracking-widest text-slate-400">
-        <a href="/anfitrion/dashboard.html" class="hover:text-blue-600 transition">Resumen</a>
-        <a href="/anfitrion/mis-eventos.html" class="text-blue-600 border-b-2 border-blue-600 pb-1">Mis Eventos</a>
-      </div>
-    </div>
-  </nav>
-
-  <main class="max-w-7xl mx-auto mt-8 px-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
-    
-    <div class="lg:col-span-1 bg-white p-6 rounded-3xl border border-blue-100 shadow-sm h-fit sticky top-24">
-        <h3 class="font-black text-slate-900 uppercase tracking-tighter mb-6 border-b border-blue-50 pb-4">Programar Evento</h3>
-        <form id="eventoForm" class="flex flex-col gap-4">
-            <div>
-                <label class="text-[10px] font-bold text-slate-400 uppercase">Nombre del Evento</label>
-                <input type="text" id="nombre" required class="w-full mt-1 bg-slate-50 border rounded-xl p-3 text-sm outline-none focus:border-blue-500">
+    <nav class="bg-white border-b border-blue-100 p-4 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <span
+                    class="bg-blue-600 text-white px-3 py-1 rounded-full font-black text-[10px] uppercase tracking-tighter">ANFITRIÓN</span>
+                <h1 class="font-black tracking-widest text-blue-900 uppercase">BUDGETMAP</h1>
             </div>
-            
-            <div>
-                <label class="text-[10px] font-bold text-slate-400 uppercase">Lugar Físico</label>
-                <select id="lugarId" required class="w-full mt-1 bg-slate-50 border rounded-xl p-3 text-sm outline-none focus:border-blue-500">
-                    <option value="">Cargando lugares...</option>
-                </select>
-                <p class="text-[9px] text-emerald-600 font-bold mt-1">Solo sitios verificados.</p>
+            <div class="flex gap-6 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                <a href="/anfitrion/dashboard.html" class="hover:text-blue-600 transition">Resumen</a>
+                <a href="/anfitrion/mis-eventos.html" class="text-blue-600 border-b-2 border-blue-600 pb-1">Mis
+                    Eventos</a>
             </div>
+        </div>
+    </nav>
 
-            <div class="grid grid-cols-2 gap-4">
+    <main class="max-w-7xl mx-auto mt-8 px-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <div class="lg:col-span-1 bg-white p-6 rounded-3xl border border-blue-100 shadow-sm h-fit sticky top-24">
+            <h3 class="font-black text-slate-900 uppercase tracking-tighter mb-6 border-b border-blue-50 pb-4">Programar
+                Evento</h3>
+            <form id="eventoForm" class="flex flex-col gap-4">
                 <div>
-                    <label class="text-[10px] font-bold text-slate-400 uppercase">Categoría</label>
-                    <select id="tipo" class="w-full mt-1 bg-slate-50 border rounded-xl p-3 text-xs outline-none">
-                        <option value="ARTISTICO">Artístico/Concierto</option>
-                        <option value="CULTURAL">Cultural/Teatro</option>
-                        <option value="DEPORTIVO">Deportivo</option>
-                        <option value="RECREATIVO">Feria/Social</option>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase">Nombre del Evento</label>
+                    <input type="text" id="nombre" required
+                        class="w-full mt-1 bg-slate-50 border rounded-xl p-3 text-sm outline-none focus:border-blue-500">
+                </div>
+
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase">Lugar Físico</label>
+                    <select id="lugarId" required
+                        class="w-full mt-1 bg-slate-50 border rounded-xl p-3 text-sm outline-none focus:border-blue-500">
+                        <option value="">Cargando lugares...</option>
                     </select>
+                    <p class="text-[9px] text-emerald-600 font-bold mt-1">Solo sitios verificados.</p>
                 </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase">Categoría</label>
+                        <select id="tipo" class="w-full mt-1 bg-slate-50 border rounded-xl p-3 text-xs outline-none">
+                            <option value="ARTISTICO">Artístico/Concierto</option>
+                            <option value="CULTURAL">Cultural/Teatro</option>
+                            <option value="DEPORTIVO">Deportivo</option>
+                            <option value="RECREATIVO">Feria/Social</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase">Boletas (Aforo)</label>
+                        <input type="number" id="aforo" required
+                            class="w-full mt-1 bg-slate-50 border rounded-xl p-3 text-xs outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase">Inicio</label>
+                        <input type="date" id="fecha" required
+                            class="w-full mt-1 bg-slate-50 border rounded-xl p-3 text-xs outline-none">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase">Fin</label>
+                        <input type="date" id="fecha-fin" required
+                            class="w-full mt-1 bg-slate-50 border rounded-xl p-3 text-xs outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase">Hora de Inicio</label>
+                        <input type="time" id="hora" required
+                            class="w-full mt-1 bg-slate-50 border rounded-xl p-3 text-xs outline-none">
+                    </div>
+                </div>
+
                 <div>
-                    <label class="text-[10px] font-bold text-slate-400 uppercase">Boletas (Aforo)</label>
-                    <input type="number" id="aforo" required class="w-full mt-1 bg-slate-50 border rounded-xl p-3 text-xs outline-none">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase">Costo de Entrada ($)</label>
+                    <input type="number" id="precio" placeholder="Dejar en 0 si es Gratis"
+                        class="w-full mt-1 bg-slate-50 border rounded-xl p-3 text-sm outline-none focus:border-blue-500">
+                </div>
+
+                <button type="submit" id="btn-submit"
+                    class="w-full mt-4 bg-blue-600 text-white font-black py-4 rounded-xl text-xs uppercase hover:bg-blue-700 transition shadow-md">Publicar
+                    Evento</button>
+            </form>
+        </div>
+
+        <div class="lg:col-span-2">
+            <div class="flex justify-between items-end mb-6">
+                <h3 class="text-2xl font-black text-slate-900 italic tracking-tighter uppercase">Cartelera Activa</h3>
+                <span id="info-pag" class="text-xs font-bold text-slate-400">Pág 1</span>
+            </div>
+
+            <div class="bg-white border border-blue-100 rounded-3xl p-4 shadow-sm mb-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="flex flex-col gap-1">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Búsqueda
+                            (Nombre)</label>
+                        <input type="text" id="filtro-nombre" placeholder="Ej: Concierto..."
+                            class="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-sm outline-none focus:border-blue-500"
+                            onchange="cargarEventos(0)">
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tipo</label>
+                        <select id="filtro-tipo"
+                            class="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-sm outline-none focus:border-blue-500"
+                            onchange="cargarEventos(0)">
+                            <option value="">Todos</option>
+                            <option value="ARTISTICO">Artístico/Concierto</option>
+                            <option value="CULTURAL">Cultural/Teatro</option>
+                            <option value="DEPORTIVO">Deportivo</option>
+                            <option value="RECREATIVO">Feria/Social</option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col gap-1 md:col-span-2">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Estado</label>
+                        <select id="filtro-estado"
+                            class="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-sm outline-none focus:border-blue-500"
+                            onchange="cargarEventos(0)">
+                            <option value="">Todos</option>
+                            <option value="ACTIVA">Activa</option>
+                            <option value="INACTIVA">Vencida</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="text-[10px] font-bold text-slate-400 uppercase">Fecha</label>
-                    <input type="date" id="fecha" required class="w-full mt-1 bg-slate-50 border rounded-xl p-3 text-xs outline-none">
-                </div>
-                <div>
-                    <label class="text-[10px] font-bold text-slate-400 uppercase">Hora</label>
-                    <input type="time" id="hora" required class="w-full mt-1 bg-slate-50 border rounded-xl p-3 text-xs outline-none">
-                </div>
+            <div id="grid-eventos" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <p class="text-blue-600 font-bold animate-pulse text-sm">Cargando cartelera...</p>
             </div>
 
-            <div>
-                <label class="text-[10px] font-bold text-slate-400 uppercase">Costo de Entrada ($)</label>
-                <input type="number" id="precio" placeholder="Dejar en 0 si es Gratis" class="w-full mt-1 bg-slate-50 border rounded-xl p-3 text-sm outline-none focus:border-blue-500">
-            </div>
-
-            <button type="submit" id="btn-submit" class="w-full mt-4 bg-blue-600 text-white font-black py-4 rounded-xl text-xs uppercase hover:bg-blue-700 transition shadow-md">Publicar Evento</button>
-        </form>
-    </div>
-
-    <div class="lg:col-span-2">
-        <div class="flex justify-between items-end mb-6">
-            <h3 class="text-2xl font-black text-slate-900 italic tracking-tighter uppercase">Cartelera Activa</h3>
-            <span id="info-pag" class="text-xs font-bold text-slate-400">Pág 1</span>
-        </div>
-
-        <div class="bg-white border border-blue-100 rounded-3xl p-4 shadow-sm mb-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div class="flex flex-col gap-1">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Búsqueda (Nombre)</label>
-                    <input type="text" id="filtro-nombre" placeholder="Ej: Concierto..."
-                           class="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-sm outline-none focus:border-blue-500" onchange="cargarEventos(0)">
-                </div>
-                <div class="flex flex-col gap-1">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tipo</label>
-                    <select id="filtro-tipo" class="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-sm outline-none focus:border-blue-500" onchange="cargarEventos(0)">
-                        <option value="">Todos</option>
-                        <option value="ARTISTICO">Artístico/Concierto</option>
-                        <option value="CULTURAL">Cultural/Teatro</option>
-                        <option value="DEPORTIVO">Deportivo</option>
-                        <option value="RECREATIVO">Feria/Social</option>
-                    </select>
-                </div>
+            <div class="mt-6 flex gap-2">
+                <button id="btn-prev" onclick="cargarEventos(paginaActual-1)"
+                    class="px-4 py-2 border border-blue-200 text-blue-700 rounded-lg text-xs font-bold hover:bg-blue-50 disabled:opacity-50">Anterior</button>
+                <button id="btn-next" onclick="cargarEventos(paginaActual+1)"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 disabled:opacity-50">Siguiente</button>
             </div>
         </div>
+    </main>
 
-        <div id="grid-eventos" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <p class="text-blue-600 font-bold animate-pulse text-sm">Cargando cartelera...</p>
-        </div>
+    <script>
+        let paginaActual = 0;
+        let paginasTotales = 0;
 
-        <div class="mt-6 flex gap-2">
-            <button id="btn-prev" onclick="cargarEventos(paginaActual-1)" class="px-4 py-2 border border-blue-200 text-blue-700 rounded-lg text-xs font-bold hover:bg-blue-50 disabled:opacity-50">Anterior</button>
-            <button id="btn-next" onclick="cargarEventos(paginaActual+1)" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 disabled:opacity-50">Siguiente</button>
-        </div>
-    </div>
-  </main>
+        document.addEventListener("DOMContentLoaded", () => {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('fecha').min = today;
+            document.getElementById('fecha-fin').min = today;
 
-  <script>
-    let paginaActual = 0;
-    let paginasTotales = 0;
+            cargarLugares();
+            cargarEventos(0);
+        });
 
-    document.addEventListener("DOMContentLoaded", () => {
-        cargarLugares();
-        cargarEventos(0);
-    });
+        async function cargarLugares() {
+            try {
+                const res = await fetch('http://localhost:8080/api/lugares/aprobados', { headers: { 'Authorization': `Bearer ${token}` } });
+                if (res.ok) {
+                    const lugares = await res.json();
+                    const sel = document.getElementById('lugarId');
+                    sel.innerHTML = '<option value="">Selecciona la locación...</option>';
+                    lugares.forEach(l => sel.innerHTML += `<option value="${l.id}">${l.nombre} (${l.categoria})</option>`);
+                }
+            } catch (e) { console.error("Error cargando locaciones"); }
+        }
 
-    async function cargarLugares() {
-        try {
-            const res = await fetch('http://localhost:8080/api/lugares/aprobados', { headers: { 'Authorization': `Bearer ${token}` }});
-            if(res.ok) {
-                const lugares = await res.json();
-                const sel = document.getElementById('lugarId');
-                sel.innerHTML = '<option value="">Selecciona la locación...</option>';
-                lugares.forEach(l => sel.innerHTML += `<option value="${l.id}">${l.nombre} (${l.categoria})</option>`);
-            }
-        } catch(e) { console.error("Error cargando locaciones"); }
-    }
+        async function cargarEventos(page) {
+            paginaActual = page;
+            const grid = document.getElementById('grid-eventos');
 
-    async function cargarEventos(page) {
-        paginaActual = page;
-        const grid = document.getElementById('grid-eventos');
+            const filtroNombre = document.getElementById('filtro-nombre').value;
+            const filtroTipo = document.getElementById('filtro-tipo').value;
+            const filtroEstado = document.getElementById('filtro-estado').value;
 
-        const filtroNombre = document.getElementById('filtro-nombre').value;
-        const filtroTipo = document.getElementById('filtro-tipo').value;
+            try {
+                const params = new URLSearchParams({
+                    page: paginaActual,
+                    size: 4
+                });
+                if (filtroTipo) params.append('tipo', filtroTipo);
+                if (filtroNombre) params.append('nombre', filtroNombre);
+                if (filtroEstado) params.append('estado', filtroEstado);
 
-        try {
-            const params = new URLSearchParams({
-                page: paginaActual,
-                size: 4
-            });
-            if (filtroTipo) params.append('tipo', filtroTipo);
-            if (filtroNombre) params.append('nombre', filtroNombre);
+                const res = await fetch(`http://localhost:8080/api/eventos/mis-eventos?${params}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (res.ok) {
+                    const data = await res.json();
+                    const eventos = data.content || data;
+                    paginasTotales = data.totalPages || 1;
 
-            const res = await fetch(`http://localhost:8080/api/eventos/mis-eventos?${params}`, { headers: { 'Authorization': `Bearer ${token}` } });
-            if (res.ok) {
-                const data = await res.json();
-                const eventos = data.content || data;
-                paginasTotales = data.totalPages || 1;
+                    document.getElementById('info-pag').innerText = `Pág ${paginaActual + 1} de ${paginasTotales}`;
+                    document.getElementById('btn-prev').disabled = paginaActual === 0;
+                    document.getElementById('btn-next').disabled = paginaActual >= paginasTotales - 1;
 
-                document.getElementById('info-pag').innerText = `Pág ${paginaActual + 1} de ${paginasTotales}`;
-                document.getElementById('btn-prev').disabled = paginaActual === 0;
-                document.getElementById('btn-next').disabled = paginaActual >= paginasTotales - 1;
+                    if (eventos.length === 0) { grid.innerHTML = '<p class="text-slate-400 text-sm p-4">No tienes eventos en cartelera.</p>'; return; }
 
-                if(eventos.length === 0) { grid.innerHTML = '<p class="text-slate-400 text-sm p-4">No tienes eventos en cartelera.</p>'; return; }
+                    grid.innerHTML = eventos.map(ev => {
+                        let estadoVirtual = 'ACTIVA';
+                        if (ev.activo === false) {
+                            estadoVirtual = 'INACTIVA';
+                        } else if (ev.aforoMaximo > 0 && (ev.aforoActual || 0) >= ev.aforoMaximo) {
+                            estadoVirtual = 'AGOTADA';
+                        } else if (ev.fechaFin && new Date(ev.fechaFin + 'T' + (ev.horaFin || '23:59:59')) < new Date()) {
+                            estadoVirtual = 'VENCIDA';
+                        }
 
-                grid.innerHTML = eventos.map(ev => `
-                    <div class="bg-white p-5 rounded-2xl border border-blue-100 shadow-sm relative group hover:shadow-md transition flex flex-col justify-between">
+                        let badgeEstilo = "bg-blue-100 text-blue-800";
+                        let badgeTexto = "ACTIVA";
+
+                        if (estadoVirtual === 'VENCIDA') {
+                            badgeEstilo = "bg-slate-200 text-slate-500"; badgeTexto = "VENCIDA";
+                        } else if (estadoVirtual === 'AGOTADA') {
+                            badgeEstilo = "bg-orange-100 text-orange-700"; badgeTexto = "AGOTADA";
+                        } else if (estadoVirtual === 'INACTIVA') {
+                            badgeEstilo = "bg-red-100 text-red-700"; badgeTexto = "CANCELADA";
+                        }
+
+                        return `
+                    <div class="bg-white p-5 rounded-2xl border ${estadoVirtual === 'ACTIVA' ? 'border-blue-200' : 'border-slate-200 opacity-90'} shadow-sm relative group hover:shadow-md transition flex flex-col justify-between">
                         <div>
                             <div class="flex justify-between items-start mb-2">
-                                <span class="bg-blue-50 text-blue-700 font-black text-[9px] px-2 py-1 rounded uppercase tracking-widest">${ev.tipoEvento}</span>
+                                <div class="flex gap-2">
+                                    <span class="bg-blue-50 text-blue-700 font-black text-[9px] px-2 py-1 rounded uppercase tracking-widest">${ev.tipoEvento}</span>
+                                    <span class="${badgeEstilo} font-black text-[9px] px-2 py-1 rounded uppercase tracking-widest">${badgeTexto}</span>
+                                </div>
                                 <span class="text-emerald-600 font-black text-sm">$${ev.precio || 'Gratis'}</span>
                             </div>
                             <h4 class="font-black text-slate-800 text-lg uppercase tracking-tight leading-tight">${ev.nombre}</h4>
                             <p class="text-xs text-slate-500 font-bold mt-2">📍 Locación Asignada ID: ${ev.lugarId}</p>
-                            <p class="text-[10px] text-slate-400 mt-1">📅 ${ev.fechaInicio} ⏰ ${ev.horaInicio}</p>
+                            <p class="text-[10px] text-slate-400 mt-1">📅 Inicio: ${ev.fechaInicio} ${ev.horaInicio ? '⏰ ' + ev.horaInicio : ''}</p>
+                            <p class="text-[10px] text-slate-400">🏁 Fin: ${ev.fechaFin || 'N/A'}</p>
                         </div>
                         <div class="mt-4 pt-4 border-t border-slate-50 flex justify-between items-center">
                             <span class="text-[10px] font-bold text-slate-500 uppercase">Boletas: <span class="text-blue-600">${ev.aforoActual || 0}</span> / ${ev.aforoMaximo}</span>
-                            <button onclick="eliminarEvento(${ev.id})" class="text-[10px] font-bold text-red-500 hover:text-red-700 bg-red-50 px-2 py-1 rounded">Cancelar</button>
+                            ${estadoVirtual === 'ACTIVA' ? `<button onclick="eliminarEvento(${ev.id})" class="text-[10px] font-bold text-red-500 hover:text-red-700 bg-red-50 px-2 py-1 rounded uppercase tracking-widest">Cancelar</button>` : `<span class="text-[9px] text-slate-400 font-bold tracking-widest uppercase">CERRADO</span>`}
                         </div>
                     </div>
-                `).join('');
-            }
-        } catch (e) { grid.innerHTML = '<p class="text-red-500">Error al cargar.</p>'; }
-    }
+                    `;
+                    }).join('');
+                }
+            } catch (e) { grid.innerHTML = '<p class="text-red-500">Error al cargar.</p>'; }
+        }
 
-    document.getElementById('eventoForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const btn = document.getElementById('btn-submit');
-        btn.disabled = true; btn.innerText = "Publicando...";
+        document.getElementById('eventoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-submit');
+            btn.disabled = true; btn.innerText = "Publicando...";
 
-        let horaVal = document.getElementById('hora').value;
-        if(horaVal.length === 5) horaVal += ":00";
+            let horaVal = document.getElementById('hora').value;
+            if (horaVal.length === 5) horaVal += ":00";
 
-        const payload = {
-            nombre: document.getElementById('nombre').value,
-            tipoEvento: document.getElementById('tipo').value,
-            aforoMaximo: parseInt(document.getElementById('aforo').value),
-            fechaInicio: document.getElementById('fecha').value,
-            horaInicio: horaVal,
-            precio: parseFloat(document.getElementById('precio').value || 0),
-            lugarId: parseInt(document.getElementById('lugarId').value)
-        };
+            const payload = {
+                nombre: document.getElementById('nombre').value,
+                tipoEvento: document.getElementById('tipo').value,
+                aforoMaximo: parseInt(document.getElementById('aforo').value),
+                fechaInicio: document.getElementById('fecha').value,
+                fechaFin: document.getElementById('fecha-fin').value,
+                horaInicio: horaVal,
+                precio: parseFloat(document.getElementById('precio').value || 0),
+                lugarId: parseInt(document.getElementById('lugarId').value)
+            };
 
-        try {
-            const res = await fetch('http://localhost:8080/api/eventos', {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            if(res.ok) {
-                alert("¡Evento agregado a la cartelera!");
-                document.getElementById('eventoForm').reset();
-                cargarEventos(0);
-            } else { alert("Verifica los datos del evento."); }
-        } catch(err) { alert("Error de red."); }
-        finally { btn.disabled = false; btn.innerText = "Publicar Evento"; }
-    });
+            try {
+                const res = await fetch('http://localhost:8080/api/eventos', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    alert("¡Evento agregado a la cartelera!");
+                    document.getElementById('eventoForm').reset();
+                    cargarEventos(0);
+                } else { alert("Verifica los datos del evento."); }
+            } catch (err) { alert("Error de red."); }
+            finally { btn.disabled = false; btn.innerText = "Publicar Evento"; }
+        });
 
-    async function eliminarEvento(id) {
-        if(!confirm("¿Deseas cancelar y borrar este evento?")) return;
-        const res = await fetch(`http://localhost:8080/api/eventos/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }});
-        if(res.ok) cargarEventos(paginaActual);
-    }
+        async function eliminarEvento(id) {
+            if (!confirm("¿Deseas cancelar y borrar este evento?")) return;
+            const res = await fetch(`http://localhost:8080/api/eventos/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+            if (res.ok) cargarEventos(paginaActual);
+        }
 
-    function cerrarSesion() {
-        localStorage.clear(); sessionStorage.clear(); window.location.href = '/login.html';
-    }
-  </script>
+        function cerrarSesion() {
+            localStorage.clear(); sessionStorage.clear(); window.location.href = '/login.html';
+        }
+    </script>
 </body>
+
 </html>

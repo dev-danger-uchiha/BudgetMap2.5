@@ -89,8 +89,9 @@ public class EventoController {
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             Pageable pageable,
             @RequestParam(required = false) String tipo,
-            @RequestParam(required = false) String nombre) {
-        return ResponseEntity.ok(eventoService.listarMisEventosPaginado(userDetails.getId(), pageable, tipo, nombre));
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) String estado) {
+        return ResponseEntity.ok(eventoService.listarMisEventosPaginado(userDetails.getId(), pageable, tipo, nombre, estado));
     }
 
     @GetMapping("/eventos/mis-estadisticas")

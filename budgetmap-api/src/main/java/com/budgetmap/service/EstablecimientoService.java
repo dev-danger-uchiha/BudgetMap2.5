@@ -116,6 +116,7 @@ public class EstablecimientoService {
                 .longitud(request.getLongitud())
                 .ubicacion(puntoUbicacion)
                 .imagenUrl(request.getImagenUrl())
+                .rutPdfUrl(request.getRutPdfUrl())
                 .aforoMaximo(request.getAforoMaximo())
                 .telefono(request.getTelefono())
                 .horarioAtencion(request.getHorarioAtencion())
@@ -146,6 +147,7 @@ public class EstablecimientoService {
         if (request.getHorarioAtencion() != null) est.setHorarioAtencion(request.getHorarioAtencion());
         if (request.getAforoMaximo() != null) est.setAforoMaximo(request.getAforoMaximo());
         if (request.getImagenUrl() != null) est.setImagenUrl(request.getImagenUrl());
+        if (request.getRutPdfUrl() != null) est.setRutPdfUrl(request.getRutPdfUrl());
 
         return convertirAResponse(establecimientoRepository.save(est));
     }
@@ -173,6 +175,7 @@ public class EstablecimientoService {
         est.setLongitud(request.getLongitud());
         est.setUbicacion(puntoUbicacion);
         est.setImagenUrl(request.getImagenUrl());
+        est.setRutPdfUrl(request.getRutPdfUrl());
         est.setAforoMaximo(request.getAforoMaximo());
         est.setTelefono(request.getTelefono());
         est.setHorarioAtencion(request.getHorarioAtencion());
@@ -261,6 +264,7 @@ public class EstablecimientoService {
                 .latitud(est.getLatitud())
                 .longitud(est.getLongitud())
                 .imagenUrl(est.getImagenUrl())
+                .rutPdfUrl(est.getRutPdfUrl())
                 .aforoMaximo(est.getAforoMaximo())
                 .aforoActual(est.getAforoActual())
                 .telefono(est.getTelefono())

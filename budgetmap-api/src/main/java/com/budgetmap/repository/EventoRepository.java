@@ -18,6 +18,7 @@ public interface EventoRepository extends JpaRepository<Evento, Long> {
     @Query("SELECT e FROM Evento e WHERE e.estado = :estado")
     List<Evento> findByEstado(@Param("estado") com.budgetmap.model.enums.EstadoAprobacion estado);
 
+    List<Evento> findByCreadorId(Long creadorId);
     List<Evento> findByCreadorIdAndActivoTrue(Long creadorId);
 
     Page<Evento> findByActivoTrueAndFechaInicioGreaterThanEqualOrderByFechaInicioAsc(LocalDate fecha,
@@ -34,6 +35,8 @@ public interface EventoRepository extends JpaRepository<Evento, Long> {
 
     @Query("SELECT COUNT(e) FROM Evento e WHERE e.creador.id = :creadorId AND e.activo = true")
     Long countActivosByCreador(@Param("creadorId") Long creadorId);
+    
+    List<Evento> findAllByActivoTrue();
     
     @Query("SELECT e FROM Evento e WHERE e.destacado = true AND e.activo = true")
     List<Evento> findAllDestacados();

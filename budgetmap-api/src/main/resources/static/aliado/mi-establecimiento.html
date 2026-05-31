@@ -55,6 +55,7 @@
             <input type="hidden" id="est-id">
             <input type="hidden" id="latitud">
             <input type="hidden" id="longitud">
+            <input type="hidden" id="rutPdfUrl">
             
             <!-- SECCIÓN: Previsualización de Imagen -->
             <div class="md:col-span-2 flex flex-col items-center mb-4">
@@ -71,6 +72,17 @@
             <div class="md:col-span-2">
                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nombre Comercial</label>
                 <input type="text" id="nombre" required class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-emerald-500 focus:bg-white transition-colors">
+            </div>
+            
+            <div class="md:col-span-2 p-4 bg-emerald-50 border border-emerald-100 rounded-xl">
+                <label class="text-[10px] font-bold text-slate-700 uppercase tracking-widest block mb-2">Archivo RUT (PDF)</label>
+                <div class="flex items-center gap-3">
+                    <input type="file" id="rutFile" accept="application/pdf" class="text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-black file:uppercase file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 transition-all cursor-pointer">
+                    <button type="button" onclick="subirRUT()" id="btn-subir-rut" class="bg-emerald-200 text-emerald-800 px-3 py-2 rounded-lg text-[10px] font-black uppercase hover:bg-emerald-300 transition-colors hidden">Subir Archivo</button>
+                </div>
+                <div id="rut-info" class="mt-2 text-xs font-bold text-slate-500 hidden flex items-center gap-2">
+                    ✅ Archivo cargado: <a id="rut-link" href="#" target="_blank" class="text-blue-600 underline">Ver Documento</a>
+                </div>
             </div>
             
             <div>
@@ -142,6 +154,14 @@
                 document.getElementById('telefono').value = est.telefono;
                 document.getElementById('descripcion').value = est.descripcion;
                 document.getElementById('imagenUrl').value = est.imagenUrl || '';
+                document.getElementById('rutPdfUrl').value = est.rutPdfUrl || '';
+                
+                if (est.rutPdfUrl) {
+                    const infoDiv = document.getElementById('rut-info');
+                    const link = document.getElementById('rut-link');
+                    infoDiv.classList.remove('hidden');
+                    link.href = est.rutPdfUrl;
+                }
                 
                 actualizarPreviewImagen(est.imagenUrl);
 
@@ -176,6 +196,57 @@
         }
     }
     urlInput.addEventListener('input', (e) => actualizarPreviewImagen(e.target.value));
+
+    // --- Lógica de Subida de RUT ---
+    const rutFileInput = document.getElementById('rutFile');
+    const btnSubirRut = document.getElementById('btn-subir-rut');
+    
+    rutFileInput.addEventListener('change', () => {
+        if (rutFileInput.files.length > 0) {
+            btnSubirRut.classList.remove('hidden');
+        } else {
+            btnSubirRut.classList.add('hidden');
+        }
+    });
+
+    async function subirRUT() {
+        if (rutFileInput.files.length === 0) return;
+        
+        btnSubirRut.innerText = 'SUBIENDO...';
+        btnSubirRut.disabled = true;
+        
+        const file = rutFileInput.files[0];
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        try {
+            const res = await fetch('http://localhost:8080/api/upload', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+            
+            if (res.ok) {
+                const data = await res.json();
+                document.getElementById('rutPdfUrl').value = data.url;
+                
+                const infoDiv = document.getElementById('rut-info');
+                const link = document.getElementById('rut-link');
+                infoDiv.classList.remove('hidden');
+                link.href = data.url;
+                
+                alert("¡RUT subido exitosamente! No olvides 'Guardar Información' para aplicar los cambios.");
+                btnSubirRut.classList.add('hidden');
+            } else {
+                alert("Error al subir el archivo.");
+            }
+        } catch (e) {
+            alert("Error de conexión al subir el archivo.");
+        } finally {
+            btnSubirRut.innerText = 'Subir Archivo';
+            btnSubirRut.disabled = false;
+        }
+    }
 
     // --- 2. Integración Leaflet y OpenStreetMap (Nominatim) ---
     function inicializarMapa() {
@@ -255,7 +326,8 @@
             aforoMaximo: parseInt(document.getElementById('aforoMaximo').value),
             telefono: document.getElementById('telefono').value,
             descripcion: document.getElementById('descripcion').value,
-            imagenUrl: document.getElementById('imagenUrl').value
+            imagenUrl: document.getElementById('imagenUrl').value,
+            rutPdfUrl: document.getElementById('rutPdfUrl').value
         };
 
         const method = id ? 'PUT' : 'POST';

@@ -98,7 +98,7 @@ public class WebSecurityConfig {
                 .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
                 .requestMatchers("/info/**").permitAll()
                 .requestMatchers("/explorador/**", "/aliado/**", "/anfitrion/**", "/admin/**", "/soporte/**").permitAll()
-                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/error/**", "/health").permitAll()
+                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/error/**", "/health", "/uploads/**").permitAll()
 
                 // ======================================================
                 // 2. ENDPOINTS DE API PÚBLICOS (Sin Token)

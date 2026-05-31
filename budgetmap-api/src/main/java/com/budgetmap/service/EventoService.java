@@ -16,11 +16,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.budgetmap.model.enums.EstadoAprobacion;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -138,6 +140,17 @@ public class EventoService {
             throw new EventoException("El evento debe estar asociado a un Lugar o a un Establecimiento");
         }
 
+        LocalDate hoy = LocalDate.now();
+        if (request.getFechaInicio() != null && request.getFechaInicio().isBefore(hoy)) {
+            throw new EventoException("La fecha de inicio no puede ser en el pasado.");
+        }
+        if (request.getFechaFin() != null && request.getFechaFin().isBefore(hoy)) {
+            throw new EventoException("La fecha de fin no puede ser en el pasado.");
+        }
+        if (request.getFechaInicio() != null && request.getFechaFin() != null && request.getFechaFin().isBefore(request.getFechaInicio())) {
+            throw new EventoException("La fecha de fin no puede ser anterior a la fecha de inicio.");
+        }
+
         Evento evento = Evento.builder()
                 .nombre(request.getNombre())
                 .descripcion(request.getDescripcion())
@@ -215,8 +228,39 @@ public class EventoService {
                 .map(this::convertirAResponse).collect(Collectors.toList());
     }
 
-    public Page<EventoResponse> listarMisEventosPaginado(Long creadorId, Pageable pageable, String tipo, String nombre) {
-        List<Evento> eventos = eventoRepository.findByCreadorIdAndActivoTrue(creadorId);
+    public Page<EventoResponse> listarMisEventosPaginado(Long creadorId, Pageable pageable, String tipo, String nombre, String estado) {
+        List<Evento> eventos = eventoRepository.findByCreadorId(creadorId);
+
+        if (estado != null && !estado.isBlank()) {
+            LocalDate hoy = LocalDate.now();
+            LocalTime horaActual = LocalTime.now();
+            
+            eventos = eventos.stream()
+                    .filter(e -> {
+                        boolean estaInactiva = e.getActivo() == null || !e.getActivo();
+                        boolean estaVencida = false;
+                        if (!estaInactiva && e.getFechaFin() != null) {
+                            if (e.getFechaFin().isBefore(hoy)) {
+                                estaVencida = true;
+                            } else if (e.getFechaFin().isEqual(hoy) && e.getHoraFin() != null && e.getHoraFin().isBefore(horaActual)) {
+                                estaVencida = true;
+                            }
+                        }
+                        boolean estaAgotada = !estaInactiva && !estaVencida && e.getAforoMaximo() != null && e.getAforoActual() != null && e.getAforoActual() >= e.getAforoMaximo();
+                        boolean estaActiva = !estaInactiva && !estaVencida && !estaAgotada;
+
+                        return switch (estado.toUpperCase()) {
+                            case "ACTIVA" -> estaActiva;
+                            case "VENCIDA" -> estaVencida;
+                            case "AGOTADA" -> estaAgotada;
+                            case "INACTIVA", "CANCELADA" -> estaInactiva;
+                            default -> true;
+                        };
+                    })
+                    .collect(Collectors.toList());
+        } else {
+            // Si no hay filtro de estado, mostramos todos por defecto pero podríamos ordenar.
+        }
 
         if (tipo != null && !tipo.isBlank()) {
             eventos = eventos.stream()
@@ -281,5 +325,41 @@ public class EventoService {
                 .establecimientoNombre(
                         evento.getEstablecimiento() != null ? evento.getEstablecimiento().getNombre() : null)
                 .build();
+    }
+
+    @Scheduled(cron = "0 * * * * ?") // Se ejecuta cada minuto
+    @Transactional
+    public void desactivarEventosFinalizados() {
+        log.info("Iniciando tarea programada para desactivar eventos finalizados...");
+        LocalDateTime ahora = LocalDateTime.now();
+        LocalDate hoy = ahora.toLocalDate();
+        LocalTime horaActual = ahora.toLocalTime();
+        
+        List<Evento> eventosActivos = eventoRepository.findAllByActivoTrue();
+        
+        int desactivados = 0;
+        for (Evento evento : eventosActivos) {
+            boolean debeDesactivarse = false;
+            
+            if (evento.getFechaFin() != null) {
+                if (evento.getFechaFin().isBefore(hoy)) {
+                    debeDesactivarse = true;
+                } else if (evento.getFechaFin().isEqual(hoy) && evento.getHoraFin() != null && evento.getHoraFin().isBefore(horaActual)) {
+                    debeDesactivarse = true;
+                }
+            }
+            
+            if (debeDesactivarse) {
+                evento.setActivo(false);
+                eventoRepository.save(evento);
+                desactivados++;
+                log.info("Evento ID: {} ({}) desactivado automáticamente porque su fecha/hora de fin ({}) ya pasó.", 
+                        evento.getId(), evento.getNombre(), evento.getFechaFin());
+            }
+        }
+        
+        if (desactivados > 0) {
+            log.info("Tarea programada finalizada. Se desactivaron {} eventos.", desactivados);
+        }
     }
 }

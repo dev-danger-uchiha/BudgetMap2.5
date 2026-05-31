@@ -57,6 +57,9 @@ public class Establecimiento {
     @Column(name = "imagen_url", length = 500)
     private String imagenUrl;
 
+    @Column(name = "rut_pdf_url", length = 500)
+    private String rutPdfUrl;
+
     @Column(name = "aforo_maximo")
     private Integer aforoMaximo;
 

@@ -13,4 +13,5 @@ public class EstablecimientoUpdateRequest {
     private String horarioAtencion;
     private Integer aforoMaximo;
     private String imagenUrl;
+    private String rutPdfUrl;
 }
