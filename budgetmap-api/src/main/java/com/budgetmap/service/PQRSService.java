@@ -6,6 +6,7 @@ import com.budgetmap.exception.ResourceNotFoundException;
 import com.budgetmap.model.PQRS;
 import com.budgetmap.model.Usuario;
 import com.budgetmap.model.enums.EstadoPQRS;
+import com.budgetmap.model.enums.TipoNotificacion;
 import com.budgetmap.repository.PQRSRepository;
 import com.budgetmap.repository.UsuarioRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,9 @@ public class PQRSService {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private NotificacionService notificacionService;
 
     public List<PQRSResponse> listarTodos() {
         return pqrsRepository.findAll().stream().map(this::convertirAResponse).collect(Collectors.toList());
@@ -96,7 +100,22 @@ public class PQRSService {
         pqrs.setModeradorAsignadoId(moderadorId);
         pqrs.setFechaRespuesta(LocalDateTime.now());
 
-        return convertirAResponse(pqrsRepository.save(pqrs));
+        PQRS guardado = pqrsRepository.save(pqrs);
+
+        try {
+            notificacionService.crear(
+                TipoNotificacion.PQRS_RESPUESTA,
+                "Respuesta a tu caso " + pqrs.getCodigoTicket(),
+                "Hemos respondido a tu " + pqrs.getTipo().name().toLowerCase() + ". Ingresa al historial para ver los detalles.",
+                pqrs.getUsuario().getId(),
+                pqrs.getId(),
+                "PQRS"
+            );
+        } catch (Exception e) {
+            log.error("Error enviando notificación de PQRS {}: {}", pqrs.getCodigoTicket(), e.getMessage());
+        }
+
+        return convertirAResponse(guardado);
     }
 
     @Transactional

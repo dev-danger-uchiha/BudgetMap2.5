@@ -27,10 +27,8 @@
   <nav class="bg-gradient-to-r from-orange-500 to-amber-500 shadow-lg z-50 relative">
     <div class="px-6 py-3 flex justify-between items-center text-white">
       <div class="flex items-center gap-3">
-        <div class="bg-white/20 backdrop-blur-md rounded-xl p-2 shadow-inner">
-          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
-        </div>
-        <span class="text-xl font-black tracking-widest drop-shadow-md">BUDGETMAP</span>
+        <div class="relative bg-white rounded-full w-12 h-12 md:w-16 md:h-16 shadow-md ring-1 ring-black/5 flex items-center justify-center z-0 hidden sm:flex"><img src="/images/logo.png" alt="Logo BudgetMap" class="absolute w-16 h-16 md:w-24 md:h-24 max-w-none object-contain transform transition duration-500 hover:scale-110 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 drop-shadow-xl" /></div>
+        <span class="text-xl font-black tracking-widest drop-shadow-md"><a href="/index.html" class="hover:text-emerald-600 transition">BUDGETMAP</a></span>
       </div>
 
       <div class="flex items-center gap-4">
@@ -44,11 +42,13 @@
           </p>
         </div>
         
-        <div class="relative group">
-          <button class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-orange-600 font-black shadow-lg border-2 border-amber-200 hover:scale-105 transition">
+        <div class="relative">
+          <button onclick="toggleMenu(event)" class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-orange-600 font-black shadow-lg border-2 border-amber-200 hover:scale-105 transition overflow-hidden">
+            <img id="nav-profile-img" src="" class="w-full h-full object-cover hidden">
             <span id="user-initial">U</span>
           </button>
-          <div class="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl py-2 hidden group-hover:block border border-slate-100 transform origin-top-right transition-all">
+          <span id="notif-badge" class="hidden absolute top-0 right-0 w-3.5 h-3.5 bg-red-500 border-2 border-white rounded-full animate-pulse"></span>
+          <div id="profile-menu" class="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl py-2 hidden border border-slate-100 transform origin-top-right transition-all">
             <a href="perfil.html" class="block px-5 py-3 text-sm font-bold text-slate-700 hover:bg-orange-50 hover:text-orange-600">⚙️ Mi Perfil y Radar</a>
             <a href="mis-reservas.html" class="block px-5 py-3 text-sm font-bold text-slate-700 hover:bg-orange-50 hover:text-orange-600">🎫 Mis Reservas</a>
             <a href="notificaciones.html" class="block px-5 py-3 text-sm font-bold text-slate-700 hover:bg-orange-50 hover:text-orange-600">🔔 Notificaciones</a>
@@ -60,33 +60,103 @@
     </div>
   </nav>
 
-  <div class="flex flex-1 h-full relative">
-    <div id="mapa-radar" class="absolute inset-0 z-0"></div>
-
-    <div class="absolute bottom-6 left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:w-auto z-40 flex justify-center gap-3">
-        <button onclick="filtrarMapa('TODOS')" class="bg-slate-900/90 backdrop-blur-md text-white px-6 py-3 rounded-full text-xs font-black uppercase tracking-widest shadow-xl border border-slate-700 hover:bg-orange-500 transition">🌐 Todo</button>
-        <button onclick="filtrarMapa('ESTABLECIMIENTOS')" class="bg-slate-900/90 backdrop-blur-md text-white px-6 py-3 rounded-full text-xs font-black uppercase tracking-widest shadow-xl border border-slate-700 hover:bg-amber-500 transition">🍔 Locales</button>
-        <button onclick="filtrarMapa('EVENTOS')" class="bg-slate-900/90 backdrop-blur-md text-white px-6 py-3 rounded-full text-xs font-black uppercase tracking-widest shadow-xl border border-slate-700 hover:bg-purple-500 transition">🎟️ Eventos</button>
+  <div class="flex flex-col lg:flex-row flex-1 h-full relative overflow-y-auto lg:overflow-hidden">
+    
+    <!-- PANEL IZQUIERDO: LUGARES -->
+    <div class="w-full lg:w-72 shrink-0 h-[45vh] lg:h-full bg-slate-900/95 backdrop-blur shadow-xl border-b lg:border-b-0 lg:border-r border-slate-700 flex flex-col z-10 order-2 lg:order-1">
+      <div class="p-4 border-b border-slate-800 flex justify-between items-center">
+        <h2 class="text-white font-black text-sm uppercase tracking-widest flex items-center gap-2">📍 Lugares Públicos</h2>
+      </div>
+      <div id="lista-lugares" class="flex-1 overflow-y-auto p-4 space-y-4 custom-scroll">
+         <p class="text-xs text-slate-500 text-center mt-10">Cargando lugares...</p>
+      </div>
     </div>
+
+    <!-- CENTRO: MAPA Y EVENTOS -->
+    <div class="w-full lg:flex-1 min-w-0 flex flex-col relative z-0 order-1 lg:order-2">
+      
+      <!-- MAPA -->
+      <div id="mapa-radar" class="h-[45vh] lg:h-auto lg:flex-1 relative z-0 shrink-0 lg:shrink"></div>
+      
+      <!-- PANEL INFERIOR: EVENTOS -->
+      <div class="h-64 shrink-0 bg-slate-900/95 backdrop-blur shadow-[0_-10px_20px_rgba(0,0,0,0.5)] border-t border-slate-700 flex flex-col z-10 relative">
+        <div class="p-3 border-b border-slate-800 flex justify-between items-center">
+          <h2 class="text-white font-black text-sm uppercase tracking-widest flex items-center gap-2">🎟️ Eventos</h2>
+        </div>
+        <div id="lista-eventos" class="flex flex-1 overflow-x-auto p-4 gap-4 custom-scroll pb-6">
+           <p class="text-xs text-slate-500 w-full text-center">Cargando eventos...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANEL DERECHO: ESTABLECIMIENTOS -->
+    <div class="w-full lg:w-72 shrink-0 h-[45vh] lg:h-full bg-slate-900/95 backdrop-blur shadow-[-10px_0_20px_rgba(0,0,0,0.5)] border-t lg:border-t-0 lg:border-l border-slate-700 flex flex-col z-10 order-3">
+      <div class="p-4 border-b border-slate-800 flex justify-between items-center">
+        <h2 class="text-white font-black text-sm uppercase tracking-widest flex items-center gap-2">🍔 Establecimientos</h2>
+      </div>
+      <div id="lista-establecimientos" class="flex-1 overflow-y-auto p-4 space-y-4 custom-scroll">
+         <p class="text-xs text-slate-500 text-center mt-10">Cargando establecimientos...</p>
+      </div>
+    </div>
+
   </div>
+
+  <style>
+    .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+    .custom-scroll::-webkit-scrollbar-thumb:hover { background: #475569; }
+  </style>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
+    if (!token) window.location.href = '/login.html';
+
     let mapa;
     let layerGroup;
     let todosLosPuntos = [];
+    let userLocation = L.latLng(4.6097, -74.0817);
+    let userRadioMetros = 2000;
+
+    function toggleMenu(event) {
+        event.stopPropagation();
+        document.getElementById('profile-menu').classList.toggle('hidden');
+    }
+
+    document.addEventListener('click', (event) => {
+        const menu = document.getElementById('profile-menu');
+        if (menu && !menu.classList.contains('hidden') && !event.target.closest('.relative')) {
+            menu.classList.add('hidden');
+        }
+    });
 
     document.addEventListener("DOMContentLoaded", async () => {
       const nombre = localStorage.getItem('user_nombre') || 'Explorador';
       document.getElementById('user-name-display').textContent = nombre;
       document.getElementById('user-initial').textContent = nombre.charAt(0).toUpperCase();
       
+      const eventosContainer = document.getElementById('lista-eventos');
+      eventosContainer.addEventListener('wheel', (evt) => {
+          if (evt.deltaY !== 0) {
+              evt.preventDefault();
+              eventosContainer.scrollLeft += evt.deltaY;
+          }
+      });
+
       try {
-          const res = await fetch('http://localhost:8080/api/usuarios/me', { headers: { 'Authorization': `Bearer ${token}` }});
+          const res = await fetch('http://localhost:8080/api/perfil', { headers: { 'Authorization': `Bearer ${token}` }});
           if(res.ok) {
               const user = await res.json();
               document.getElementById('user-points').innerHTML = `🪙 ${user.puntosAcumulados || 0} Puntos`;
-              if(user.planId) document.getElementById('badge-pro').classList.remove('hidden');
+              if(user.planId || user.plan) document.getElementById('badge-pro').classList.remove('hidden');
+              document.getElementById('user-name-display').innerText = user.nombre || 'Explorador';
+              if(user.avatarUrl) {
+                  document.getElementById('nav-profile-img').src = user.avatarUrl;
+                  document.getElementById('nav-profile-img').classList.remove('hidden');
+                  document.getElementById('user-initial').classList.add('hidden');
+              } else {
+                  document.getElementById('user-initial').innerText = (user.nombre || 'U').charAt(0).toUpperCase();
+              }
           }
       } catch(e) { console.error("Error al cargar datos del usuario"); }
 
@@ -95,64 +165,155 @@
     });
 
     function iniciarMapa() {
-      mapa = L.map('mapa-radar', { zoomControl: false }).setView([4.6097, -74.0817], 14);
+      mapa = L.map('mapa-radar', { zoomControl: false }).setView(userLocation, 14);
       L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(mapa);
       layerGroup = L.layerGroup().addTo(mapa);
       
       const userIcon = L.divIcon({
         className: 'custom-div-icon',
-        html: `<div class="bg-orange-500 w-6 h-6 rounded-full border-4 border-white pulse"></div>`,
-        iconSize: [24, 24]
+        html: `<div class="bg-orange-500 w-6 h-6 rounded-full border-4 border-white pulse shadow-xl"></div>`,
+        iconSize: [24, 24],
+        iconAnchor: [12, 12]
       });
-      L.marker([4.6097, -74.0817], { icon: userIcon }).addTo(mapa).bindPopup("<b class='text-orange-600'>Tu ubicación</b>");
+      L.marker(userLocation, { icon: userIcon }).addTo(mapa).bindPopup("<b class='text-orange-600 uppercase tracking-widest text-[10px]'>Tú estás aquí</b>");
+    }
+
+    function ordenarData(arr) {
+        return arr.sort((a, b) => {
+            if (a.destacado && !b.destacado) return -1;
+            if (!a.destacado && b.destacado) return 1;
+            if (a.verificado && !b.verificado) return -1;
+            if (!a.verificado && b.verificado) return 1;
+            return 0;
+        });
     }
 
     async function cargarRadar() {
       try {
-        const urlEst = 'http://localhost:8080/api/establecimientos/aprobados';
-        const resEst = await fetch(urlEst, { headers: { 'Authorization': `Bearer ${token}` }});
-        if (resEst.ok) {
-          const establecimientos = await resEst.json();
-          establecimientos.forEach(est => {
-             todosLosPuntos.push({ data: est, tipo: 'ESTABLECIMIENTO' });
-          });
+        const [resLugares, resEst, resEv, resConfig] = await Promise.all([
+            fetch('http://localhost:8080/api/lugares/aprobados', { headers: { 'Authorization': `Bearer ${token}` }}),
+            fetch('http://localhost:8080/api/establecimientos/aprobados', { headers: { 'Authorization': `Bearer ${token}` }}),
+            fetch('http://localhost:8080/api/eventos', { headers: { 'Authorization': `Bearer ${token}` }}),
+            fetch('http://localhost:8080/api/config-alertas/mi-radar', { headers: { 'Authorization': `Bearer ${token}` }})
+        ]);
+
+        if (resConfig.ok) {
+            const config = await resConfig.json();
+            userRadioMetros = config.radioMetros || 2000;
         }
 
-        const urlEv = 'http://localhost:8080/api/eventos/activos';
-        const resEv = await fetch(urlEv, { headers: { 'Authorization': `Bearer ${token}` }});
-        if (resEv.ok) {
-          const eventos = await resEv.json();
-          eventos.forEach(ev => {
-             todosLosPuntos.push({ data: ev, tipo: 'EVENTO' });
-          });
-        }
+        L.circle(userLocation, {
+            color: '#f97316',
+            fillColor: '#f97316',
+            fillOpacity: 0.08,
+            radius: userRadioMetros,
+            weight: 2,
+            dashArray: '5, 5'
+        }).addTo(mapa);
+
+        let lugares = [], establecimientos = [], eventos = [];
+        if (resLugares.ok) { const d = await resLugares.json(); lugares = ordenarData(d.content || d); }
+        if (resEst.ok) { const d = await resEst.json(); establecimientos = ordenarData(d.content || d); }
+        if (resEv.ok) { const d = await resEv.json(); eventos = ordenarData(d.content || d); }
+
+        // Filtrar por distancia
+        const filtrarPorDistancia = (items, isEvento) => {
+            return items.filter(item => {
+                let lat, lng;
+                if (isEvento) {
+                    if (item.lugarId) {
+                        const lugar = lugares.find(l => l.id === item.lugarId);
+                        if (lugar) { lat = lugar.latitud; lng = lugar.longitud; }
+                    } else if (item.establecimientoId) {
+                        const est = establecimientos.find(e => e.id === item.establecimientoId);
+                        if (est) { lat = est.latitud; lng = est.longitud; }
+                    }
+                } else {
+                    lat = item.latitud;
+                    lng = item.longitud;
+                }
+                
+                if (!lat || !lng) return false;
+                
+                item._lat = lat;
+                item._lng = lng;
+
+                return userLocation.distanceTo(L.latLng(lat, lng)) <= userRadioMetros;
+            });
+        };
+
+        lugares = filtrarPorDistancia(lugares, false);
+        establecimientos = filtrarPorDistancia(establecimientos, false);
+        eventos = filtrarPorDistancia(eventos, true);
+
+        todosLosPuntos = [];
         
-        filtrarMapa('TODOS');
+        renderLugares(lugares);
+        renderEstablecimientos(establecimientos);
+        renderEventos(eventos);
+
+        layerGroup.clearLayers();
+        agregarAlMapa(lugares, 'LUGAR', 'bg-blue-500', 'text-blue-600');
+        agregarAlMapa(establecimientos, 'ESTABLECIMIENTO', 'bg-amber-500', 'text-amber-600');
+        agregarAlMapa(eventos, 'EVENTO', 'bg-purple-500', 'text-purple-600');
+        
       } catch (error) {
         console.error("Error al cargar radar:", error);
       }
     }
 
-    function filtrarMapa(filtro) {
-        layerGroup.clearLayers();
-        todosLosPuntos.forEach(punto => {
-            if (filtro === 'TODOS' || punto.tipo === filtro) {
-                const colorBg = punto.tipo === 'ESTABLECIMIENTO' ? 'bg-amber-500' : 'bg-purple-500';
-                const colorTexto = punto.tipo === 'ESTABLECIMIENTO' ? 'text-amber-600' : 'text-purple-600';
-                const lat = punto.tipo === 'ESTABLECIMIENTO' ? punto.data.latitud : (punto.data.lugar ? punto.data.lugar.latitud : 4.6097);
-                const lng = punto.tipo === 'ESTABLECIMIENTO' ? punto.data.longitud : (punto.data.lugar ? punto.data.lugar.longitud : -74.0817);
-                const url = `/explorador/detalle.html?id=${punto.data.id}&tipo=${punto.tipo.toLowerCase()}`;
-                
-                crearMarcadorMapa(lat, lng, punto.data.nombre, punto.tipo, colorBg, colorTexto, url);
-            }
+    function agregarAlMapa(arr, tipo, colorBg, colorTexto) {
+        arr.forEach(item => {
+            todosLosPuntos.push({ data: item, tipo: tipo });
+            const lat = item._lat || item.latitud;
+            const lng = item._lng || item.longitud;
+            const url = `/explorador/detalle.html?id=${item.id}&tipo=${tipo.toLowerCase()}`;
+            crearMarcadorMapa(lat, lng, item.nombre, tipo, colorBg, colorTexto, url);
         });
+    }
+
+    function renderLugares(arr) {
+        const div = document.getElementById('lista-lugares');
+        if(!arr.length) { div.innerHTML = '<p class="text-xs text-slate-500 text-center">No hay lugares públicos disponibles</p>'; return; }
+        div.innerHTML = arr.map(l => createCard(l, 'LUGAR')).join('');
+    }
+
+    function renderEstablecimientos(arr) {
+        const div = document.getElementById('lista-establecimientos');
+        if(!arr.length) { div.innerHTML = '<p class="text-xs text-slate-500 text-center">No hay establecimientos disponibles</p>'; return; }
+        div.innerHTML = arr.map(e => createCard(e, 'ESTABLECIMIENTO')).join('');
+    }
+
+    function renderEventos(arr) {
+        const div = document.getElementById('lista-eventos');
+        if(!arr.length) { div.innerHTML = '<p class="text-xs text-slate-500 text-center w-full">No hay eventos disponibles</p>'; return; }
+        div.innerHTML = arr.map(e => createCard(e, 'EVENTO', true)).join('');
+    }
+
+    function createCard(item, tipo, horizontal = false) {
+        const isDestacado = item.destacado ? `<span class="bg-amber-500/20 text-amber-500 border border-amber-500/50 text-[9px] px-1.5 py-0.5 rounded-full font-black uppercase">⭐ Destacado</span>` : '';
+        const isVerificado = item.verificado ? `<span class="bg-blue-500/20 text-blue-400 border border-blue-500/50 text-[9px] px-1.5 py-0.5 rounded-full font-black uppercase">✔️ Verificado</span>` : '';
+        const stateTag = tipo === 'EVENTO' ? `<span class="bg-slate-800 text-slate-300 text-[9px] px-1.5 py-0.5 rounded uppercase font-black">${item.estadoEvento || 'ACTIVA'}</span>` : '';
+        const wClass = horizontal ? 'w-64 flex-shrink-0' : 'w-full';
+        const url = `/explorador/detalle.html?id=${item.id}&tipo=${tipo.toLowerCase()}`;
+
+        return `
+            <a href="${url}" class="block ${wClass} bg-slate-800/80 hover:bg-slate-800 border border-slate-700 rounded-xl p-3 shadow-sm hover:shadow-orange-500/20 hover:border-orange-500/50 transition-all group">
+                <div class="w-full h-24 bg-slate-700 rounded-lg mb-3 overflow-hidden">
+                    <img src="${item.imagenUrl || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500&q=80'}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                </div>
+                <div class="flex gap-1 flex-wrap mb-2">${isDestacado}${isVerificado}${stateTag}</div>
+                <h3 class="text-white font-bold text-sm truncate">${item.nombre}</h3>
+                <p class="text-xs text-slate-400 mt-1 truncate">${item.descripcion || 'Sin descripción'}</p>
+            </a>
+        `;
     }
 
     function crearMarcadorMapa(lat, lng, nombre, tipo, colorBg, colorTexto, url) {
       if (!lat || !lng) return;
       const markerIcon = L.divIcon({
         className: 'custom-icon',
-        html: `<div class="w-5 h-5 rounded-full border-2 border-white shadow-lg ${colorBg}"></div>`,
+        html: `<div class="w-5 h-5 rounded-full border-2 border-white shadow-lg ${colorBg} hover:scale-125 transition-transform"></div>`,
         iconSize: [20, 20],
         iconAnchor: [10, 10]
       });
@@ -173,5 +334,19 @@
         window.location.href = '/login.html';
     }
   </script>
+<script>
+    async function checkNotificacionesBadge() {
+        try {
+            const res = await fetch('http://localhost:8080/api/notificaciones/contador', { headers: { 'Authorization': 'Bearer ' + token } });
+            if(res.ok) {
+                const data = await res.json();
+                if(data.noLeidas > 0) {
+                    document.getElementById('notif-badge')?.classList.remove('hidden');
+                }
+            }
+        } catch(e) {}
+    }
+    checkNotificacionesBadge();
+</script>
 </body>
 </html>

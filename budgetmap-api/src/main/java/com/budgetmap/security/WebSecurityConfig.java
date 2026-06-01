@@ -150,7 +150,7 @@ public class WebSecurityConfig {
                 // ======================================================
                 .requestMatchers(HttpMethod.GET, "/api/establecimientos/*").hasAnyRole("EXPLORADOR", "LOCAL_ALIADO", "ADMINISTRADOR")
                 .requestMatchers(HttpMethod.GET, "/api/eventos/*").hasAnyRole("EXPLORADOR", "ANFITRION", "ADMINISTRADOR")
-                .requestMatchers(HttpMethod.GET, "/api/promociones/establecimiento/*").hasAnyRole("EXPLORADOR", "LOCAL_ALIADO")
+                .requestMatchers(HttpMethod.GET, "/api/promociones/establecimiento/*").hasAnyRole("EXPLORADOR", "LOCAL_ALIADO", "ADMINISTRADOR")
                 .requestMatchers(HttpMethod.GET, "/api/promociones/mi-establecimiento/*").hasAnyRole("EXPLORADOR", "LOCAL_ALIADO")
 
                 // ======================================================
@@ -158,7 +158,6 @@ public class WebSecurityConfig {
                 // ======================================================
                 .requestMatchers("/api/establecimientos/admin/**").hasAnyRole("ADMINISTRADOR", "MODERADOR")
                 .requestMatchers("/api/lugares/admin/**").hasAnyRole("ADMINISTRADOR", "MODERADOR")
-                .requestMatchers("/api/pqrs/**").hasAnyRole("ADMINISTRADOR", "MODERADOR")
                 .requestMatchers("/api/aprobaciones/**").hasAnyRole("ADMINISTRADOR", "MODERADOR")
                 .requestMatchers("/api/moderadores/**").hasRole("ADMINISTRADOR")
                 .requestMatchers("/api/admin/**").hasRole("ADMINISTRADOR")

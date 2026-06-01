@@ -11,7 +11,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import java.time.LocalDateTime;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,6 +28,9 @@ public class NotificacionService {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private com.budgetmap.repository.ConfigAlertaRepository configAlertaRepository;
 
     public List<NotificacionResponse> listarPorUsuario(Long usuarioId) {
         return notificacionRepository.findByUsuarioIdOrderByCreatedAtDesc(usuarioId, Pageable.unpaged())
@@ -55,6 +61,18 @@ public class NotificacionService {
                     log.error("Fallo al crear notificación. Usuario ID {} no encontrado.", usuarioId);
                     return new ResourceNotFoundException("Usuario no encontrado");
                 });
+
+        com.budgetmap.model.ConfigAlerta config = configAlertaRepository.findByUsuarioId(usuarioId).orElse(null);
+        if (config != null) {
+            if (tipo == TipoNotificacion.PROMOCION_NUEVA && Boolean.FALSE.equals(config.getNotificarPromociones())) {
+                log.info("Notificación abortada: El usuario ID {} tiene deshabilitadas las promociones.", usuarioId);
+                return null;
+            }
+            if (tipo == TipoNotificacion.EVENTO_RECORDATORIO && Boolean.FALSE.equals(config.getNotificarEventos())) {
+                log.info("Notificación abortada: El usuario ID {} tiene deshabilitados los eventos.", usuarioId);
+                return null;
+            }
+        }
 
         Notificacion notificacion = Notificacion.builder()
                 .usuario(usuario)
@@ -105,5 +123,13 @@ public class NotificacionService {
                 .origen(notificacion.getOrigen())
                 .createdAt(notificacion.getCreatedAt())
                 .build();
+    }
+
+    @Scheduled(cron = "0 0 2 * * ?") // Todos los días a las 2 AM
+    @Transactional
+    public void limpiarNotificacionesAntiguas() {
+        LocalDateTime hace30Dias = LocalDateTime.now().minusDays(30);
+        log.info("Ejecutando limpieza de notificaciones leídas anteriores a {}", hace30Dias);
+        notificacionRepository.deleteByLeidaTrueAndCreatedAtBefore(hace30Dias);
     }
 }

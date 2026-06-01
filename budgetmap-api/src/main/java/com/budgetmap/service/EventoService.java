@@ -314,6 +314,7 @@ public class EventoService {
                 .imagenUrl(evento.getImagenUrl())
                 .activo(evento.getActivo())
                 .destacado(evento.getDestacado())
+                .verificado(evento.getVerificado())
                 .estado(evento.getEstado())
                 .motivoRechazo(evento.getMotivoRechazo())
                 .createdAt(evento.getCreatedAt())
@@ -361,5 +362,10 @@ public class EventoService {
         if (desactivados > 0) {
             log.info("Tarea programada finalizada. Se desactivaron {} eventos.", desactivados);
         }
+    }
+
+    public Page<EventoResponse> listarFiltradoAdmin(String texto, EstadoAprobacion estado, LocalDate fechaInicio, LocalDate fechaFin, Pageable pageable) {
+        return eventoRepository.findFiltradoAdmin(texto, estado, fechaInicio, fechaFin, pageable)
+                .map(this::convertirAResponse);
     }
 }

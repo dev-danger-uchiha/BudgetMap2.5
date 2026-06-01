@@ -13,16 +13,30 @@
 <body class="bg-slate-50 font-sans min-h-screen">
 
   <nav class="bg-gradient-to-r from-orange-500 to-amber-500 p-4 shadow-lg text-white sticky top-0 z-50">
-    <div class="max-w-3xl mx-auto flex justify-between items-center">
-      <button onclick="location.href='dashboard.html'" class="font-bold text-sm tracking-widest uppercase hover:text-amber-200">猬咃笍 Radar</button>
-      <span class="font-black tracking-widest text-lg uppercase">Mis Accesos</span>
-      <div class="w-8"></div>
+    <div class="w-full px-6 md:px-10 flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <button onclick="location.href='dashboard.html'" class="font-bold text-xs tracking-widest uppercase hover:text-amber-200 mr-2">? Radar</button>
+        <div class="relative bg-white rounded-full w-12 h-12 md:w-16 md:h-16 shadow-md ring-1 ring-black/5 flex items-center justify-center z-0 hidden sm:flex"><img src="/images/logo.png" alt="Logo BudgetMap" class="absolute w-16 h-16 md:w-24 md:h-24 max-w-none object-contain transform transition duration-500 hover:scale-110 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 drop-shadow-xl" /></div>
+        <span class="font-black tracking-widest text-lg uppercase drop-shadow-md"><a href="/index.html" class="hover:text-emerald-600 transition">BUDGETMAP</a></span>
+      </div>
+      <div class="flex items-center gap-4">
+        <span class="text-xs font-bold uppercase text-orange-100 hidden sm:inline-block">Mis Accesos</span>
+        <button onclick="cerrarSesion()" class="text-[12px] text-white font-bold hover:text-red-200 transition">SALIR</button>
+      </div>
     </div>
   </nav>
 
-  <main class="max-w-3xl mx-auto px-4 mt-8 pb-12">
+  <script>
+    function cerrarSesion() {
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.href = '/login.html';
+    }
+  </script>
+
+  <main class="w-full px-6 md:px-10 px-4 mt-8 pb-12">
     <div class="flex bg-slate-200 p-1 rounded-2xl mb-8 shadow-inner">
-        <button onclick="cargarMisReservas('ACTIVA')" class="flex-1 py-3 text-xs font-black uppercase rounded-xl bg-white text-orange-600 shadow-sm transition">Pr贸ximos</button>
+        <button onclick="cargarMisReservas('ACTIVA')" class="flex-1 py-3 text-xs font-black uppercase rounded-xl bg-white text-orange-600 shadow-sm transition">Pr髕imos</button>
         <button onclick="cargarMisReservas('HISTORIAL')" class="flex-1 py-3 text-xs font-black uppercase text-slate-500 hover:text-slate-800 transition">Historial</button>
     </div>
 
@@ -56,7 +70,7 @@
           );
 
           if (filtradas.length === 0) {
-            contenedor.innerHTML = `<p class="text-center text-slate-400 font-bold mt-10">No tienes reservas en esta secci贸n.</p>`;
+            contenedor.innerHTML = `<p class="text-center text-slate-400 font-bold mt-10">No tienes reservas en esta secci髇.</p>`;
             return;
           }
 
@@ -77,7 +91,7 @@
                         <span class="text-[10px] text-slate-400 font-bold">${new Date(r.fechaReserva).toLocaleDateString()}</span>
                     </div>
                     <h3 class="text-2xl font-black text-slate-800 uppercase italic mt-3">${r.establecimientoNombre || r.eventoNombre || 'Reserva'}</h3>
-                    <p class="text-xs text-slate-500 font-bold mt-1">馃搷 Ver ubicaci贸n en el mapa</p>
+                    <p class="text-xs text-slate-500 font-bold mt-1">?? Ver ubicaci髇 en el mapa</p>
                     <div class="mt-6 flex gap-4">
                         <div class="bg-slate-50 px-4 py-2 rounded-xl border border-slate-100">
                             <p class="text-[9px] font-black text-slate-400 uppercase">Boletas</p>
@@ -87,7 +101,7 @@
                 </div>
                 
                 <div class="p-6 md:w-56 bg-orange-50 flex flex-col items-center justify-center text-center">
-                    <p class="text-[9px] font-black text-orange-400 uppercase tracking-widest mb-1">C脫DIGO DE ACCESO</p>
+                    <p class="text-[9px] font-black text-orange-400 uppercase tracking-widest mb-1">C覦IGO DE ACCESO</p>
                     <span class="text-2xl font-black text-slate-900 tracking-widest font-mono border-b-2 border-orange-200 pb-1">${r.codigoReserva || 'N/A'}</span>
                     
                     ${esActiva ? `
@@ -102,12 +116,12 @@
           });
         }
       } catch (error) {
-        contenedor.innerHTML = '<p class="text-center text-red-500 font-bold mt-10">Error de conexi贸n con la billetera.</p>';
+        contenedor.innerHTML = '<p class="text-center text-red-500 font-bold mt-10">Error de conexi髇 con la billetera.</p>';
       }
     }
 
     async function cancelarReserva(id) {
-        if(!confirm("驴Est谩s seguro de que deseas cancelar tu asistencia? Esta acci贸n no se puede deshacer.")) return;
+        if(!confirm("縀st醩 seguro de que deseas cancelar tu asistencia? Esta acci髇 no se puede deshacer.")) return;
         
         try {
             const response = await fetch(`http://localhost:8080/api/reservas/${id}/cancelar`, {
@@ -122,8 +136,22 @@
                 alert("Reserva cancelada exitosamente.");
                 cargarMisReservas(estadoActual);
             } else { alert("No se pudo cancelar la reserva en el servidor."); }
-        } catch (error) { alert("Error de conexi贸n al intentar cancelar."); }
+        } catch (error) { alert("Error de conexi髇 al intentar cancelar."); }
     }
   </script>
+<script>
+    async function checkNotificacionesBadge() {
+        try {
+            const res = await fetch('http://localhost:8080/api/notificaciones/contador', { headers: { 'Authorization': 'Bearer ' + token } });
+            if(res.ok) {
+                const data = await res.json();
+                if(data.noLeidas > 0) {
+                    document.getElementById('notif-badge')?.classList.remove('hidden');
+                }
+            }
+        } catch(e) {}
+    }
+    checkNotificacionesBadge();
+</script>
 </body>
 </html>

@@ -22,4 +22,5 @@ public class UsuarioDTO {
     private Boolean activo;
     private LocalDateTime ultimoAcceso;
     private LocalDateTime createdAt;
+    private String avatarUrl;
 }

@@ -84,8 +84,11 @@ public class Lugar {
 
     // --- NUEVO CAMPO: FILTRO INDEX ---
     @Builder.Default
-    @Column(name = "destacado", nullable = false)
+    @Column(name = "destacado")
     private Boolean destacado = false;
+
+    @Column(name = "verificado")
+    private Boolean verificado = false;
 
     @Builder.Default
     @Column(nullable = false)

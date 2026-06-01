@@ -40,4 +40,11 @@ public interface EventoRepository extends JpaRepository<Evento, Long> {
     
     @Query("SELECT e FROM Evento e WHERE e.destacado = true AND e.activo = true")
     List<Evento> findAllDestacados();
+
+    @Query("SELECT e FROM Evento e WHERE " +
+           "(:texto IS NULL OR LOWER(e.nombre) LIKE LOWER(CONCAT('%', :texto, '%'))) AND " +
+           "(:estado IS NULL OR e.estado = :estado) AND " +
+           "(:fechaInicio IS NULL OR e.fechaInicio >= :fechaInicio) AND " +
+           "(:fechaFin IS NULL OR e.fechaInicio <= :fechaFin)")
+    Page<Evento> findFiltradoAdmin(@Param("texto") String texto, @Param("estado") com.budgetmap.model.enums.EstadoAprobacion estado, @Param("fechaInicio") LocalDate fechaInicio, @Param("fechaFin") LocalDate fechaFin, Pageable pageable);
 }

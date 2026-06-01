@@ -47,4 +47,10 @@ public interface EstablecimientoRepository extends JpaRepository<Establecimiento
         List<Establecimiento> findDestacadosPorCategoria(@Param("categoria") CategoriaEstablecimiento categoria);
         
         boolean existsByNit(String nit);
+
+        @Query("SELECT e FROM Establecimiento e WHERE " +
+               "(:texto IS NULL OR LOWER(e.nombre) LIKE LOWER(CONCAT('%', :texto, '%'))) AND " +
+               "(:estado IS NULL OR e.estado = :estado) AND " +
+               "(:nit IS NULL OR e.nit = :nit)")
+        Page<Establecimiento> findFiltradoAdmin(@Param("texto") String texto, @Param("estado") EstadoAprobacion estado, @Param("nit") String nit, Pageable pageable);
 }

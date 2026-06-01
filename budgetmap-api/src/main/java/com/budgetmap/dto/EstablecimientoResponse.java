@@ -32,6 +32,10 @@ public class EstablecimientoResponse {
     private String motivoRechazo;
     private Boolean activo;
     private LocalDateTime createdAt;
+    
+    private Boolean destacado;
+    private Boolean verificado;
+    
     private Long propietarioId;
     private String propietarioNombre;
 }

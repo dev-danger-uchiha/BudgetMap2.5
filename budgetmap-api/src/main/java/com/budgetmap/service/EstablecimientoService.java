@@ -227,6 +227,11 @@ public class EstablecimientoService {
         establecimientoRepository.save(est);
     }
 
+    public Page<EstablecimientoResponse> listarFiltradoAdmin(String texto, EstadoAprobacion estado, String nit, Pageable pageable) {
+        return establecimientoRepository.findFiltradoAdmin(texto, estado, nit, pageable)
+                .map(this::convertirAResponse);
+    }
+
     @Transactional
     public void eliminar(Long id, Long propietarioId) {
         log.info("Solicitud de eliminación de establecimiento ID: {} por usuario ID: {}", id, propietarioId);
@@ -272,6 +277,8 @@ public class EstablecimientoService {
                 .estado(est.getEstado())
                 .motivoRechazo(est.getMotivoRechazo())
                 .activo(est.getActivo())
+                .destacado(est.getDestacado())
+                .verificado(est.getVerificado())
                 .createdAt(est.getCreatedAt())
                 .propietarioId(est.getPropietario().getId())
                 .propietarioNombre(est.getPropietario().getNombre())

@@ -1,54 +1,334 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<html lang="es">
+
 <head>
     <meta charset="UTF-8">
-    <title>Radicar PQRS | BudgetMap</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soporte y PQRS | BudgetMap</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+    <script>
+        const token = localStorage.getItem('jwt_token');
+        if (!token) {
+            window.location.href = '/login.html?redirect=/info/pqrs.html';
+        }
+    </script>
 </head>
-<body class="bg-gray-50">
-    <div th:replace="~{fragments/navbar :: miNavbar}"></div>
 
-    <main class="max-w-3xl mx-auto py-20 px-6">
-        <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
-            <div class="bg-emerald-600 p-8 text-white text-center">
-                <h1 class="text-3xl font-bold">Radicar PQRS</h1>
-                <p class="text-emerald-100 mt-2">Peticiones, Quejas, Reclamos o Sugerencias</p>
+<body class="bg-slate-50 min-h-screen text-slate-800 flex flex-col">
+
+    <!-- Header Uniforme -->
+    <nav class="bg-white border-b border-emerald-100 p-4 sticky top-0 z-50 shadow-sm">
+        <div class="w-full max-w-6xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <div class="flex flex-col">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xl font-black tracking-widest text-slate-900"><a href="/index.html"
+                                class="hover:text-emerald-600 transition">BUDGETMAP</a></span>
+                        <span
+                            class="bg-emerald-600 text-white px-2 py-0.5 rounded-full font-black text-[9px] uppercase tracking-wider">SOPORTE</span>
+                    </div>
+                    <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Centro de Ayuda y
+                        PQRS</span>
+                </div>
             </div>
-            
-            <form action="#" th:action="@{/pqrs/enviar}" method="post" class="p-8 space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-2">Nombre Completo</label>
-                        <input type="text" name="nombre" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none transition" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-2">Correo Electrónico</label>
-                        <input type="email" name="email" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none transition" required>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">Tipo de Solicitud</label>
-                    <select name="tipo" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none transition">
-                        <option value="peticion">Petición</option>
-                        <option value="queja">Queja</option>
-                        <option value="reclamo">Reclamo</option>
-                        <option value="sugerencia">Sugerencia</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">Descripción del caso</label>
-                    <textarea name="mensaje" rows="4" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none transition" placeholder="Cuéntanos qué sucedió..."></textarea>
-                </div>
-
-                <button type="submit" class="w-full bg-emerald-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-emerald-700 transition transform hover:-translate-y-1">
-                    Enviar Solicitud
-                </button>
-            </form>
+            <button onclick="cerrarSesion()"
+                class="text-[12px] text-slate-400 font-bold hover:text-red-500 uppercase tracking-widest transition">SALIR</button>
         </div>
+    </nav>
+
+    <main class="flex-1 w-full max-w-5xl mx-auto px-4 py-8">
+
+        <!-- Tabs -->
+        <div class="flex bg-white rounded-2xl p-1.5 shadow-sm border border-emerald-100 w-fit mx-auto mb-8">
+            <button onclick="cambiarTab('radicar')" id="tab-radicar"
+                class="px-6 py-2.5 rounded-xl font-black text-[11px] uppercase tracking-widest transition-all bg-emerald-600 text-white shadow-md">Radicar
+                Nueva</button>
+            <button onclick="cambiarTab('historial')" id="tab-historial"
+                class="px-6 py-2.5 rounded-xl font-black text-[11px] uppercase tracking-widest transition-all text-slate-500 hover:text-slate-700 hover:bg-slate-100">Mis
+                Solicitudes</button>
+        </div>
+
+        <!-- Sección: Radicar PQRS -->
+        <section id="sec-radicar" class="max-w-2xl mx-auto block animate-fade-in">
+            <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-emerald-100">
+                <div
+                    class="bg-gradient-to-r from-emerald-600 to-emerald-800 p-8 text-white text-center relative overflow-hidden">
+                    <div
+                        class="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white to-transparent">
+                    </div>
+                    <h1 class="text-3xl font-black tracking-tighter uppercase relative z-10">Radicar Solicitud</h1>
+                    <p class="text-emerald-100/80 font-medium text-sm mt-2 relative z-10">Peticiones, Quejas, Reclamos y
+                        Sugerencias</p>
+                </div>
+
+                <form id="form-pqrs" class="p-8 space-y-6">
+                    <div id="mensaje-exito"
+                        class="hidden bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-2xl flex flex-col items-center text-center">
+                        <svg class="w-12 h-12 text-emerald-500 mb-2" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <h3 class="font-black text-lg">¡Solicitud Radicada con Éxito!</h3>
+                        <p class="text-sm mt-1">Guarda tu código de seguimiento:</p>
+                        <span id="codigo-ticket"
+                            class="text-2xl font-black font-mono bg-white px-4 py-2 rounded-lg border border-emerald-200 text-emerald-600 my-3 shadow-inner tracking-widest"></span>
+                        <button type="button" onclick="resetForm()"
+                            class="text-xs font-bold text-emerald-600 hover:text-emerald-800 underline mt-2">Radicar
+                            otra solicitud</button>
+                    </div>
+
+                    <div id="campos-form">
+                        <div>
+                            <label
+                                class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">Tipo
+                                de Solicitud</label>
+                            <select id="pqrs-tipo"
+                                class="w-full px-4 py-3.5 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition font-medium text-slate-700"
+                                required>
+                                <option value="" disabled selected>Selecciona una opción...</option>
+                                <option value="PETICION">Petición (P)</option>
+                                <option value="QUEJA">Queja (Q)</option>
+                                <option value="RECLAMO">Reclamo (R)</option>
+                                <option value="SUGERENCIA">Sugerencia (S)</option>
+                            </select>
+                        </div>
+
+                        <div class="mt-6">
+                            <label
+                                class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">Asunto
+                                Principal</label>
+                            <input type="text" id="pqrs-asunto"
+                                class="w-full px-4 py-3.5 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition font-medium text-slate-700 placeholder-slate-400"
+                                placeholder="Ej. Problemas con mi reserva..." maxlength="200" required>
+                        </div>
+
+                        <div class="mt-6">
+                            <label
+                                class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">Descripción
+                                Detallada</label>
+                            <textarea id="pqrs-descripcion" rows="5"
+                                class="w-full px-4 py-3.5 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition font-medium text-slate-700 placeholder-slate-400 resize-none"
+                                placeholder="Cuéntanos exactamente qué sucedió o qué necesitas..." required></textarea>
+                            <p class="text-[10px] text-slate-400 font-semibold mt-2 text-right">Se lo más detallado
+                                posible para brindarte una mejor solución.</p>
+                        </div>
+
+                        <button type="submit" id="btn-enviar"
+                            class="w-full mt-8 bg-emerald-600 text-white font-black uppercase tracking-widest text-sm py-4 rounded-2xl shadow-lg shadow-emerald-600/30 hover:bg-emerald-700 hover:shadow-emerald-600/40 hover:-translate-y-0.5 transition-all">
+                            Enviar Solicitud
+                        </button>
+                        <p id="error-envio" class="hidden text-red-500 text-xs font-bold text-center mt-4"></p>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- Sección: Mis PQRS (Historial) -->
+        <section id="sec-historial" class="hidden max-w-4xl mx-auto animate-fade-in">
+            <div class="flex justify-between items-end mb-6">
+                <div>
+                    <h2 class="text-2xl font-black text-slate-900 tracking-tight">Mi Historial de Soporte</h2>
+                    <p class="text-slate-500 text-sm font-medium">Revisa el estado y las respuestas de tus casos.</p>
+                </div>
+                <button onclick="cargarMisPQRS()"
+                    class="text-emerald-600 hover:bg-emerald-50 p-2 rounded-full transition" title="Actualizar">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+
+            <div id="pqrs-lista" class="space-y-4">
+                <div class="text-center p-12 text-slate-400 animate-pulse font-bold uppercase tracking-widest text-xs">
+                    Cargando...</div>
+            </div>
+        </section>
+
     </main>
 
-    <div th:replace="~{fragments/footer :: miFooter}"></div>
+    <script>
+        function volverAlDashboard() {
+            const rol = localStorage.getItem('user_rol') || '';
+            if (rol.includes('ADMINISTRADOR') || rol.includes('MODERADOR')) {
+                window.location.href = '/admin/estadisticas.html';
+            } else if (rol.includes('LOCAL_ALIADO')) {
+                window.location.href = '/aliado/dashboard.html';
+            } else if (rol.includes('ANFITRION')) {
+                window.location.href = '/anfitrion/dashboard.html';
+            } else {
+                window.location.href = '/explorador/index.html';
+            }
+        }
+
+        function cerrarSesion() {
+            localStorage.clear();
+            window.location.href = "/login.html";
+        }
+
+        function cambiarTab(tab) {
+            const btnRadicar = document.getElementById('tab-radicar');
+            const btnHistorial = document.getElementById('tab-historial');
+            const secRadicar = document.getElementById('sec-radicar');
+            const secHistorial = document.getElementById('sec-historial');
+
+            if (tab === 'radicar') {
+                btnRadicar.className = "px-6 py-2.5 rounded-xl font-black text-[11px] uppercase tracking-widest transition-all bg-emerald-600 text-white shadow-md";
+                btnHistorial.className = "px-6 py-2.5 rounded-xl font-black text-[11px] uppercase tracking-widest transition-all text-slate-500 hover:text-slate-700 hover:bg-slate-100";
+                secRadicar.classList.remove('hidden');
+                secHistorial.classList.add('hidden');
+            } else {
+                btnHistorial.className = "px-6 py-2.5 rounded-xl font-black text-[11px] uppercase tracking-widest transition-all bg-emerald-600 text-white shadow-md";
+                btnRadicar.className = "px-6 py-2.5 rounded-xl font-black text-[11px] uppercase tracking-widest transition-all text-slate-500 hover:text-slate-700 hover:bg-slate-100";
+                secHistorial.classList.remove('hidden');
+                secRadicar.classList.add('hidden');
+                cargarMisPQRS();
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('form-pqrs').reset();
+            document.getElementById('mensaje-exito').classList.add('hidden');
+            document.getElementById('campos-form').classList.remove('hidden');
+        }
+
+        // Crear PQRS
+        document.getElementById('form-pqrs').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-enviar');
+            const errorP = document.getElementById('error-envio');
+
+            btn.disabled = true;
+            btn.innerHTML = 'Enviando...';
+            errorP.classList.add('hidden');
+
+            const payload = {
+                tipo: document.getElementById('pqrs-tipo').value,
+                asunto: document.getElementById('pqrs-asunto').value,
+                descripcion: document.getElementById('pqrs-descripcion').value
+            };
+
+            try {
+                const res = await fetch('http://localhost:8080/api/pqrs', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) {
+                    const text = await res.text();
+                    throw new Error("Error al radicar: " + text);
+                }
+
+                const data = await res.json();
+
+                // Mostrar éxito
+                document.getElementById('campos-form').classList.add('hidden');
+                document.getElementById('mensaje-exito').classList.remove('hidden');
+                document.getElementById('codigo-ticket').innerText = data.codigoTicket;
+
+            } catch (error) {
+                console.error(error);
+                errorP.innerText = error.message;
+                errorP.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Enviar Solicitud';
+            }
+        });
+
+        // Cargar Historial
+        async function cargarMisPQRS() {
+            const container = document.getElementById('pqrs-lista');
+            container.innerHTML = '<div class="text-center p-12 text-slate-400 font-bold uppercase tracking-widest text-xs">Cargando solicitudes...</div>';
+
+            try {
+                const res = await fetch('http://localhost:8080/api/mis-pqrs', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!res.ok) throw new Error("No se pudo cargar el historial.");
+
+                const data = await res.json();
+
+                if (!data || data.length === 0) {
+                    container.innerHTML = `
+                        <div class="bg-white border border-slate-100 rounded-3xl p-12 text-center shadow-sm">
+                            <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+                            </div>
+                            <h3 class="text-lg font-black text-slate-700">No tienes solicitudes radicadas</h3>
+                            <p class="text-sm text-slate-500 mt-1">Cuando envíes una PQRS, aparecerá aquí.</p>
+                            <button onclick="cambiarTab('radicar')" class="mt-6 text-xs font-bold text-emerald-600 hover:text-emerald-700 underline uppercase tracking-widest">Crear mi primera solicitud</button>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = '';
+
+                // Ordenar por fecha descendente (más recientes primero)
+                data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+                data.forEach(p => {
+                    const dateObj = new Date(p.createdAt);
+                    const fechaFmt = dateObj.toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
+
+                    let badgeClass = 'bg-slate-100 text-slate-600 border-slate-200';
+                    if (p.estado === 'ABIERTO') badgeClass = 'bg-blue-50 text-blue-700 border-blue-200';
+                    if (p.estado === 'EN_PROCESO') badgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
+                    if (p.estado === 'RESPONDIDO') badgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                    if (p.estado === 'CERRADO') badgeClass = 'bg-slate-200 text-slate-500 border-slate-300';
+
+                    let respuestaHtml = '';
+                    if (p.respuesta) {
+                        const dateResp = new Date(p.fechaRespuesta);
+                        const respFmt = dateResp.toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
+                        respuestaHtml = `
+                            <div class="mt-4 bg-emerald-50/50 border border-emerald-100 rounded-xl p-4 relative">
+                                <div class="absolute -top-3 left-4 bg-emerald-100 text-emerald-800 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-emerald-200">Respuesta Oficial</div>
+                                <p class="text-sm text-slate-700 italic mt-2">"${p.respuesta}"</p>
+                                <p class="text-[10px] text-emerald-600/70 font-bold text-right mt-2 uppercase tracking-widest">Respondido el ${respFmt}</p>
+                            </div>
+                        `;
+                    }
+
+                    const card = document.createElement('div');
+                    card.className = "bg-white rounded-3xl p-6 shadow-sm border border-slate-100 hover:border-emerald-100 transition-colors group";
+                    card.innerHTML = `
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                            <div class="flex items-center gap-3">
+                                <span class="bg-slate-100 text-slate-700 font-black font-mono text-sm px-3 py-1 rounded-lg border border-slate-200 group-hover:bg-emerald-50 group-hover:text-emerald-700 group-hover:border-emerald-200 transition-colors">#${p.codigoTicket}</span>
+                                <span class="text-[10px] font-black uppercase tracking-widest bg-slate-800 text-white px-2 py-0.5 rounded-full">${p.tipo}</span>
+                            </div>
+                            <span class="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${badgeClass}">${p.estado}</span>
+                        </div>
+                        <h3 class="text-lg font-black text-slate-900 mb-2">${p.asunto}</h3>
+                        <p class="text-sm text-slate-600 mb-4 bg-slate-50 p-4 rounded-xl border border-slate-100">${p.descripcion}</p>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Radicado el ${fechaFmt}</p>
+                        ${respuestaHtml}
+                    `;
+                    container.appendChild(card);
+                });
+
+            } catch (error) {
+                console.error(error);
+                container.innerHTML = `<div class="bg-red-50 text-red-600 p-6 rounded-2xl text-center border border-red-100 font-bold text-sm">Error: ${error.message}</div>`;
+            }
+        }
+    </script>
 </body>
+
 </html>

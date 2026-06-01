@@ -54,6 +54,25 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarioService.obtenerPorId(userDetails.getId()));
     }
 
+    @PutMapping("/perfil/avatar")
+    public ResponseEntity<Void> actualizarAvatar(@AuthenticationPrincipal UserDetailsImpl userDetails, @RequestBody Map<String, String> body) {
+        String avatarUrl = body.get("avatarUrl");
+        usuarioService.actualizarAvatar(userDetails.getId(), avatarUrl);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/perfil/actualizar")
+    public ResponseEntity<Void> actualizarPerfil(@AuthenticationPrincipal UserDetailsImpl userDetails, @RequestBody Map<String, String> body) {
+        usuarioService.actualizarPerfil(
+            userDetails.getId(),
+            body.get("nombre"),
+            body.get("apellido"),
+            body.get("telefono"),
+            body.get("password")
+        );
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/usuarios/buscar")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<List<UsuarioDTO>> buscarUsuarios(@RequestParam String criterio) {

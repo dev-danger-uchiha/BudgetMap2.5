@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Admin - Base de Datos | BudgetMap</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        const token = localStorage.getItem('jwt_token');
+        const rol = localStorage.getItem('user_rol');
+        if (!token || !rol || (!rol.includes('ADMINISTRADOR') && !rol.includes('MODERADOR'))) {
+            window.location.href = '/login.html?denied=true';
+        }
+    </script>
+</head>
+<body class="bg-emerald-50 min-h-screen text-slate-800 font-sans flex flex-col">
+
+    <nav class="bg-white border-b border-emerald-100 p-4 sticky top-0 z-50 shadow-sm">
+        <div class="w-full px-6 md:px-10 flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <div
+                    class="relative bg-white rounded-full w-12 h-12 md:w-16 md:h-16 shadow-md ring-1 ring-black/5 flex items-center justify-center z-0 hidden sm:flex">
+                    <img src="/images/logo.png" alt="Logo BudgetMap"
+                        class="absolute w-16 h-16 md:w-24 md:h-24 max-w-none object-contain transform transition duration-500 hover:scale-110 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 drop-shadow-xl" />
+                </div><span class="text-xl font-black tracking-widest drop-shadow-md mx-2"><a href="/index.html" class="hover:text-emerald-600 transition">BUDGETMAP</a></span>
+                <span
+                    class="bg-emerald-600 text-white px-3 py-1 rounded-full font-black text-[10px] uppercase tracking-tighter">ADMIN</span>
+                <h1 class="font-black tracking-widest text-emerald-900">CONTROL CENTER</h1>
+            </div>
+            <div class="flex gap-6 text-xs font-bold uppercase tracking-widest hidden md:flex">
+                <a href="/admin/usuarios.html" class="text-slate-400 hover:text-emerald-600 transition">Usuarios</a>
+                <a href="/admin/aprobaciones.html" class="text-slate-400 hover:text-emerald-600 transition">Aprobaciones</a>
+                <a href="/admin/pqrs.html" class="text-slate-400 hover:text-emerald-600 transition">Soporte</a>
+                <a href="/admin/estadisticas.html" class="text-slate-400 hover:text-emerald-600 transition">Estadísticas</a>
+                <a href="/admin/base-datos.html" class="text-emerald-600 border-b-2 border-emerald-600 pb-1">Base de Datos</a>
+            </div>
+            <button onclick="cerrarSesion()" class="text-[12px] text-slate-400 font-bold hover:text-red-500 transition">SALIR</button>
+        </div>
+    </nav>
+
+    <main class="flex-1 w-full px-6 md:px-10 mt-8 pb-12">
+        <div class="bg-white border border-emerald-100 rounded-3xl p-6 shadow-sm mb-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 border-b border-emerald-50 pb-6">
+                <div>
+                    <h2 class="text-3xl font-black text-slate-900 italic uppercase tracking-tighter">Base de Datos</h2>
+                    <p class="text-emerald-600/70 text-sm font-medium">Catálogo completo de Lugares, Establecimientos y Eventos.</p>
+                </div>
+                <div class="flex bg-slate-100 rounded-lg p-1 shadow-sm border border-slate-200">
+                    <button onclick="cambiarTab('lugares')" id="tab-lugares" class="px-4 py-2 rounded-md font-black text-[10px] uppercase tracking-widest transition-all bg-emerald-600 text-white shadow-md">Lugares</button>
+                    <button onclick="cambiarTab('establecimientos')" id="tab-establecimientos" class="px-4 py-2 rounded-md font-black text-[10px] uppercase tracking-widest transition-all text-slate-500 hover:text-slate-700 hover:bg-slate-200">Establecimientos</button>
+                    <button onclick="cambiarTab('eventos')" id="tab-eventos" class="px-4 py-2 rounded-md font-black text-[10px] uppercase tracking-widest transition-all text-slate-500 hover:text-slate-700 hover:bg-slate-200">Eventos</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="flex flex-col gap-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Buscar texto</label>
+                    <input type="text" id="filtro-texto" class="bg-emerald-50/50 border border-emerald-100 rounded-xl px-4 py-2.5 text-sm focus:border-emerald-500 outline-none w-full" placeholder="Nombre, descripción...">
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Estado</label>
+                    <select id="filtro-estado" class="bg-emerald-50/50 border border-emerald-100 rounded-xl px-4 py-2.5 text-sm focus:border-emerald-500 outline-none w-full">
+                        <option value="">Cualquiera</option>
+                        <option value="PENDIENTE">Pendiente</option>
+                        <option value="APROBADO">Aprobado</option>
+                        <option value="RECHAZADO">Rechazado</option>
+                    </select>
+                </div>
+                
+                <div class="flex flex-col gap-1" id="filtro-categoria-container">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Categoría</label>
+                    <select id="filtro-categoria" class="bg-emerald-50/50 border border-emerald-100 rounded-xl px-4 py-2.5 text-sm focus:border-emerald-500 outline-none w-full">
+                    </select>
+                </div>
+                
+                <div id="filtro-fechas-container" class="hidden flex gap-2">
+                    <div class="w-1/2 flex flex-col gap-1">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Desde</label>
+                        <input type="date" id="filtro-fecha-inicio" class="bg-emerald-50/50 border border-emerald-100 rounded-xl px-2 py-2.5 text-sm focus:border-emerald-500 outline-none w-full">
+                    </div>
+                    <div class="w-1/2 flex flex-col gap-1">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Hasta</label>
+                        <input type="date" id="filtro-fecha-fin" class="bg-emerald-50/50 border border-emerald-100 rounded-xl px-2 py-2.5 text-sm focus:border-emerald-500 outline-none w-full">
+                    </div>
+                </div>
+
+                <div class="flex items-end gap-2">
+                    <button onclick="limpiarFiltros()" class="w-1/3 bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-xs font-black uppercase hover:bg-slate-300 transition-all">Limpiar</button>
+                    <button onclick="aplicarFiltros()" class="w-2/3 bg-emerald-600 text-white px-6 py-2.5 rounded-xl text-xs font-black uppercase hover:bg-emerald-700 shadow-md transition-all">Filtrar</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white border border-emerald-100 rounded-3xl overflow-hidden shadow-sm">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-emerald-50/50 text-[10px] uppercase tracking-[0.2em] font-black text-emerald-800/60 border-b border-emerald-100">
+                        <tr id="table-headers">
+                        </tr>
+                    </thead>
+                    <tbody id="table-body" class="text-sm divide-y divide-emerald-50">
+                        <tr><td colspan="5" class="p-12 text-center text-emerald-600/50 italic font-bold uppercase tracking-widest">Cargando datos...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="p-4 border-t border-emerald-100 bg-emerald-50/30 flex justify-between items-center">
+                <p class="text-xs text-slate-500 font-bold">
+                    Mostrando página <span id="page-current">1</span> de <span id="page-total">1</span>
+                    (<span id="total-elements">0</span> registros)
+                </p>
+                <div class="flex gap-2">
+                    <button id="btn-prev" onclick="cambiarPagina(-1)" class="px-4 py-2 rounded-lg border border-emerald-200 text-emerald-700 text-xs font-bold hover:bg-emerald-100 disabled:opacity-50 transition-all">Anterior</button>
+                    <button id="btn-next" onclick="cambiarPagina(1)" class="px-4 py-2 rounded-lg bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 disabled:opacity-50 shadow-sm transition-all">Siguiente</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Relaciones (On-Demand) -->
+    <div id="modal-relacion" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex justify-center items-center">
+        <div class="bg-white rounded-3xl w-full max-w-2xl p-8 shadow-2xl m-4 max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-start mb-6">
+                <h3 id="modal-titulo" class="text-2xl font-black text-slate-900 uppercase tracking-tighter"></h3>
+                <button onclick="cerrarModal()" class="text-slate-400 hover:text-red-500 transition-colors bg-slate-50 hover:bg-red-50 p-2 rounded-xl">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div id="modal-contenido" class="flex-1 overflow-y-auto pr-2 space-y-4">
+                <!-- Data cargada por fetch -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTab = 'lugares';
+        let currentPage = 0;
+        const pageSize = 10;
+        let totalPages = 1;
+
+        const categoriasLugar = ['PARQUE', 'MUSEO', 'TEATRO', 'PLAZA', 'MONUMENTO', 'CENTRO_CULTURAL', 'OTRO'];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            cambiarTab('lugares');
+        });
+
+        function cerrarSesion() {
+            localStorage.clear();
+            window.location.href = "/login.html";
+        }
+
+        function cambiarTab(tab) {
+            currentTab = tab;
+            currentPage = 0;
+            
+            // Actualizar UI Tabs
+            ['lugares', 'establecimientos', 'eventos'].forEach(t => {
+                const btn = document.getElementById('tab-' + t);
+                if (t === tab) {
+                    btn.className = "px-4 py-2 rounded-md font-black text-[10px] uppercase tracking-widest transition-all bg-emerald-600 text-white shadow-md";
+                } else {
+                    btn.className = "px-4 py-2 rounded-md font-black text-[10px] uppercase tracking-widest transition-all text-slate-500 hover:text-slate-700 hover:bg-slate-200";
+                }
+            });
+
+            // Actualizar Filtros UI
+            const catContainer = document.getElementById('filtro-categoria-container');
+            const dateContainer = document.getElementById('filtro-fechas-container');
+            const catSelect = document.getElementById('filtro-categoria');
+            
+            catSelect.innerHTML = '<option value="">Cualquiera</option>';
+            if (tab === 'lugares') {
+                catContainer.classList.remove('hidden');
+                catContainer.classList.add('flex');
+                dateContainer.classList.add('hidden');
+                dateContainer.classList.remove('flex');
+                categoriasLugar.forEach(c => catSelect.innerHTML += `<option value="${c}">${c}</option>`);
+            } else if (tab === 'establecimientos') {
+                catContainer.classList.add('hidden');
+                catContainer.classList.remove('flex');
+                dateContainer.classList.add('hidden');
+                dateContainer.classList.remove('flex');
+            } else if (tab === 'eventos') {
+                catContainer.classList.add('hidden');
+                catContainer.classList.remove('flex');
+                dateContainer.classList.remove('hidden');
+                dateContainer.classList.add('flex');
+            }
+
+            cargarDatos();
+        }
+
+        function aplicarFiltros() {
+            currentPage = 0;
+            cargarDatos();
+        }
+
+        function limpiarFiltros() {
+            document.getElementById('filtro-texto').value = '';
+            document.getElementById('filtro-estado').value = '';
+            document.getElementById('filtro-categoria').value = '';
+            document.getElementById('filtro-fecha-inicio').value = '';
+            document.getElementById('filtro-fecha-fin').value = '';
+            aplicarFiltros();
+        }
+
+        function cambiarPagina(delta) {
+            const nuevaPagina = currentPage + delta;
+            if (nuevaPagina >= 0 && nuevaPagina < totalPages) {
+                currentPage = nuevaPagina;
+                cargarDatos();
+            }
+        }
+
+        async function cargarDatos() {
+            const tbody = document.getElementById('table-body');
+            const thead = document.getElementById('table-headers');
+            tbody.innerHTML = '<tr><td colspan="5" class="p-12 text-center text-emerald-600/50 italic animate-pulse font-bold uppercase tracking-widest text-xs">Cargando...</td></tr>';
+
+            const texto = document.getElementById('filtro-texto').value;
+            const estado = document.getElementById('filtro-estado').value;
+
+            let url = '';
+            if (currentTab === 'lugares') {
+                thead.innerHTML = '<th class="p-5">Nombre</th><th class="p-5">Categoría</th><th class="p-5">Estado</th><th class="p-5 text-right">Relaciones</th>';
+                const cat = document.getElementById('filtro-categoria').value;
+                url = `http://localhost:8080/api/lugares/admin/paginado?page=${currentPage}&size=${pageSize}`;
+                if(texto) url += `&texto=${encodeURIComponent(texto)}`;
+                if(estado) url += `&estado=${estado}`;
+                if(cat) url += `&categoria=${cat}`;
+
+            } else if (currentTab === 'establecimientos') {
+                thead.innerHTML = '<th class="p-5">Nombre</th><th class="p-5">NIT</th><th class="p-5">Estado</th><th class="p-5 text-right">Relaciones</th>';
+                url = `http://localhost:8080/api/establecimientos/admin/paginado?page=${currentPage}&size=${pageSize}`;
+                if(texto) url += `&texto=${encodeURIComponent(texto)}`;
+                if(estado) url += `&estado=${estado}`;
+
+            } else if (currentTab === 'eventos') {
+                thead.innerHTML = '<th class="p-5">Nombre</th><th class="p-5">Fecha</th><th class="p-5">Estado</th><th class="p-5 text-right">Relaciones</th>';
+                const fInicio = document.getElementById('filtro-fecha-inicio').value;
+                const fFin = document.getElementById('filtro-fecha-fin').value;
+                url = `http://localhost:8080/api/eventos/admin/paginado?page=${currentPage}&size=${pageSize}`;
+                if(texto) url += `&texto=${encodeURIComponent(texto)}`;
+                if(estado) url += `&estado=${estado}`;
+                if(fInicio) url += `&fechaInicio=${fInicio}`;
+                if(fFin) url += `&fechaFin=${fFin}`;
+            }
+
+            try {
+                const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (res.status === 403 || res.status === 401) {
+                    cerrarSesion();
+                    return;
+                }
+                if (!res.ok) {
+                    const text = await res.text();
+                    throw new Error("Error en petición: " + text);
+                }
+                const data = await res.json();
+                renderizarTabla(data.content || []);
+                actualizarPaginacion(data);
+            } catch (error) {
+                console.error(error);
+                tbody.innerHTML = `<tr><td colspan="5" class="p-12 text-center text-red-500 font-bold uppercase tracking-widest text-xs">Error al cargar datos. ${error.message}</td></tr>`;
+            }
+        }
+
+        function renderizarTabla(items) {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+            
+            if (items.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="p-12 text-center text-slate-400 italic font-medium">No se encontraron resultados.</td></tr>';
+                return;
+            }
+
+            items.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-emerald-50/30 transition-all group";
+                
+                let badgeClass = 'bg-slate-100 text-slate-700 border-slate-200';
+                if (item.estado === 'APROBADO') badgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                if (item.estado === 'RECHAZADO') badgeClass = 'bg-red-50 text-red-700 border-red-200';
+                if (item.estado === 'PENDIENTE') badgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
+                
+                const estadoHtml = `<span class="px-2.5 py-1 rounded-md text-[10px] font-black uppercase border ${badgeClass}">${item.estado}</span>`;
+
+                if (currentTab === 'lugares') {
+                    tr.innerHTML = `
+                        <td class="p-5 font-black text-slate-900 uppercase tracking-tight">${item.nombre}</td>
+                        <td class="p-5 text-slate-500 font-bold text-xs">${item.categoria}</td>
+                        <td class="p-5">${estadoHtml}</td>
+                        <td class="p-5 text-right">
+                            <button onclick="verEventosLugar(${item.id}, '${item.nombre.replace(/'/g, "\\'")}')" class="text-[10px] font-black text-emerald-600 hover:bg-emerald-50 transition-all uppercase tracking-widest border border-emerald-200 px-3 py-1.5 rounded-lg">Ver Eventos</button>
+                        </td>`;
+                } else if (currentTab === 'establecimientos') {
+                    tr.innerHTML = `
+                        <td class="p-5 font-black text-slate-900 uppercase tracking-tight">${item.nombre}</td>
+                        <td class="p-5 text-slate-500 font-bold text-xs">${item.nit || 'S/N'}</td>
+                        <td class="p-5">${estadoHtml}</td>
+                        <td class="p-5 text-right space-x-2">
+                            <button onclick="verPromocionesEstablecimiento(${item.id}, '${item.nombre.replace(/'/g, "\\'")}')" class="text-[10px] font-black text-emerald-600 hover:bg-emerald-50 transition-all uppercase tracking-widest border border-emerald-200 px-3 py-1.5 rounded-lg">Promociones</button>
+                            <button onclick="verReservasEstablecimiento(${item.id}, '${item.nombre.replace(/'/g, "\\'")}')" class="text-[10px] font-black text-blue-600 hover:bg-blue-50 transition-all uppercase tracking-widest border border-blue-200 px-3 py-1.5 rounded-lg">Reservas</button>
+                        </td>`;
+                } else if (currentTab === 'eventos') {
+                    tr.innerHTML = `
+                        <td class="p-5 font-black text-slate-900 uppercase tracking-tight">${item.nombre}</td>
+                        <td class="p-5 text-slate-500 font-bold text-xs">${item.fechaInicio}</td>
+                        <td class="p-5">${estadoHtml}</td>
+                        <td class="p-5 text-right">
+                            <button onclick="verReservasEvento(${item.id}, '${item.nombre.replace(/'/g, "\\'")}')" class="text-[10px] font-black text-blue-600 hover:bg-blue-50 transition-all uppercase tracking-widest border border-blue-200 px-3 py-1.5 rounded-lg">Reservas</button>
+                        </td>`;
+                }
+                tbody.appendChild(tr);
+            });
+        }
+
+        function actualizarPaginacion(pageData) {
+            totalPages = pageData.totalPages || 1;
+            document.getElementById('page-current').innerText = (pageData.number || 0) + 1;
+            document.getElementById('page-total').innerText = totalPages;
+            document.getElementById('total-elements').innerText = pageData.totalElements || 0;
+
+            document.getElementById('btn-prev').disabled = pageData.first;
+            document.getElementById('btn-next').disabled = pageData.last;
+        }
+
+        // --- FUNCIONES ON DEMAND ---
+        async function verEventosLugar(lugarId, nombre) {
+            abrirModal(`Eventos en: ${nombre}`);
+            try {
+                const res = await fetch(`http://localhost:8080/api/eventos/lugar/${lugarId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                if(data.length === 0) { document.getElementById('modal-contenido').innerHTML = '<p class="text-slate-400 font-bold p-6 text-center">No hay eventos asociados a este lugar.</p>'; return; }
+                let html = '<ul class="divide-y divide-emerald-50">';
+                data.forEach(e => {
+                    html += `<li class="py-4 flex justify-between"><div><p class="font-black text-slate-800">${e.nombre}</p><p class="text-xs text-slate-500">Inicia: ${e.fechaInicio}</p></div><span class="text-[10px] font-black uppercase text-emerald-600">${e.estado}</span></li>`;
+                });
+                html += '</ul>';
+                document.getElementById('modal-contenido').innerHTML = html;
+            } catch(e) { document.getElementById('modal-contenido').innerHTML = '<p class="text-red-500 p-6">Error al cargar eventos</p>'; }
+        }
+
+        async function verPromocionesEstablecimiento(estId, nombre) {
+            abrirModal(`Promociones: ${nombre}`);
+            try {
+                const res = await fetch(`http://localhost:8080/api/promociones/establecimiento/${estId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) {
+                    const text = await res.text();
+                    throw new Error("HTTP " + res.status + " " + text);
+                }
+                const data = await res.json();
+                if (!Array.isArray(data)) {
+                    throw new Error("Respuesta inválida del servidor: " + JSON.stringify(data));
+                }
+                if(data.length === 0) { document.getElementById('modal-contenido').innerHTML = '<p class="text-slate-400 font-bold p-6 text-center">No hay promociones en este establecimiento.</p>'; return; }
+                let html = '<ul class="divide-y divide-emerald-50">';
+                data.forEach(p => {
+                    html += `<li class="py-4 flex justify-between"><div><p class="font-black text-slate-800">${p.titulo}</p><p class="text-xs text-slate-500">Fin: ${p.fechaFin}</p></div><span class="text-xs font-black bg-emerald-100 text-emerald-700 px-2 py-1 rounded">${p.descuentoPorcentaje}% Dcto</span></li>`;
+                });
+                html += '</ul>';
+                document.getElementById('modal-contenido').innerHTML = html;
+            } catch(e) { 
+                console.error(e);
+                document.getElementById('modal-contenido').innerHTML = `<p class="text-red-500 p-6 break-all">Error al cargar promociones: ${e.message}</p>`; 
+            }
+        }
+
+        async function verReservasEstablecimiento(estId, nombre) {
+            abrirModal(`Reservas: ${nombre}`);
+            try {
+                const res = await fetch(`http://localhost:8080/api/reservas`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) throw new Error("Error");
+                const allReservas = await res.json();
+                const data = allReservas.filter(r => r.establecimientoId === estId);
+                
+                if(data.length === 0) { document.getElementById('modal-contenido').innerHTML = '<p class="text-slate-400 font-bold p-6 text-center">No hay reservas para este establecimiento.</p>'; return; }
+                let html = '<ul class="divide-y divide-emerald-50">';
+                data.forEach(r => {
+                    html += `<li class="py-4 flex justify-between"><div><p class="font-black text-slate-800">Cód: ${r.codigoGenerado}</p><p class="text-xs text-slate-500">Personas: ${r.cantidadPersonas} | Asistió: ${r.asistio ? 'Sí':'No'}</p></div><span class="text-[10px] font-black uppercase text-blue-600 border border-blue-200 px-2 py-1 rounded">${r.estado}</span></li>`;
+                });
+                html += '</ul>';
+                document.getElementById('modal-contenido').innerHTML = html;
+            } catch(e) { document.getElementById('modal-contenido').innerHTML = '<p class="text-red-500 p-6">Error al cargar reservas</p>'; }
+        }
+
+        async function verReservasEvento(eventoId, nombre) {
+            abrirModal(`Reservas: ${nombre}`);
+            try {
+                const res = await fetch(`http://localhost:8080/api/reservas`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const allReservas = await res.json();
+                const data = allReservas.filter(r => r.eventoId === eventoId);
+                
+                if(data.length === 0) { document.getElementById('modal-contenido').innerHTML = '<p class="text-slate-400 font-bold p-6 text-center">No hay reservas registradas para este evento.</p>'; return; }
+                let html = '<ul class="divide-y divide-emerald-50">';
+                data.forEach(r => {
+                    html += `<li class="py-4 flex justify-between"><div><p class="font-black text-slate-800">Cód: ${r.codigoGenerado}</p><p class="text-xs text-slate-500">Personas: ${r.cantidadPersonas} | Asistió: ${r.asistio ? 'Sí':'No'}</p></div><span class="text-[10px] font-black uppercase text-blue-600 border border-blue-200 px-2 py-1 rounded">${r.estado}</span></li>`;
+                });
+                html += '</ul>';
+                document.getElementById('modal-contenido').innerHTML = html;
+            } catch(e) { document.getElementById('modal-contenido').innerHTML = '<p class="text-red-500 p-6">Error al cargar reservas</p>'; }
+        }
+
+        function abrirModal(titulo) {
+            document.getElementById('modal-titulo').innerText = titulo;
+            document.getElementById('modal-contenido').innerHTML = '<div class="flex justify-center p-12"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div></div>';
+            document.getElementById('modal-relacion').classList.remove('hidden');
+        }
+
+        function cerrarModal() {
+            document.getElementById('modal-relacion').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

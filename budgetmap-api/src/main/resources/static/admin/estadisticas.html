@@ -1,244 +1,299 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin - Métricas | BudgetMap</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>
-    const token = localStorage.getItem('jwt_token');
-    const rol = localStorage.getItem('user_rol');
-    if (!token || !rol || !rol.includes('ADMINISTRADOR')) window.location.href = '/login.html?denied=true';
-  </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Métricas | BudgetMap</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const token = localStorage.getItem('jwt_token');
+        const rol = localStorage.getItem('user_rol');
+        if (!token || !rol || !rol.includes('ADMINISTRADOR')) window.location.href = '/login.html?denied=true';
+    </script>
 </head>
+
 <body class="bg-emerald-50 min-h-screen text-slate-800 font-sans flex flex-col">
 
-  <nav class="bg-white border-b border-emerald-100 p-4 sticky top-0 z-50 shadow-sm">
-    <div class="max-w-7xl mx-auto flex justify-between items-center">
-      <div class="flex items-center gap-4">
-        <span class="bg-emerald-600 text-white px-3 py-1 rounded-full font-black text-[10px] uppercase tracking-tighter">ADMIN</span>
-        <h1 class="font-black tracking-widest text-emerald-900">CONTROL CENTER</h1>
-      </div>
-      <div class="flex gap-6 text-xs font-bold uppercase tracking-widest hidden md:flex">
-        <a href="/admin/usuarios.html" class="hover:text-emerald-600 transition">Usuarios</a>
-        <a href="/admin/aprobaciones.html" class="text-emerald-600 border-b-2 border-emerald-600 pb-1">Aprobaciones</a>
-        <a href="/admin/pqrs.html" class="text-emerald-600 border-b-2 border-emerald-600 pb-1">Soporte</a>
-        <a href="/admin/estadisticas.html" class="hover:text-emerald-600 transition">Estadísticas</a> 
-      </div>
-      <button onclick="cerrarSesion()" class="text-[10px] text-slate-400 font-bold hover:text-red-500 transition">SALIR</button>
-    </div>
-  </nav>
+    <nav class="bg-white border-b border-emerald-100 p-4 sticky top-0 z-50 shadow-sm">
+        <div class="w-full px-6 md:px-10 flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <div
+                    class="relative bg-white rounded-full w-12 h-12 md:w-16 md:h-16 shadow-md ring-1 ring-black/5 flex items-center justify-center z-0 hidden sm:flex">
+                    <img src="/images/logo.png" alt="Logo BudgetMap"
+                        class="absolute w-16 h-16 md:w-24 md:h-24 max-w-none object-contain transform transition duration-500 hover:scale-110 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 drop-shadow-xl" />
+                </div><span class="text-xl font-black tracking-widest drop-shadow-md mx-2"><a href="/index.html" class="hover:text-emerald-600 transition">BUDGETMAP</a></span>
+                <span
+                    class="bg-emerald-600 text-white px-3 py-1 rounded-full font-black text-[10px] uppercase tracking-tighter">ADMIN</span>
+                <h1 class="font-black tracking-widest text-emerald-900">CONTROL CENTER</h1>
+            </div>
+            <div class="flex gap-6 text-xs font-bold uppercase tracking-widest hidden md:flex">
+                <a href="/admin/usuarios.html" class="text-slate-400 hover:text-emerald-600 transition">Usuarios</a>
+                <a href="/admin/aprobaciones.html"
+                    class="text-slate-400 hover:text-emerald-600 transition">Aprobaciones</a>
+                <a href="/admin/pqrs.html" class="text-slate-400 hover:text-emerald-600 transition">Soporte</a>
+                <a href="/admin/estadisticas.html"
+                    class="text-emerald-600 border-b-2 border-emerald-600 pb-1">Estadísticas</a>
+                <a href="/admin/base-datos.html" class="text-slate-400 hover:text-emerald-600 transition">Base de Datos</a>
+            </div>
+            <button onclick="cerrarSesion()"
+                class="text-[12px] text-slate-400 font-bold hover:text-red-500 transition">SALIR</button>
+        </div>
+    </nav>
 
-  <main class="flex-1 max-w-7xl mx-auto w-full mt-8 px-6 pb-12">
-    
-    <div class="flex justify-between items-end mb-8">
-        <div>
-            <h2 class="text-3xl font-black text-slate-900 italic uppercase tracking-tighter">Métricas de Plataforma</h2>
-            <p class="text-emerald-600/70 text-sm font-medium">Análisis global de crecimiento y operaciones.</p>
-        </div>
-        <button onclick="generarPDF()" class="bg-emerald-900 text-white px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg hover:bg-emerald-800 hover:-translate-y-0.5 transition-all flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-            Exportar Informe PDF
-        </button>
-    </div>
+    <main class="flex-1 w-full px-6 md:px-10 w-full mt-8 px-6 pb-12">
 
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <!-- Tarjeta Usuarios -->
-        <div onclick="mostrarDetalleTarjeta('usuarios')" class="bg-white border border-emerald-100 p-6 rounded-3xl shadow-sm cursor-pointer group hover:-translate-y-1 hover:shadow-lg hover:border-emerald-300 transition-all duration-300">
-            <div class="flex justify-between items-start mb-2">
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest group-hover:text-emerald-600 transition-colors">Usuarios Totales</p>
-                <span class="bg-emerald-50 text-emerald-600 p-1.5 rounded-lg text-xs group-hover:bg-emerald-600 group-hover:text-white transition-colors">👥</span>
+        <div class="flex justify-between items-end mb-8">
+            <div>
+                <h2 class="text-3xl font-black text-slate-900 italic uppercase tracking-tighter">Métricas de Plataforma
+                </h2>
+                <p class="text-emerald-600/70 text-sm font-medium">Análisis global de crecimiento y operaciones.</p>
             </div>
-            <h3 id="stat-usuarios" class="text-4xl font-black text-slate-800 group-hover:scale-105 origin-left transition-transform">--</h3>
+            <button onclick="generarPDF()"
+                class="bg-emerald-900 text-white px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg hover:bg-emerald-800 hover:-translate-y-0.5 transition-all flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                    </path>
+                </svg>
+                Exportar Informe PDF
+            </button>
         </div>
-        
-        <!-- Tarjeta Locales -->
-        <div onclick="mostrarDetalleTarjeta('locales')" class="bg-white border border-emerald-100 p-6 rounded-3xl shadow-sm cursor-pointer group hover:-translate-y-1 hover:shadow-lg hover:border-emerald-300 transition-all duration-300">
-            <div class="flex justify-between items-start mb-2">
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest group-hover:text-emerald-600 transition-colors">Locales Aprobados</p>
-                <span class="bg-emerald-50 text-emerald-600 p-1.5 rounded-lg text-xs group-hover:bg-emerald-600 group-hover:text-white transition-colors">🏪</span>
-            </div>
-            <h3 id="stat-locales" class="text-4xl font-black text-emerald-600 group-hover:scale-105 origin-left transition-transform">--</h3>
-        </div>
-        
-        <!-- Tarjeta Reservas -->
-        <div onclick="mostrarDetalleTarjeta('reservas')" class="bg-white border border-emerald-100 p-6 rounded-3xl shadow-sm cursor-pointer group hover:-translate-y-1 hover:shadow-lg hover:border-blue-300 transition-all duration-300">
-            <div class="flex justify-between items-start mb-2">
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest group-hover:text-blue-600 transition-colors">Reservas Completas</p>
-                <span class="bg-blue-50 text-blue-600 p-1.5 rounded-lg text-xs group-hover:bg-blue-600 group-hover:text-white transition-colors">📅</span>
-            </div>
-            <h3 id="stat-reservas" class="text-4xl font-black text-blue-600 group-hover:scale-105 origin-left transition-transform">--</h3>
-        </div>
-        
-        <!-- Tarjeta Tickets -->
-        <div onclick="mostrarDetalleTarjeta('tickets')" class="bg-white border border-amber-100 p-6 rounded-3xl shadow-sm cursor-pointer group hover:-translate-y-1 hover:shadow-lg hover:border-amber-300 transition-all duration-300">
-            <div class="flex justify-between items-start mb-2">
-                <p class="text-[10px] font-bold text-amber-500/70 uppercase tracking-widest group-hover:text-amber-600 transition-colors">Tickets Pendientes</p>
-                <span class="bg-amber-50 text-amber-500 p-1.5 rounded-lg text-xs group-hover:bg-amber-500 group-hover:text-white transition-colors">🎫</span>
-            </div>
-            <h3 id="stat-tickets" class="text-4xl font-black text-amber-500 group-hover:scale-105 origin-left transition-transform">--</h3>
-        </div>
-    </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div class="bg-white border border-emerald-100 rounded-3xl p-6 shadow-sm flex flex-col">
-            <h4 class="text-lg font-black text-slate-800 uppercase tracking-tight mb-6 border-b border-emerald-50 pb-4">Distribución por Categoría</h4>
-            <div class="relative flex-1 w-full min-h-[250px]">
-                <canvas id="graficoCategorias"></canvas>
-            </div>
-        </div>
-        <div class="bg-white border border-emerald-100 rounded-3xl p-6 shadow-sm flex flex-col">
-            <h4 class="text-lg font-black text-slate-800 uppercase tracking-tight mb-6 border-b border-emerald-50 pb-4">Crecimiento de Usuarios</h4>
-            <div class="relative flex-1 w-full min-h-[250px]">
-                <canvas id="graficoCrecimiento"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Detalles Métrica -->
-    <div id="modal-detalle" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex justify-center items-center opacity-0 transition-opacity duration-300">
-        <div class="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl transform scale-95 transition-transform duration-300" id="modal-content">
-            <div class="flex justify-between items-start mb-6">
-                <div class="flex items-center gap-3">
-                    <span id="mod-icon" class="text-3xl bg-emerald-50 w-12 h-12 flex items-center justify-center rounded-2xl">📊</span>
-                    <div>
-                        <h3 id="mod-title" class="text-2xl font-black text-slate-800 uppercase tracking-tight">Detalle</h3>
-                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Análisis Específico</p>
-                    </div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <!-- Tarjeta Usuarios -->
+            <div onclick="mostrarDetalleTarjeta('usuarios')"
+                class="bg-white border border-emerald-100 p-6 rounded-3xl shadow-sm cursor-pointer group hover:-translate-y-1 hover:shadow-lg hover:border-emerald-300 transition-all duration-300">
+                <div class="flex justify-between items-start mb-2">
+                    <p
+                        class="text-[10px] font-bold text-slate-400 uppercase tracking-widest group-hover:text-emerald-600 transition-colors">
+                        Usuarios Totales</p>
+                    <span
+                        class="bg-emerald-50 text-emerald-600 p-1.5 rounded-lg text-xs group-hover:bg-emerald-600 group-hover:text-white transition-colors">👥</span>
                 </div>
-                <button onclick="cerrarModal()" class="text-slate-400 hover:text-red-500 transition-colors bg-slate-50 hover:bg-red-50 p-2 rounded-xl">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
+                <h3 id="stat-usuarios"
+                    class="text-4xl font-black text-slate-800 group-hover:scale-105 origin-left transition-transform">--
+                </h3>
             </div>
-            <div id="mod-body" class="mb-6">
-                <!-- Contenido dinámico -->
+
+            <!-- Tarjeta Locales -->
+            <div onclick="mostrarDetalleTarjeta('locales')"
+                class="bg-white border border-emerald-100 p-6 rounded-3xl shadow-sm cursor-pointer group hover:-translate-y-1 hover:shadow-lg hover:border-emerald-300 transition-all duration-300">
+                <div class="flex justify-between items-start mb-2">
+                    <p
+                        class="text-[10px] font-bold text-slate-400 uppercase tracking-widest group-hover:text-emerald-600 transition-colors">
+                        Locales Aprobados</p>
+                    <span
+                        class="bg-emerald-50 text-emerald-600 p-1.5 rounded-lg text-xs group-hover:bg-emerald-600 group-hover:text-white transition-colors">🏪</span>
+                </div>
+                <h3 id="stat-locales"
+                    class="text-4xl font-black text-emerald-600 group-hover:scale-105 origin-left transition-transform">
+                    --</h3>
+            </div>
+
+            <!-- Tarjeta Reservas -->
+            <div onclick="mostrarDetalleTarjeta('reservas')"
+                class="bg-white border border-emerald-100 p-6 rounded-3xl shadow-sm cursor-pointer group hover:-translate-y-1 hover:shadow-lg hover:border-blue-300 transition-all duration-300">
+                <div class="flex justify-between items-start mb-2">
+                    <p
+                        class="text-[10px] font-bold text-slate-400 uppercase tracking-widest group-hover:text-blue-600 transition-colors">
+                        Reservas Completas</p>
+                    <span
+                        class="bg-blue-50 text-blue-600 p-1.5 rounded-lg text-xs group-hover:bg-blue-600 group-hover:text-white transition-colors">📅</span>
+                </div>
+                <h3 id="stat-reservas"
+                    class="text-4xl font-black text-blue-600 group-hover:scale-105 origin-left transition-transform">--
+                </h3>
+            </div>
+
+            <!-- Tarjeta Tickets -->
+            <div onclick="mostrarDetalleTarjeta('tickets')"
+                class="bg-white border border-amber-100 p-6 rounded-3xl shadow-sm cursor-pointer group hover:-translate-y-1 hover:shadow-lg hover:border-amber-300 transition-all duration-300">
+                <div class="flex justify-between items-start mb-2">
+                    <p
+                        class="text-[10px] font-bold text-amber-500/70 uppercase tracking-widest group-hover:text-amber-600 transition-colors">
+                        Tickets Pendientes</p>
+                    <span
+                        class="bg-amber-50 text-amber-500 p-1.5 rounded-lg text-xs group-hover:bg-amber-500 group-hover:text-white transition-colors">🎫</span>
+                </div>
+                <h3 id="stat-tickets"
+                    class="text-4xl font-black text-amber-500 group-hover:scale-105 origin-left transition-transform">--
+                </h3>
             </div>
         </div>
-    </div>
-  </main>
 
-  <script>
-    let datosGlobales = {};
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white border border-emerald-100 rounded-3xl p-6 shadow-sm flex flex-col">
+                <h4
+                    class="text-lg font-black text-slate-800 uppercase tracking-tight mb-6 border-b border-emerald-50 pb-4">
+                    Distribución por Categoría</h4>
+                <div class="relative flex-1 w-full min-h-[250px]">
+                    <canvas id="graficoCategorias"></canvas>
+                </div>
+            </div>
+            <div class="bg-white border border-emerald-100 rounded-3xl p-6 shadow-sm flex flex-col">
+                <h4
+                    class="text-lg font-black text-slate-800 uppercase tracking-tight mb-6 border-b border-emerald-50 pb-4">
+                    Crecimiento de Usuarios</h4>
+                <div class="relative flex-1 w-full min-h-[250px]">
+                    <canvas id="graficoCrecimiento"></canvas>
+                </div>
+            </div>
+        </div>
 
-    document.addEventListener("DOMContentLoaded", () => cargarMetricas());
-    function cerrarSesion() { localStorage.clear(); window.location.href = '/login.html'; }
+        <!-- Modal Detalles Métrica -->
+        <div id="modal-detalle"
+            class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex justify-center items-center opacity-0 transition-opacity duration-300">
+            <div class="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl transform scale-95 transition-transform duration-300"
+                id="modal-content">
+                <div class="flex justify-between items-start mb-6">
+                    <div class="flex items-center gap-3">
+                        <span id="mod-icon"
+                            class="text-3xl bg-emerald-50 w-12 h-12 flex items-center justify-center rounded-2xl">📊</span>
+                        <div>
+                            <h3 id="mod-title" class="text-2xl font-black text-slate-800 uppercase tracking-tight">
+                                Detalle</h3>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Análisis
+                                Específico</p>
+                        </div>
+                    </div>
+                    <button onclick="cerrarModal()"
+                        class="text-slate-400 hover:text-red-500 transition-colors bg-slate-50 hover:bg-red-50 p-2 rounded-xl">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div id="mod-body" class="mb-6">
+                    <!-- Contenido dinámico -->
+                </div>
+            </div>
+        </div>
+    </main>
 
-    async function cargarMetricas() {
-        try {
-            const res = await fetch(`http://localhost:8080/api/admin/metrics/summary`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (res.ok) {
-                datosGlobales = await res.json();
+    <script>
+        let datosGlobales = {};
 
-                document.getElementById('stat-usuarios').innerText = datosGlobales.totalUsuarios || 0;
-                document.getElementById('stat-locales').innerText = datosGlobales.totalEstablecimientosAprobados || 0;
-                document.getElementById('stat-reservas').innerText = datosGlobales.totalReservas || 0;
-                document.getElementById('stat-tickets').innerText = datosGlobales.ticketsPendientes || 0;
+        document.addEventListener("DOMContentLoaded", () => cargarMetricas());
+        function cerrarSesion() { localStorage.clear(); window.location.href = '/login.html'; }
 
-                // Renderizar los gráficos usando Chart.js
-                renderizarGraficos(datosGlobales);
-            } else {
-                document.getElementById('stat-usuarios').innerText = 'Error';
-                console.error("Error al cargar métricas:", res.status);
-            }
-        } catch (e) {
-            console.error("Error al cargar métricas:", e);
-            document.getElementById('stat-usuarios').innerText = 'Conexión fallida';
-        }
-    }
+        async function cargarMetricas() {
+            try {
+                const res = await fetch(`http://localhost:8080/api/admin/metrics/summary`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    datosGlobales = await res.json();
 
-    function renderizarGraficos(datos) {
-        Chart.defaults.color = '#64748b';
-        Chart.defaults.font.family = 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
-        
-        // 1. Gráfico de Dona para Categorías
-        const ctxCat = document.getElementById('graficoCategorias').getContext('2d');
-        const categorias = datos.establecimientosPorCategoria || {};
-        // Filtrar categorías que tengan al menos 1 establecimiento
-        const categoriasActivas = Object.fromEntries(Object.entries(categorias).filter(([_, v]) => v > 0));
-        const labelsCat = Object.keys(categoriasActivas);
-        const dataCat = Object.values(categoriasActivas);
+                    document.getElementById('stat-usuarios').innerText = datosGlobales.totalUsuarios || 0;
+                    document.getElementById('stat-locales').innerText = datosGlobales.totalEstablecimientosAprobados || 0;
+                    document.getElementById('stat-reservas').innerText = datosGlobales.totalReservas || 0;
+                    document.getElementById('stat-tickets').innerText = datosGlobales.ticketsPendientes || 0;
 
-        new Chart(ctxCat, {
-            type: 'doughnut',
-            data: {
-                labels: labelsCat.length ? labelsCat : ['Sin datos'],
-                datasets: [{
-                    data: dataCat.length ? dataCat : [1],
-                    backgroundColor: dataCat.length ? [
-                        '#059669', '#10b981', '#34d399', '#6ee7b7', 
-                        '#0f766e', '#14b8a6', '#2dd4bf', '#5eead4'
-                    ] : ['#f1f5f9'],
-                    borderWidth: 0,
-                    hoverOffset: 6
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10, weight: 'bold' } } },
-                    tooltip: { enabled: dataCat.length > 0 }
-                },
-                cutout: '70%'
-            }
-        });
-
-        // 2. Gráfico de Línea para Registros Mensuales
-        const ctxCrec = document.getElementById('graficoCrecimiento').getContext('2d');
-        const registros = datos.registrosMensuales || {};
-        const ordenMeses = ["ENE", "FEB", "MAR", "ABR", "MAY", "JUN", "JUL", "AGO", "SEP", "OCT", "NOV", "DIC"];
-        const labelsCrec = Object.keys(registros).sort((a, b) => ordenMeses.indexOf(a) - ordenMeses.indexOf(b));
-        const dataCrec = labelsCrec.map(mes => registros[mes]);
-
-        new Chart(ctxCrec, {
-            type: 'line',
-            data: {
-                labels: labelsCrec,
-                datasets: [{
-                    label: 'Nuevos Usuarios',
-                    data: dataCrec,
-                    borderColor: '#059669',
-                    backgroundColor: 'rgba(5, 150, 105, 0.1)',
-                    borderWidth: 3,
-                    pointBackgroundColor: '#ffffff',
-                    pointBorderColor: '#059669',
-                    pointBorderWidth: 2,
-                    pointRadius: 4,
-                    fill: true,
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { beginAtZero: true, grid: { color: '#f8fafc', drawBorder: false }, ticks: { precision: 0 } },
-                    x: { grid: { display: false, drawBorder: false } }
+                    // Renderizar los gráficos usando Chart.js
+                    renderizarGraficos(datosGlobales);
+                } else {
+                    document.getElementById('stat-usuarios').innerText = 'Error';
+                    console.error("Error al cargar métricas:", res.status);
                 }
+            } catch (e) {
+                console.error("Error al cargar métricas:", e);
+                document.getElementById('stat-usuarios').innerText = 'Conexión fallida';
             }
-        });
-    }
+        }
 
-    function mostrarDetalleTarjeta(tipo) {
-        const modal = document.getElementById('modal-detalle');
-        const content = document.getElementById('modal-content');
-        const title = document.getElementById('mod-title');
-        const icon = document.getElementById('mod-icon');
-        const body = document.getElementById('mod-body');
+        function renderizarGraficos(datos) {
+            Chart.defaults.color = '#64748b';
+            Chart.defaults.font.family = 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
 
-        let html = '';
+            // 1. Gráfico de Dona para Categorías
+            const ctxCat = document.getElementById('graficoCategorias').getContext('2d');
+            const categorias = datos.establecimientosPorCategoria || {};
+            // Filtrar categorías que tengan al menos 1 establecimiento
+            const categoriasActivas = Object.fromEntries(Object.entries(categorias).filter(([_, v]) => v > 0));
+            const labelsCat = Object.keys(categoriasActivas);
+            const dataCat = Object.values(categoriasActivas);
 
-        if (tipo === 'usuarios') {
-            title.innerText = 'Crecimiento';
-            icon.innerHTML = '👥';
-            const mesesActivos = Object.keys(datosGlobales.registrosMensuales || {}).length;
-            html = `
+            new Chart(ctxCat, {
+                type: 'doughnut',
+                data: {
+                    labels: labelsCat.length ? labelsCat : ['Sin datos'],
+                    datasets: [{
+                        data: dataCat.length ? dataCat : [1],
+                        backgroundColor: dataCat.length ? [
+                            '#059669', '#10b981', '#34d399', '#6ee7b7',
+                            '#0f766e', '#14b8a6', '#2dd4bf', '#5eead4'
+                        ] : ['#f1f5f9'],
+                        borderWidth: 0,
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10, weight: 'bold' } } },
+                        tooltip: { enabled: dataCat.length > 0 }
+                    },
+                    cutout: '70%'
+                }
+            });
+
+            // 2. Gráfico de Línea para Registros Mensuales
+            const ctxCrec = document.getElementById('graficoCrecimiento').getContext('2d');
+            const registros = datos.registrosMensuales || {};
+            const ordenMeses = ["ENE", "FEB", "MAR", "ABR", "MAY", "JUN", "JUL", "AGO", "SEP", "OCT", "NOV", "DIC"];
+            const labelsCrec = Object.keys(registros).sort((a, b) => ordenMeses.indexOf(a) - ordenMeses.indexOf(b));
+            const dataCrec = labelsCrec.map(mes => registros[mes]);
+
+            new Chart(ctxCrec, {
+                type: 'line',
+                data: {
+                    labels: labelsCrec,
+                    datasets: [{
+                        label: 'Nuevos Usuarios',
+                        data: dataCrec,
+                        borderColor: '#059669',
+                        backgroundColor: 'rgba(5, 150, 105, 0.1)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#ffffff',
+                        pointBorderColor: '#059669',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#f8fafc', drawBorder: false }, ticks: { precision: 0 } },
+                        x: { grid: { display: false, drawBorder: false } }
+                    }
+                }
+            });
+        }
+
+        function mostrarDetalleTarjeta(tipo) {
+            const modal = document.getElementById('modal-detalle');
+            const content = document.getElementById('modal-content');
+            const title = document.getElementById('mod-title');
+            const icon = document.getElementById('mod-icon');
+            const body = document.getElementById('mod-body');
+
+            let html = '';
+
+            if (tipo === 'usuarios') {
+                title.innerText = 'Crecimiento';
+                icon.innerHTML = '👥';
+                const mesesActivos = Object.keys(datosGlobales.registrosMensuales || {}).length;
+                html = `
                 <div class="grid grid-cols-2 gap-4">
                     <div class="bg-slate-50 border border-slate-100 p-4 rounded-2xl text-center">
                         <p class="text-[10px] uppercase font-bold text-slate-400 mb-1">Volumen Total</p>
@@ -251,11 +306,11 @@
                 </div>
                 <p class="text-xs text-center mt-4 text-slate-500 font-medium bg-emerald-50/50 p-3 rounded-xl border border-emerald-50">Observa la gráfica lineal debajo para analizar la tendencia de registros a lo largo del año.</p>
             `;
-        } else if (tipo === 'locales') {
-            title.innerText = 'Red de Locales';
-            icon.innerHTML = '🏪';
-            const categorias = Object.keys(datosGlobales.establecimientosPorCategoria || {}).length;
-            html = `
+            } else if (tipo === 'locales') {
+                title.innerText = 'Red de Locales';
+                icon.innerHTML = '🏪';
+                const categorias = Object.keys(datosGlobales.establecimientosPorCategoria || {}).length;
+                html = `
                 <div class="grid grid-cols-2 gap-4">
                     <div class="bg-slate-50 border border-slate-100 p-4 rounded-2xl text-center">
                         <p class="text-[10px] uppercase font-bold text-slate-400 mb-1">Aprobados</p>
@@ -268,20 +323,20 @@
                 </div>
                 <a href="/admin/aprobaciones.html" class="mt-4 flex justify-center w-full bg-emerald-600 text-white font-black text-xs uppercase tracking-widest py-3 rounded-xl hover:bg-emerald-700 transition-all shadow-md">Ir a Aprobaciones</a>
             `;
-        } else if (tipo === 'reservas') {
-            title.innerText = 'Tráfico Interno';
-            icon.innerHTML = '📅';
-            html = `
+            } else if (tipo === 'reservas') {
+                title.innerText = 'Tráfico Interno';
+                icon.innerHTML = '📅';
+                html = `
                 <div class="flex flex-col items-center bg-blue-50/50 border border-blue-100 p-6 rounded-2xl">
                     <p class="text-[10px] uppercase font-black tracking-widest text-blue-500 mb-2">Transacciones Finalizadas</p>
                     <p class="text-5xl font-black text-blue-600 mb-2">${datosGlobales.totalReservas || 0}</p>
                     <p class="text-xs text-center text-blue-800/70 font-medium">Corresponde al total de reservas confirmadas y procesadas con éxito por los Anfitriones y Aliados.</p>
                 </div>
             `;
-        } else if (tipo === 'tickets') {
-            title.innerText = 'Atención PQRS';
-            icon.innerHTML = '🎫';
-            html = `
+            } else if (tipo === 'tickets') {
+                title.innerText = 'Atención PQRS';
+                icon.innerHTML = '🎫';
+                html = `
                 <div class="flex flex-col items-center bg-amber-50/50 border border-amber-100 p-6 rounded-2xl">
                     <p class="text-[10px] uppercase font-black tracking-widest text-amber-500 mb-2">Esperando Moderación</p>
                     <p class="text-5xl font-black text-amber-500 mb-2">${datosGlobales.ticketsPendientes || 0}</p>
@@ -289,100 +344,101 @@
                 </div>
                 <a href="/admin/pqrs.html" class="mt-4 flex justify-center w-full bg-amber-500 text-white font-black text-xs uppercase tracking-widest py-3 rounded-xl hover:bg-amber-600 transition-all shadow-md">Gestionar Tickets</a>
             `;
-        }
-
-        body.innerHTML = html;
-        modal.classList.remove('hidden');
-        void modal.offsetWidth; // Forzar el reflow para que la animación funcione
-        modal.classList.remove('opacity-0');
-        content.classList.remove('scale-95');
-    }
-
-    function cerrarModal() {
-        const modal = document.getElementById('modal-detalle');
-        const content = document.getElementById('modal-content');
-        
-        modal.classList.add('opacity-0');
-        content.classList.add('scale-95');
-        setTimeout(() => modal.classList.add('hidden'), 300);
-    }
-
-    function generarPDF() {
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        const hoy = new Date().toLocaleDateString();
-
-        // Encabezado Profesional (Banner Verde)
-        pdf.setFillColor(5, 150, 105); // emerald-600
-        pdf.rect(0, 0, 210, 32, 'F');
-        
-        pdf.setFont("helvetica", "bold");
-        pdf.setFontSize(22);
-        pdf.setTextColor(255, 255, 255);
-        pdf.text("REPORTE ANALÍTICO BUDGETMAP", 15, 20);
-        
-        pdf.setFont("helvetica", "normal");
-        pdf.setFontSize(10);
-        pdf.setTextColor(209, 250, 229); // emerald-100
-        pdf.text(`Fecha de emisión: ${hoy}  |  Centro de Control Administrativo`, 15, 27);
-
-        // Título de la tabla
-        pdf.setFont("helvetica", "bold");
-        pdf.setFontSize(14);
-        pdf.setTextColor(30, 41, 59); // slate-800
-        pdf.text("1. Resumen Ejecutivo de Operaciones", 15, 45);
-
-        // Tabla de AutoTable
-        pdf.autoTable({
-            startY: 50,
-            head: [['Indicador / Métrica', 'Valor Registrado', 'Estado']],
-            body: [
-                ['Usuarios Totales', datosGlobales.totalUsuarios || 0, 'Crecimiento Activo'],
-                ['Establecimientos Aprobados', datosGlobales.totalEstablecimientosAprobados || 0, 'Operando'],
-                ['Reservas Procesadas', datosGlobales.totalReservas || 0, 'Exitoso'],
-                ['Tickets PQRS (Pendientes)', datosGlobales.ticketsPendientes || 0, datosGlobales.ticketsPendientes > 0 ? 'Requiere Atención' : 'Al Día']
-            ],
-            theme: 'grid',
-            headStyles: { fillColor: [5, 150, 105], fontStyle: 'bold' },
-            styles: { font: 'helvetica', fontSize: 10, textColor: [51, 65, 85] },
-            alternateRowStyles: { fillColor: [248, 250, 252] } // slate-50
-        });
-
-        // Capturar e Insertar Gráficos
-        const chartY = pdf.lastAutoTable.finalY + 15;
-        pdf.setFont("helvetica", "bold");
-        pdf.setFontSize(14);
-        pdf.setTextColor(30, 41, 59);
-        pdf.text("2. Análisis Visual del Sistema", 15, chartY);
-
-        try {
-            // Obtener Base64 directamente de los elementos canvas que ya están dibujados
-            const canvasCat = document.getElementById('graficoCategorias');
-            const canvasCrec = document.getElementById('graficoCrecimiento');
-            
-            if(canvasCat && canvasCrec) {
-                const imgCat = canvasCat.toDataURL("image/png", 1.0);
-                const imgCrec = canvasCrec.toDataURL("image/png", 1.0);
-
-                // Imprimir las imágenes lado a lado (A4 width = 210mm)
-                pdf.addImage(imgCat, 'PNG', 15, chartY + 5, 85, 85);
-                pdf.addImage(imgCrec, 'PNG', 110, chartY + 5, 85, 85);
             }
-        } catch(e) {
-            console.error("Los gráficos no pudieron adjuntarse al PDF", e);
+
+            body.innerHTML = html;
+            modal.classList.remove('hidden');
+            void modal.offsetWidth; // Forzar el reflow para que la animación funcione
+            modal.classList.remove('opacity-0');
+            content.classList.remove('scale-95');
         }
 
-        // Pie de página
-        const pageCount = pdf.internal.getNumberOfPages();
-        for (let i = 1; i <= pageCount; i++) {
-            pdf.setPage(i);
-            pdf.setFontSize(8);
-            pdf.setTextColor(148, 163, 184); // slate-400
-            pdf.text(`Reporte Oficial Automático - BudgetMap API | Página ${i} de ${pageCount}`, 105, 290, { align: 'center' });
+        function cerrarModal() {
+            const modal = document.getElementById('modal-detalle');
+            const content = document.getElementById('modal-content');
+
+            modal.classList.add('opacity-0');
+            content.classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 300);
         }
 
-        pdf.save(`BudgetMap_Metricas_${hoy.replace(/\//g, '-')}.pdf`);
-    }
-  </script>
+        function generarPDF() {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const hoy = new Date().toLocaleDateString();
+
+            // Encabezado Profesional (Banner Verde)
+            pdf.setFillColor(5, 150, 105); // emerald-600
+            pdf.rect(0, 0, 210, 32, 'F');
+
+            pdf.setFont("helvetica", "bold");
+            pdf.setFontSize(22);
+            pdf.setTextColor(255, 255, 255);
+            pdf.text("REPORTE ANALÍTICO BUDGETMAP", 15, 20);
+
+            pdf.setFont("helvetica", "normal");
+            pdf.setFontSize(10);
+            pdf.setTextColor(209, 250, 229); // emerald-100
+            pdf.text(`Fecha de emisión: ${hoy}  |  Centro de Control Administrativo`, 15, 27);
+
+            // Título de la tabla
+            pdf.setFont("helvetica", "bold");
+            pdf.setFontSize(14);
+            pdf.setTextColor(30, 41, 59); // slate-800
+            pdf.text("1. Resumen Ejecutivo de Operaciones", 15, 45);
+
+            // Tabla de AutoTable
+            pdf.autoTable({
+                startY: 50,
+                head: [['Indicador / Métrica', 'Valor Registrado', 'Estado']],
+                body: [
+                    ['Usuarios Totales', datosGlobales.totalUsuarios || 0, 'Crecimiento Activo'],
+                    ['Establecimientos Aprobados', datosGlobales.totalEstablecimientosAprobados || 0, 'Operando'],
+                    ['Reservas Procesadas', datosGlobales.totalReservas || 0, 'Exitoso'],
+                    ['Tickets PQRS (Pendientes)', datosGlobales.ticketsPendientes || 0, datosGlobales.ticketsPendientes > 0 ? 'Requiere Atención' : 'Al Día']
+                ],
+                theme: 'grid',
+                headStyles: { fillColor: [5, 150, 105], fontStyle: 'bold' },
+                styles: { font: 'helvetica', fontSize: 10, textColor: [51, 65, 85] },
+                alternateRowStyles: { fillColor: [248, 250, 252] } // slate-50
+            });
+
+            // Capturar e Insertar Gráficos
+            const chartY = pdf.lastAutoTable.finalY + 15;
+            pdf.setFont("helvetica", "bold");
+            pdf.setFontSize(14);
+            pdf.setTextColor(30, 41, 59);
+            pdf.text("2. Análisis Visual del Sistema", 15, chartY);
+
+            try {
+                // Obtener Base64 directamente de los elementos canvas que ya están dibujados
+                const canvasCat = document.getElementById('graficoCategorias');
+                const canvasCrec = document.getElementById('graficoCrecimiento');
+
+                if (canvasCat && canvasCrec) {
+                    const imgCat = canvasCat.toDataURL("image/png", 1.0);
+                    const imgCrec = canvasCrec.toDataURL("image/png", 1.0);
+
+                    // Imprimir las imágenes lado a lado (A4 width = 210mm)
+                    pdf.addImage(imgCat, 'PNG', 15, chartY + 5, 85, 85);
+                    pdf.addImage(imgCrec, 'PNG', 110, chartY + 5, 85, 85);
+                }
+            } catch (e) {
+                console.error("Los gráficos no pudieron adjuntarse al PDF", e);
+            }
+
+            // Pie de página
+            const pageCount = pdf.internal.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                pdf.setPage(i);
+                pdf.setFontSize(8);
+                pdf.setTextColor(148, 163, 184); // slate-400
+                pdf.text(`Reporte Oficial Automático - BudgetMap API | Página ${i} de ${pageCount}`, 105, 290, { align: 'center' });
+            }
+
+            pdf.save(`BudgetMap_Metricas_${hoy.replace(/\//g, '-')}.pdf`);
+        }
+    </script>
 </body>
+
 </html>

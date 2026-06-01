@@ -231,6 +231,36 @@ public class UsuarioService {
                 .activo(usuario.getActivo())
                 .ultimoAcceso(usuario.getUltimoAcceso())
                 .createdAt(usuario.getCreatedAt())
+                .avatarUrl(usuario.getAvatarUrl())
                 .build();
+    }
+
+    @Transactional
+    public void actualizarAvatar(Long id, String avatarUrl) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + id));
+        usuario.setAvatarUrl(avatarUrl);
+        usuarioRepository.save(usuario);
+    }
+
+    @Transactional
+    public void actualizarPerfil(Long id, String nombre, String apellido, String telefono, String password) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + id));
+        
+        if (nombre != null && !nombre.isBlank()) {
+            usuario.setNombre(nombre);
+        }
+        if (apellido != null && !apellido.isBlank()) {
+            usuario.setApellido(apellido);
+        }
+        if (telefono != null && !telefono.isBlank()) {
+            usuario.setTelefono(telefono);
+        }
+        if (password != null && !password.isBlank()) {
+            usuario.setPassword(passwordEncoder.encode(password));
+        }
+        
+        usuarioRepository.save(usuario);
     }
 }

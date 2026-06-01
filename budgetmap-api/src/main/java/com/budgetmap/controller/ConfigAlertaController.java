@@ -29,4 +29,16 @@ public class ConfigAlertaController {
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
         return ResponseEntity.ok(configAlertaService.actualizarRadio(userDetails.getId(), body.get("radio")));
     }
+
+    @PutMapping("/update")
+    public ResponseEntity<ConfigAlertaResponse> actualizarConfiguracionCompleta(
+            @RequestBody Map<String, Object> body,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        Integer radioMetros = body.containsKey("radioMetros") ? (Integer) body.get("radioMetros") : null;
+        Boolean notificarPromociones = body.containsKey("notificarPromociones") ? (Boolean) body.get("notificarPromociones") : null;
+        Boolean notificarEventos = body.containsKey("notificarEventos") ? (Boolean) body.get("notificarEventos") : null;
+        
+        return ResponseEntity.ok(configAlertaService.actualizarConfiguracionCompleta(
+                userDetails.getId(), radioMetros, notificarPromociones, notificarEventos));
+    }
 }

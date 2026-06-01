@@ -60,6 +60,16 @@ public class EstablecimientoController {
         return ResponseEntity.ok(establecimientoService.listarPendientesAprobacion());
     }
 
+    @GetMapping("/establecimientos/admin/paginado")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'MODERADOR')")
+    public ResponseEntity<org.springframework.data.domain.Page<EstablecimientoResponse>> listarFiltradoAdmin(
+            @RequestParam(required = false) String texto,
+            @RequestParam(required = false) com.budgetmap.model.enums.EstadoAprobacion estado,
+            @RequestParam(required = false) String nit,
+            org.springframework.data.domain.Pageable pageable) {
+        return ResponseEntity.ok(establecimientoService.listarFiltradoAdmin(texto, estado, nit, pageable));
+    }
+
     @PostMapping("/establecimientos/{id}/aprobar")
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'MODERADOR')")
     public ResponseEntity<Void> aprobar(@PathVariable Long id, @AuthenticationPrincipal UserDetailsImpl userDetails) {

@@ -91,8 +91,11 @@ public class Evento {
     private String motivoRechazo;
 
     @Builder.Default
-    @Column(name = "destacado", nullable = false)
+    @Column(name = "destacado")
     private Boolean destacado = false;
+
+    @Column(name = "verificado")
+    private Boolean verificado = false;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

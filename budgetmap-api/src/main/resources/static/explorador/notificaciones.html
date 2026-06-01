@@ -13,16 +13,31 @@
 <body class="bg-slate-50 min-h-screen font-sans">
 
   <nav class="bg-gradient-to-r from-orange-500 to-amber-500 p-4 shadow-md text-white sticky top-0 z-50">
-    <div class="max-w-3xl mx-auto flex justify-between items-center">
-      <button onclick="location.href='dashboard.html'" class="font-bold text-sm tracking-widest uppercase hover:text-amber-200">⬅️ Radar</button>
-      <span class="font-black tracking-widest text-lg uppercase">Notificaciones</span>
-      <button onclick="marcarTodasLeidas()" class="text-[9px] bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-full font-bold uppercase tracking-widest transition backdrop-blur-sm">
-        Limpiar
-      </button>
+    <div class="w-full px-6 md:px-10 flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <button onclick="location.href='dashboard.html'" class="font-bold text-xs tracking-widest uppercase hover:text-amber-200 mr-2">⬅ Radar</button>
+        <div class="relative bg-white rounded-full w-12 h-12 md:w-16 md:h-16 shadow-md ring-1 ring-black/5 flex items-center justify-center z-0 hidden sm:flex"><img src="/images/logo.png" alt="Logo BudgetMap" class="absolute w-16 h-16 md:w-24 md:h-24 max-w-none object-contain transform transition duration-500 hover:scale-110 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 drop-shadow-xl" /></div>
+        <span class="font-black tracking-widest text-lg uppercase drop-shadow-md"><a href="/index.html" class="hover:text-emerald-600 transition">BUDGETMAP</a></span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="text-xs font-bold uppercase text-orange-100 hidden sm:inline-block">Notificaciones</span>
+        <button onclick="marcarTodasLeidas()" class="text-[9px] bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-full font-bold uppercase tracking-widest transition backdrop-blur-sm hidden sm:inline-block">
+          Limpiar
+        </button>
+        <button onclick="cerrarSesion()" class="text-[12px] text-white font-bold hover:text-red-200 transition">SALIR</button>
+      </div>
     </div>
   </nav>
 
-  <main class="max-w-3xl mx-auto mt-6 px-4 pb-10 space-y-3" id="lista-notificaciones">
+  <script>
+    function cerrarSesion() {
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.href = '/login.html';
+    }
+  </script>
+
+  <main class="w-full px-6 md:px-10 mt-6 px-4 pb-10 space-y-3" id="lista-notificaciones">
     <p class="text-center text-orange-500 font-bold mt-10 animate-pulse">Cargando buzón...</p>
   </main>
 
@@ -32,7 +47,7 @@
     async function cargarNotificaciones() {
         const lista = document.getElementById('lista-notificaciones');
         try {
-            const res = await fetch('http://localhost:8080/api/notificaciones/mis-notificaciones', {
+            const res = await fetch('http://localhost:8080/api/notificaciones', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
@@ -100,5 +115,19 @@
         } catch (e) { alert("Error de red."); }
     }
   </script>
+<script>
+    async function checkNotificacionesBadge() {
+        try {
+            const res = await fetch('http://localhost:8080/api/notificaciones/contador', { headers: { 'Authorization': 'Bearer ' + token } });
+            if(res.ok) {
+                const data = await res.json();
+                if(data.noLeidas > 0) {
+                    document.getElementById('notif-badge')?.classList.remove('hidden');
+                }
+            }
+        } catch(e) {}
+    }
+    checkNotificacionesBadge();
+</script>
 </body>
 </html>

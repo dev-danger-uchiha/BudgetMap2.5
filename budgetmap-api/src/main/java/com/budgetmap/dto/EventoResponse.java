@@ -30,6 +30,7 @@ public class EventoResponse {
     private String imagenUrl;
     private Boolean activo;
     private Boolean destacado;
+    private Boolean verificado;
     private com.budgetmap.model.enums.EstadoAprobacion estado;
     private String motivoRechazo;
     private LocalDateTime createdAt;

@@ -1,152 +1,189 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin - Tickets PQRS | BudgetMap</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    const token = localStorage.getItem('jwt_token');
-    const rol = localStorage.getItem('user_rol');
-    if (!token || !rol || (!rol.includes('ADMINISTRADOR') && !rol.includes('MODERADOR'))) {
-        window.location.href = '/login.html?denied=true';
-    }
-  </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Tickets PQRS | BudgetMap</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        const token = localStorage.getItem('jwt_token');
+        const rol = localStorage.getItem('user_rol');
+        if (!token || !rol || (!rol.includes('ADMINISTRADOR') && !rol.includes('MODERADOR'))) {
+            window.location.href = '/login.html?denied=true';
+        }
+    </script>
 </head>
+
 <body class="bg-emerald-50 h-screen overflow-hidden text-slate-800 font-sans flex flex-col">
 
-  <nav class="bg-white border-b border-emerald-100 p-4 sticky top-0 z-50 shadow-sm">
-    <div class="max-w-7xl mx-auto flex justify-between items-center">
-      <div class="flex items-center gap-4">
-        <span class="bg-emerald-600 text-white px-3 py-1 rounded-full font-black text-[10px] uppercase tracking-tighter">ADMIN</span>
-        <h1 class="font-black tracking-widest text-emerald-900">CONTROL CENTER</h1>
-      </div>
-      <div class="flex gap-6 text-xs font-bold uppercase tracking-widest hidden md:flex">
-        <a href="/admin/usuarios.html" class="hover:text-emerald-600 transition">Usuarios</a>
-        <a href="/admin/aprobaciones.html" class="text-emerald-600 border-b-2 border-emerald-600 pb-1">Aprobaciones</a>
-        <a href="/admin/pqrs.html" class="text-emerald-600 border-b-2 border-emerald-600 pb-1">Soporte</a>
-        <a href="/admin/estadisticas.html" class="hover:text-emerald-600 transition">Estadísticas</a> 
-      </div>
-      <button onclick="cerrarSesion()" class="text-[10px] text-slate-400 font-bold hover:text-red-500 transition">SALIR</button>
-    </div>
-  </nav>
-
-  <main class="flex-1 max-w-7xl mx-auto w-full p-6 flex gap-6 min-h-0">
-    
-    <div class="w-1/3 bg-white border border-emerald-100 rounded-3xl shadow-sm flex flex-col overflow-hidden">
-        <div class="p-5 border-b border-emerald-50 bg-emerald-50/30">
-            <h2 class="text-xl font-black text-slate-900 uppercase tracking-tighter mb-3">Filtros</h2>
-            <div class="flex flex-col gap-2">
-                <select id="filtro-estado" onchange="cargarTickets(0)" class="w-full bg-white border border-emerald-100 rounded-lg px-3 py-2 text-[10px] font-bold text-slate-600 outline-none uppercase">
-                    <option value="ABIERTO">Abiertos</option>
-                    <option value="EN_PROCESO">En Proceso</option>
-                    <option value="RESPONDIDO">Respondidos</option>
-                    <option value="CERRADO">Cerrados</option>
-                </select>
-                <select id="filtro-prioridad" onchange="cargarTickets(0)" class="w-full bg-white border border-emerald-100 rounded-lg px-3 py-2 text-[10px] font-bold text-slate-600 outline-none uppercase">
-                    <option value="">Todas Prioridades</option>
-                    <option value="ALTA">Alta</option>
-                    <option value="BAJA">Baja</option>
-                </select>
-                <select id="filtro-tipo" onchange="cargarTickets(0)" class="w-full bg-white border border-emerald-100 rounded-lg px-3 py-2 text-[10px] font-bold text-slate-600 outline-none uppercase">
-                    <option value="">Todos Tipos</option>
-                    <option value="PETICION">Petición</option>
-                    <option value="QUEJA">Queja</option>
-                    <option value="RECLAMO">Reclamo</option>
-                    <option value="SUGERENCIA">Sugerencia</option>
-                </select>
-                <button onclick="limpiarFiltros()" class="w-full mt-2 bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-[10px] font-black uppercase hover:bg-slate-300 transition-all">
-                    Limpiar Filtros
-                </button>
+    <nav class="bg-white border-b border-emerald-100 p-4 sticky top-0 z-50 shadow-sm">
+        <div class="w-full px-6 md:px-10 flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <div
+                    class="relative bg-white rounded-full w-12 h-12 md:w-16 md:h-16 shadow-md ring-1 ring-black/5 flex items-center justify-center z-0 hidden sm:flex">
+                    <img src="/images/logo.png" alt="Logo BudgetMap"
+                        class="absolute w-16 h-16 md:w-24 md:h-24 max-w-none object-contain transform transition duration-500 hover:scale-110 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 drop-shadow-xl" />
+                </div><span class="text-xl font-black tracking-widest drop-shadow-md mx-2"><a href="/index.html" class="hover:text-emerald-600 transition">BUDGETMAP</a></span>
+                <span
+                    class="bg-emerald-600 text-white px-3 py-1 rounded-full font-black text-[10px] uppercase tracking-tighter">ADMIN</span>
+                <h1 class="font-black tracking-widest text-emerald-900">CONTROL CENTER</h1>
             </div>
-        </div>
-
-        <div id="lista-tickets" class="flex-1 overflow-y-auto divide-y divide-emerald-50">
+            <div class="flex gap-6 text-xs font-bold uppercase tracking-widest hidden md:flex">
+                <a href="/admin/usuarios.html" class="text-slate-400 hover:text-emerald-600 transition">Usuarios</a>
+                <a href="/admin/aprobaciones.html"
+                    class="text-slate-400 hover:text-emerald-600 transition">Aprobaciones</a>
+                <a href="/admin/pqrs.html" class="text-emerald-600 border-b-2 border-emerald-600 pb-1">Soporte</a>
+                <a href="/admin/estadisticas.html" class="text-slate-400 hover:text-emerald-600 transition">Estadísticas</a>
+                <a href="/admin/base-datos.html" class="text-slate-400 hover:text-emerald-600 transition">Base de Datos</a>
             </div>
-
-        <div class="p-4 border-t border-emerald-50 flex justify-between items-center bg-emerald-50/30">
-            <button id="btn-prev" onclick="cambiarPagina(-1)" class="text-[10px] font-black uppercase tracking-widest text-emerald-600 px-3 py-1.5 rounded-lg border border-emerald-200 hover:bg-emerald-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all">◀ Ant</button>
-            <span id="info-pag" class="text-[10px] text-slate-500 font-black tracking-widest uppercase">Pág 1/1</span>
-            <button id="btn-next" onclick="cambiarPagina(1)" class="text-[10px] font-black uppercase tracking-widest text-emerald-600 px-3 py-1.5 rounded-lg border border-emerald-200 hover:bg-emerald-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all">Sig ▶</button>
+            <button onclick="cerrarSesion()"
+                class="text-[12px] text-slate-400 font-bold hover:text-red-500 transition">SALIR</button>
         </div>
-    </div>
+    </nav>
 
-    <div class="w-2/3 bg-white border border-emerald-100 rounded-3xl shadow-sm flex flex-col relative overflow-hidden">
-        <div id="ticket-vacio" class="absolute inset-0 flex flex-col items-center justify-center text-slate-300 bg-emerald-50/10 z-10">
-            <svg class="w-16 h-16 mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
-            <p class="font-bold tracking-widest uppercase text-xs">Selecciona un ticket para responder</p>
-        </div>
+    <main class="flex-1 w-full px-6 md:px-10 w-full p-6 flex gap-6 min-h-0">
 
-        <div id="ticket-detalle" class="hidden flex-col h-full">
-            <div class="p-6 border-b border-emerald-50 bg-emerald-50/30">
-                <div class="flex justify-between items-start mb-2">
-                    <h3 id="det-asunto" class="text-2xl font-black text-slate-800 uppercase tracking-tight">Cargando...</h3>
-                    <span id="det-prioridad" class="px-3 py-1 text-[10px] font-black uppercase rounded-full border"></span>
-                </div>
-                <p class="text-xs text-slate-500 font-bold">Ticket: <span id="det-codigo" class="text-emerald-600"></span> | Usuario: <span id="det-usuario"></span></p>
-            </div>
-            
-            <div class="p-6 flex-1 overflow-y-auto">
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Mensaje del Usuario</p>
-                <div id="det-descripcion" class="bg-slate-50 p-4 rounded-xl text-sm text-slate-700 leading-relaxed border border-slate-100"></div>
-                
-                <div id="historial-respuesta" class="mt-6 hidden">
-                    <p class="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-2">Respuesta del Moderador</p>
-                    <div id="det-respuesta-texto" class="bg-emerald-50 p-4 rounded-xl text-sm text-emerald-900 border border-emerald-100"></div>
+        <div class="w-1/3 bg-white border border-emerald-100 rounded-3xl shadow-sm flex flex-col overflow-hidden">
+            <div class="p-5 border-b border-emerald-50 bg-emerald-50/30">
+                <h2 class="text-xl font-black text-slate-900 uppercase tracking-tighter mb-3">Filtros</h2>
+                <div class="flex flex-col gap-2">
+                    <select id="filtro-estado" onchange="cargarTickets(0)"
+                        class="w-full bg-white border border-emerald-100 rounded-lg px-3 py-2 text-[10px] font-bold text-slate-600 outline-none uppercase">
+                        <option value="ABIERTO">Abiertos</option>
+                        <option value="EN_PROCESO">En Proceso</option>
+                        <option value="RESPONDIDO">Respondidos</option>
+                        <option value="CERRADO">Cerrados</option>
+                    </select>
+                    <select id="filtro-prioridad" onchange="cargarTickets(0)"
+                        class="w-full bg-white border border-emerald-100 rounded-lg px-3 py-2 text-[10px] font-bold text-slate-600 outline-none uppercase">
+                        <option value="">Todas Prioridades</option>
+                        <option value="ALTA">Alta</option>
+                        <option value="BAJA">Baja</option>
+                    </select>
+                    <select id="filtro-tipo" onchange="cargarTickets(0)"
+                        class="w-full bg-white border border-emerald-100 rounded-lg px-3 py-2 text-[10px] font-bold text-slate-600 outline-none uppercase">
+                        <option value="">Todos Tipos</option>
+                        <option value="PETICION">Petición</option>
+                        <option value="QUEJA">Queja</option>
+                        <option value="RECLAMO">Reclamo</option>
+                        <option value="SUGERENCIA">Sugerencia</option>
+                    </select>
+                    <button onclick="limpiarFiltros()"
+                        class="w-full mt-2 bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-[10px] font-black uppercase hover:bg-slate-300 transition-all">
+                        Limpiar Filtros
+                    </button>
                 </div>
             </div>
 
-            <div id="caja-respuesta" class="p-6 border-t border-emerald-50 bg-white">
-                <textarea id="respuesta-texto" rows="4" placeholder="Redacta la respuesta oficial aquí..." class="w-full bg-emerald-50/50 border border-emerald-100 rounded-xl p-4 text-sm outline-none focus:border-emerald-500 transition-all resize-none mb-3"></textarea>
-                <div class="flex justify-end">
-                    <button onclick="enviarRespuesta()" class="bg-emerald-600 text-white px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest shadow-md hover:bg-emerald-700 transition-all">Enviar Respuesta</button>
+            <div id="lista-tickets" class="flex-1 overflow-y-auto divide-y divide-emerald-50">
+            </div>
+
+            <div class="p-4 border-t border-emerald-50 flex justify-between items-center bg-emerald-50/30">
+                <button id="btn-prev" onclick="cambiarPagina(-1)"
+                    class="text-[10px] font-black uppercase tracking-widest text-emerald-600 px-3 py-1.5 rounded-lg border border-emerald-200 hover:bg-emerald-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all">◀
+                    Ant</button>
+                <span id="info-pag" class="text-[10px] text-slate-500 font-black tracking-widest uppercase">Pág
+                    1/1</span>
+                <button id="btn-next" onclick="cambiarPagina(1)"
+                    class="text-[10px] font-black uppercase tracking-widest text-emerald-600 px-3 py-1.5 rounded-lg border border-emerald-200 hover:bg-emerald-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all">Sig
+                    ▶</button>
+            </div>
+        </div>
+
+        <div
+            class="w-2/3 bg-white border border-emerald-100 rounded-3xl shadow-sm flex flex-col relative overflow-hidden">
+            <div id="ticket-vacio"
+                class="absolute inset-0 flex flex-col items-center justify-center text-slate-300 bg-emerald-50/10 z-10">
+                <svg class="w-16 h-16 mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z">
+                    </path>
+                </svg>
+                <p class="font-bold tracking-widest uppercase text-xs">Selecciona un ticket para responder</p>
+            </div>
+
+            <div id="ticket-detalle" class="hidden flex-col h-full">
+                <div class="p-6 border-b border-emerald-50 bg-emerald-50/30">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 id="det-asunto" class="text-2xl font-black text-slate-800 uppercase tracking-tight">
+                            Cargando...</h3>
+                        <span id="det-prioridad"
+                            class="px-3 py-1 text-[10px] font-black uppercase rounded-full border"></span>
+                    </div>
+                    <p class="text-xs text-slate-500 font-bold">Ticket: <span id="det-codigo"
+                            class="text-emerald-600"></span> | Usuario: <span id="det-usuario"></span></p>
+                </div>
+
+                <div class="p-6 flex-1 overflow-y-auto">
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Mensaje del Usuario</p>
+                    <div id="det-descripcion"
+                        class="bg-slate-50 p-4 rounded-xl text-sm text-slate-700 leading-relaxed border border-slate-100">
+                    </div>
+
+                    <div id="historial-respuesta" class="mt-6 hidden">
+                        <p class="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-2">Respuesta del
+                            Moderador</p>
+                        <div id="det-respuesta-texto"
+                            class="bg-emerald-50 p-4 rounded-xl text-sm text-emerald-900 border border-emerald-100">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="caja-respuesta" class="p-6 border-t border-emerald-50 bg-white">
+                    <textarea id="respuesta-texto" rows="4" placeholder="Redacta la respuesta oficial aquí..."
+                        class="w-full bg-emerald-50/50 border border-emerald-100 rounded-xl p-4 text-sm outline-none focus:border-emerald-500 transition-all resize-none mb-3"></textarea>
+                    <div class="flex justify-end">
+                        <button onclick="enviarRespuesta()"
+                            class="bg-emerald-600 text-white px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest shadow-md hover:bg-emerald-700 transition-all">Enviar
+                            Respuesta</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-  </main>
+    </main>
 
-  <script>
-    let paginaActual = 0;
-    let paginasTotales = 0;
-    let ticketActivo = null;
+    <script>
+        let paginaActual = 0;
+        let paginasTotales = 0;
+        let ticketActivo = null;
 
-    document.addEventListener("DOMContentLoaded", () => cargarTickets(0));
-    function cerrarSesion() { localStorage.clear(); window.location.href = '/login.html'; }
+        document.addEventListener("DOMContentLoaded", () => cargarTickets(0));
+        function cerrarSesion() { localStorage.clear(); window.location.href = '/login.html'; }
 
-    async function cargarTickets(pagina = 0) {
-        paginaActual = pagina;
-        const estado = document.getElementById('filtro-estado').value;
-        const prioridad = document.getElementById('filtro-prioridad').value;
-        const tipo = document.getElementById('filtro-tipo').value;
-        const lista = document.getElementById('lista-tickets');
-        lista.innerHTML = '<p class="text-center text-xs text-slate-400 p-4">Cargando...</p>';
+        async function cargarTickets(pagina = 0) {
+            paginaActual = pagina;
+            const estado = document.getElementById('filtro-estado').value;
+            const prioridad = document.getElementById('filtro-prioridad').value;
+            const tipo = document.getElementById('filtro-tipo').value;
+            const lista = document.getElementById('lista-tickets');
+            lista.innerHTML = '<p class="text-center text-xs text-slate-400 p-4">Cargando...</p>';
 
-        try {
-            const params = new URLSearchParams({
-                page: paginaActual,
-                size: 10,
-                estado: estado
-            });
-            if (prioridad) params.append('prioridad', prioridad);
-            if (tipo) params.append('tipo', tipo);
+            try {
+                const params = new URLSearchParams({
+                    page: paginaActual,
+                    size: 10,
+                    estado: estado
+                });
+                if (prioridad) params.append('prioridad', prioridad);
+                if (tipo) params.append('tipo', tipo);
 
-            const res = await fetch(`http://localhost:8080/api/pqrs/paginados?${params}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (res.ok) {
-                const data = await res.json();
-                const tickets = data.content || data;
-                paginasTotales = data.totalPages || 1;
-                
-                document.getElementById('info-pag').innerText = `PÁG ${tickets.length === 0 ? 0 : paginaActual + 1} DE ${paginasTotales}`;
-                document.getElementById('btn-prev').disabled = paginaActual === 0;
-                document.getElementById('btn-next').disabled = paginaActual >= paginasTotales - 1 || paginasTotales === 0;
+                const res = await fetch(`http://localhost:8080/api/pqrs/paginados?${params}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    const tickets = data.content || data;
+                    paginasTotales = data.totalPages || 1;
 
-                lista.innerHTML = tickets.length ? '' : '<p class="text-center text-xs text-slate-400 p-4">Sin tickets.</p>';
+                    document.getElementById('info-pag').innerText = `PÁG ${tickets.length === 0 ? 0 : paginaActual + 1} DE ${paginasTotales}`;
+                    document.getElementById('btn-prev').disabled = paginaActual === 0;
+                    document.getElementById('btn-next').disabled = paginaActual >= paginasTotales - 1 || paginasTotales === 0;
 
-                tickets.forEach(t => {
-                    lista.innerHTML += `
+                    lista.innerHTML = tickets.length ? '' : '<p class="text-center text-xs text-slate-400 p-4">Sin tickets.</p>';
+
+                    tickets.forEach(t => {
+                        lista.innerHTML += `
                         <div onclick="verDetalle(${t.id})" class="p-4 cursor-pointer hover:bg-emerald-50/50 transition-all border-l-4 border-transparent hover:border-emerald-500">
                             <div class="flex justify-between items-center mb-1">
                                 <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">${t.tipo}</span>
@@ -156,67 +193,68 @@
                             <p class="text-[10px] text-slate-500 mt-1">${new Date(t.createdAt).toLocaleDateString()}</p>
                         </div>
                     `;
-                });
-            }
-        } catch (e) { lista.innerHTML = '<p class="text-center text-red-500 text-xs p-4">Error</p>'; }
-    }
-
-    function cambiarPagina(delta) { if (paginaActual + delta >= 0 && paginaActual + delta < paginasTotales) cargarTickets(paginaActual + delta); }
-
-    function limpiarFiltros() {
-        document.getElementById('filtro-estado').value = 'ABIERTO';
-        document.getElementById('filtro-prioridad').value = '';
-        document.getElementById('filtro-tipo').value = '';
-        cargarTickets(0);
-    }
-
-    async function verDetalle(id) {
-        ticketActivo = id;
-        document.getElementById('ticket-vacio').classList.add('hidden');
-        document.getElementById('ticket-detalle').classList.replace('hidden', 'flex');
-
-        try {
-            const res = await fetch(`http://localhost:8080/api/pqrs/${id}`, { headers: { 'Authorization': `Bearer ${token}` } });
-            if (res.ok) {
-                const t = await res.json();
-                document.getElementById('det-asunto').innerText = t.asunto;
-                document.getElementById('det-codigo').innerText = t.codigoTicket;
-                document.getElementById('det-usuario').innerText = t.usuarioEmail || t.usuarioNombre || t.usuarioId;
-                document.getElementById('det-prioridad').innerText = t.prioridad;
-                document.getElementById('det-prioridad').className = `px-3 py-1 text-[10px] font-black uppercase rounded-full border ${t.prioridad === 'ALTA' ? 'bg-red-50 text-red-600 border-red-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200'}`;
-                document.getElementById('det-descripcion').innerText = t.descripcion;
-
-                if (t.respuesta) {
-                    document.getElementById('historial-respuesta').classList.remove('hidden');
-                    document.getElementById('det-respuesta-texto').innerText = t.respuesta;
-                    document.getElementById('caja-respuesta').classList.add('hidden');
-                } else {
-                    document.getElementById('historial-respuesta').classList.add('hidden');
-                    document.getElementById('caja-respuesta').classList.remove('hidden');
+                    });
                 }
-            }
-        } catch (e) { alert("Error al cargar detalle"); }
-    }
+            } catch (e) { lista.innerHTML = '<p class="text-center text-red-500 text-xs p-4">Error</p>'; }
+        }
 
-    async function enviarRespuesta() {
-        const resp = document.getElementById('respuesta-texto').value;
-        if (resp.length < 10) return alert("Respuesta muy corta.");
+        function cambiarPagina(delta) { if (paginaActual + delta >= 0 && paginaActual + delta < paginasTotales) cargarTickets(paginaActual + delta); }
 
-        try {
-            const res = await fetch(`http://localhost:8080/api/pqrs/${ticketActivo}/responder`, {
-                method: 'PUT',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ respuesta: resp })
-            });
-            if (res.ok) {
-                alert("Enviado.");
-                document.getElementById('respuesta-texto').value = '';
-                cargarTickets(paginaActual);
-                document.getElementById('ticket-vacio').classList.remove('hidden');
-                document.getElementById('ticket-detalle').classList.replace('flex', 'hidden');
-            }
-        } catch (e) { alert("Error de red."); }
-    }
-  </script>
+        function limpiarFiltros() {
+            document.getElementById('filtro-estado').value = 'ABIERTO';
+            document.getElementById('filtro-prioridad').value = '';
+            document.getElementById('filtro-tipo').value = '';
+            cargarTickets(0);
+        }
+
+        async function verDetalle(id) {
+            ticketActivo = id;
+            document.getElementById('ticket-vacio').classList.add('hidden');
+            document.getElementById('ticket-detalle').classList.replace('hidden', 'flex');
+
+            try {
+                const res = await fetch(`http://localhost:8080/api/pqrs/${id}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (res.ok) {
+                    const t = await res.json();
+                    document.getElementById('det-asunto').innerText = t.asunto;
+                    document.getElementById('det-codigo').innerText = t.codigoTicket;
+                    document.getElementById('det-usuario').innerText = t.usuarioEmail || t.usuarioNombre || t.usuarioId;
+                    document.getElementById('det-prioridad').innerText = t.prioridad;
+                    document.getElementById('det-prioridad').className = `px-3 py-1 text-[10px] font-black uppercase rounded-full border ${t.prioridad === 'ALTA' ? 'bg-red-50 text-red-600 border-red-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200'}`;
+                    document.getElementById('det-descripcion').innerText = t.descripcion;
+
+                    if (t.respuesta) {
+                        document.getElementById('historial-respuesta').classList.remove('hidden');
+                        document.getElementById('det-respuesta-texto').innerText = t.respuesta;
+                        document.getElementById('caja-respuesta').classList.add('hidden');
+                    } else {
+                        document.getElementById('historial-respuesta').classList.add('hidden');
+                        document.getElementById('caja-respuesta').classList.remove('hidden');
+                    }
+                }
+            } catch (e) { alert("Error al cargar detalle"); }
+        }
+
+        async function enviarRespuesta() {
+            const resp = document.getElementById('respuesta-texto').value;
+            if (resp.length < 10) return alert("Respuesta muy corta.");
+
+            try {
+                const res = await fetch(`http://localhost:8080/api/pqrs/${ticketActivo}/responder`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ respuesta: resp })
+                });
+                if (res.ok) {
+                    alert("Enviado.");
+                    document.getElementById('respuesta-texto').value = '';
+                    cargarTickets(paginaActual);
+                    document.getElementById('ticket-vacio').classList.remove('hidden');
+                    document.getElementById('ticket-detalle').classList.replace('flex', 'hidden');
+                }
+            } catch (e) { alert("Error de red."); }
+        }
+    </script>
 </body>
+
 </html>

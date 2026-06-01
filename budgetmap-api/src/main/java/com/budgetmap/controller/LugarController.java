@@ -48,6 +48,16 @@ public class LugarController {
         return ResponseEntity.ok(lugarService.listarPendientesAprobacion());
     }
 
+    @GetMapping("/lugares/admin/paginado")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'MODERADOR')")
+    public ResponseEntity<Page<Lugar>> listarFiltradoAdmin(
+            @RequestParam(required = false) String texto,
+            @RequestParam(required = false) EstadoAprobacion estado,
+            @RequestParam(required = false) com.budgetmap.model.enums.CategoriaLugar categoria,
+            Pageable pageable) {
+        return ResponseEntity.ok(lugarService.listarFiltradoAdmin(texto, estado, categoria, pageable));
+    }
+
     @PostMapping("/lugares/{id}/aprobar")
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'MODERADOR')")
     public ResponseEntity<Void> aprobar(@PathVariable Long id, @AuthenticationPrincipal UserDetailsImpl userDetails) {

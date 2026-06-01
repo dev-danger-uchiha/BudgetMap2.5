@@ -35,4 +35,10 @@ public interface LugarRepository extends JpaRepository<Lugar, Long> {
 
         @Query("SELECT COUNT(l) FROM Lugar l WHERE l.estado = :estado")
         Long countByEstado(@Param("estado") EstadoAprobacion estado);
+
+        @Query("SELECT l FROM Lugar l WHERE " +
+               "(:texto IS NULL OR LOWER(l.nombre) LIKE LOWER(CONCAT('%', :texto, '%'))) AND " +
+               "(:estado IS NULL OR l.estado = :estado) AND " +
+               "(:categoria IS NULL OR l.categoria = :categoria)")
+        Page<Lugar> findFiltradoAdmin(@Param("texto") String texto, @Param("estado") EstadoAprobacion estado, @Param("categoria") CategoriaLugar categoria, Pageable pageable);
 }

@@ -92,6 +92,9 @@ public class Establecimiento {
     @Column(name = "pin_destacado")
     private Boolean pinDestacado;
 
+    @Column(name = "verificado")
+    private Boolean verificado = false;
+
     @Column(name = "color_pin", length = 20)
     private String colorPin;
 

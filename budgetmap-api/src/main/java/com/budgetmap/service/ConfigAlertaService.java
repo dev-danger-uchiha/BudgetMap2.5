@@ -41,6 +41,22 @@ public class ConfigAlertaService {
     }
 
     @Transactional
+    public ConfigAlertaResponse actualizarConfiguracionCompleta(Long usuarioId, Integer radioMetros, Boolean notificarPromociones, Boolean notificarEventos) {
+        log.info("Actualizando configuración completa para el usuario ID: {}", usuarioId);
+        ConfigAlerta config = configAlertaRepository.findByUsuarioId(usuarioId)
+                .orElseThrow(() -> new ResourceNotFoundException("Configuración no encontrada"));
+        
+        if (radioMetros != null) config.setRadioMetros(radioMetros);
+        if (notificarPromociones != null) config.setNotificarPromociones(notificarPromociones);
+        if (notificarEventos != null) config.setNotificarEventos(notificarEventos);
+
+        ConfigAlerta guardada = configAlertaRepository.save(config);
+        log.debug("Configuración actualizada correctamente para el usuario ID: {}", usuarioId);
+        
+        return convertirAResponse(guardada);
+    }
+
+    @Transactional
     public void crearConfiguracionInicial(Usuario usuario) {
         if (!configAlertaRepository.existsByUsuarioId(usuario.getId())) {
             log.info("Creando configuración de alertas por defecto para el nuevo usuario ID: {}", usuario.getId());

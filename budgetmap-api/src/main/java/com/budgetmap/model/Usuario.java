@@ -58,6 +58,9 @@ public class Usuario {
     private LocalDateTime ultimoAcceso;
 
     // --- NUEVOS CAMPOS: MODELO DE NEGOCIO ---
+    @Column(name = "avatar_url", length = 500)
+    private String avatarUrl;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "plan_id")
     private PlanSuscripcion plan;

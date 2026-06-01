@@ -36,6 +36,17 @@ public class EventoController {
         return ResponseEntity.ok(eventoService.listarPendientesAprobacion());
     }
 
+    @GetMapping("/eventos/admin/paginado")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'MODERADOR')")
+    public ResponseEntity<Page<EventoResponse>> listarFiltradoAdmin(
+            @RequestParam(required = false) String texto,
+            @RequestParam(required = false) com.budgetmap.model.enums.EstadoAprobacion estado,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin,
+            Pageable pageable) {
+        return ResponseEntity.ok(eventoService.listarFiltradoAdmin(texto, estado, fechaInicio, fechaFin, pageable));
+    }
+
     @PostMapping("/eventos/{id}/aprobar")
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'MODERADOR')")
     public ResponseEntity<Void> aprobar(@PathVariable Long id, @AuthenticationPrincipal UserDetailsImpl userDetails) {

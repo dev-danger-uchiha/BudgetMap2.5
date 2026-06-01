@@ -3,6 +3,7 @@ package com.budgetmap.service;
 import com.budgetmap.dto.LugarRequest;
 import com.budgetmap.exception.ResourceNotFoundException;
 import com.budgetmap.model.Lugar;
+import com.budgetmap.model.enums.CategoriaLugar;
 import com.budgetmap.model.enums.EstadoAprobacion;
 import com.budgetmap.repository.LugarRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -124,10 +125,15 @@ public class LugarService {
 
     @Transactional
     public void eliminar(Long id) {
-        log.info("Eliminando (Soft Delete) lugar ID: {}", id);
+        log.info("Eliminando lugar con ID: {}", id);
         Lugar lugar = obtenerPorId(id);
         lugar.setActivo(false);
         lugarRepository.save(lugar);
+        log.debug("Lugar ID: {} marcado como inactivo", id);
+    }
+
+    public Page<Lugar> listarFiltradoAdmin(String texto, EstadoAprobacion estado, CategoriaLugar categoria, Pageable pageable) {
+        return lugarRepository.findFiltradoAdmin(texto, estado, categoria, pageable);
     }
 
     public List<Lugar> buscarCercanos(Double latitud, Double longitud, Double radioKm) {

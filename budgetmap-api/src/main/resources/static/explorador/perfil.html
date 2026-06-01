@@ -13,18 +13,46 @@
 <body class="bg-slate-50 min-h-screen pb-10 font-sans">
 
   <nav class="bg-gradient-to-r from-orange-500 to-amber-500 p-4 shadow-md text-white sticky top-0 z-50">
-    <div class="max-w-3xl mx-auto flex justify-between items-center">
-        <button onclick="location.href='dashboard.html'" class="font-bold text-sm tracking-widest uppercase hover:text-amber-200">⬅️ Radar</button>
-        <span class="font-black tracking-widest uppercase text-lg">Mi Cuenta</span>
-        <div class="w-10"></div>
+    <div class="w-full px-6 md:px-10 flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <button onclick="location.href='dashboard.html'" class="font-bold text-xs tracking-widest uppercase hover:text-amber-200 mr-2">⬅ Radar</button>
+        <div class="relative bg-white rounded-full w-12 h-12 md:w-16 md:h-16 shadow-md ring-1 ring-black/5 flex items-center justify-center z-0 hidden sm:flex"><img src="/images/logo.png" alt="Logo BudgetMap" class="absolute w-16 h-16 md:w-24 md:h-24 max-w-none object-contain transform transition duration-500 hover:scale-110 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 drop-shadow-xl" /></div>
+        <span class="font-black tracking-widest text-lg uppercase drop-shadow-md"><a href="/index.html" class="hover:text-emerald-600 transition">BUDGETMAP</a></span>
+      </div>
+      <div class="flex items-center gap-4">
+        <span class="text-xs font-bold uppercase text-orange-100 hidden sm:inline-block">Mi Cuenta</span>
+        <button onclick="cerrarSesion()" class="text-[12px] text-white font-bold hover:text-red-200 transition">SALIR</button>
+      </div>
     </div>
   </nav>
 
-  <main class="max-w-3xl mx-auto mt-8 px-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+  <script>
+    function cerrarSesion() {
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.href = '/login.html';
+    }
+  </script>
+
+  <main class="w-full px-6 md:px-10 mt-8 px-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
 
     <div class="bg-slate-900 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden flex flex-col justify-between">
         <div class="absolute top-0 right-0 w-32 h-32 bg-orange-500 rounded-full blur-3xl opacity-20 pointer-events-none"></div>
         <div>
+            <div class="flex items-center gap-6 mb-8 relative z-10">
+                <div class="relative group">
+                    <img id="profile-img" src="https://ui-avatars.com/api/?name=U&background=F97316&color=fff" class="w-20 h-20 rounded-full border-4 border-slate-800 shadow-lg object-cover">
+                    <label class="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition">
+                        <span class="text-[10px] font-black uppercase text-white tracking-widest text-center leading-tight">Subir<br>Foto</span>
+                        <input type="file" id="file-upload" class="hidden" accept="image/*" onchange="subirFotoPerfil(event)">
+                    </label>
+                </div>
+                <div>
+                    <h2 id="user-display-name" class="text-2xl font-black uppercase italic tracking-tighter truncate w-40">Explorador</h2>
+                    <p id="user-email-display" class="text-xs text-slate-400 truncate w-40">cargando...</p>
+                </div>
+            </div>
+
             <h3 class="font-black text-amber-400 uppercase tracking-widest text-[10px] mb-2">Tu Membresía Actual</h3>
             <div class="flex items-center gap-3 mb-6">
                 <span id="plan-actual" class="text-4xl font-black italic tracking-tighter uppercase">FREE</span>
@@ -72,19 +100,57 @@
             Guardar Cambios
         </button>
     </div>
+
+    <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
+        <div>
+            <h3 class="font-black text-slate-800 uppercase tracking-tighter text-xl mb-6">Mis Datos Personales</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nombre</label>
+                    <input type="text" id="edit-nombre" class="w-full p-2 text-sm border-b-2 border-slate-200 focus:outline-none focus:border-orange-500 bg-transparent text-slate-700">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Apellido</label>
+                    <input type="text" id="edit-apellido" class="w-full p-2 text-sm border-b-2 border-slate-200 focus:outline-none focus:border-orange-500 bg-transparent text-slate-700">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Teléfono</label>
+                    <input type="text" id="edit-telefono" class="w-full p-2 text-sm border-b-2 border-slate-200 focus:outline-none focus:border-orange-500 bg-transparent text-slate-700">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nueva Contraseña</label>
+                    <input type="password" id="edit-password" placeholder="Dejar en blanco para mantener actual" class="w-full p-2 text-sm border-b-2 border-slate-200 focus:outline-none focus:border-orange-500 bg-transparent text-slate-700">
+                </div>
+            </div>
+        </div>
+        <button id="btn-guardar-perfil" onclick="guardarPerfil()" class="w-full mt-8 bg-orange-500 text-white font-black py-4 rounded-xl text-xs uppercase tracking-widest hover:bg-orange-600 transition shadow-md shadow-orange-500/30">
+            Guardar Datos
+        </button>
+    </div>
   </main>
 
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
       try {
-        const resUser = await fetch('http://localhost:8080/api/usuarios/me', { headers: { 'Authorization': `Bearer ${token}` }});
+        const resUser = await fetch('http://localhost:8080/api/perfil', { headers: { 'Authorization': `Bearer ${token}` }});
         if(resUser.ok) {
             const user = await resUser.json();
             document.getElementById('saldo-puntos').innerText = `${user.puntosAcumulados || 0} Pts`;
-            if(user.planId) document.getElementById('plan-actual').innerText = 'PRO';
+            if(user.planId || user.plan) document.getElementById('plan-actual').innerText = 'PRO';
+            
+            document.getElementById('user-display-name').innerText = user.nombre || 'Explorador';
+            document.getElementById('user-email-display').innerText = user.email || '';
+            document.getElementById('edit-nombre').value = user.nombre || '';
+            document.getElementById('edit-apellido').value = user.apellido || '';
+            document.getElementById('edit-telefono').value = user.telefono || '';
+            if(user.avatarUrl) {
+                document.getElementById('profile-img').src = user.avatarUrl;
+            } else {
+                document.getElementById('profile-img').src = `https://ui-avatars.com/api/?name=${user.nombre}&background=F97316&color=fff`;
+            }
         }
 
-        const resConfig = await fetch('http://localhost:8080/api/config-alertas/me', { headers: { 'Authorization': `Bearer ${token}` }});
+        const resConfig = await fetch('http://localhost:8080/api/config-alertas/mi-radar', { headers: { 'Authorization': `Bearer ${token}` }});
         if (resConfig.ok) {
           const config = await resConfig.json();
           document.getElementById('radio-slider').value = config.radioMetros;
@@ -95,6 +161,46 @@
       } catch (e) { console.error("Error cargando perfil", e); }
     });
 
+    async function subirFotoPerfil(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+            // 1. Subir el archivo
+            const uploadRes = await fetch('http://localhost:8080/api/upload', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+
+            if (!uploadRes.ok) throw new Error("Error subiendo archivo");
+            const data = await uploadRes.json();
+            const avatarUrl = data.url;
+
+            // 2. Actualizar perfil del usuario
+            const updateRes = await fetch('http://localhost:8080/api/perfil/avatar', {
+                method: 'PUT',
+                headers: { 
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ avatarUrl: avatarUrl })
+            });
+
+            if (!updateRes.ok) throw new Error("Error actualizando perfil");
+
+            // 3. Actualizar la UI
+            document.getElementById('profile-img').src = avatarUrl;
+            alert("¡Foto de perfil actualizada exitosamente!");
+        } catch (error) {
+            console.error(error);
+            alert("No se pudo actualizar la foto de perfil.");
+        }
+    }
+
     const slider = document.getElementById('radio-slider');
     const display = document.getElementById('radio-display');
     slider.addEventListener('input', () => display.textContent = `${slider.value}m`);
@@ -103,14 +209,14 @@
       const btn = document.getElementById('btn-guardar-config');
       btn.innerText = 'Guardando...';
       try {
-        const response = await fetch(`http://localhost:8080/api/config-alertas/radio`, {
+        const response = await fetch(`http://localhost:8080/api/config-alertas/update`, {
           method: 'PUT',
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            radioMetros: document.getElementById('radio-slider').value,
+            radioMetros: parseInt(document.getElementById('radio-slider').value),
             notificarPromociones: document.getElementById('check-promo').checked,
             notificarEventos: document.getElementById('check-evento').checked
           })
@@ -163,6 +269,56 @@
             btn.disabled = false;
         }
     }
+
+    async function guardarPerfil() {
+        const btn = document.getElementById('btn-guardar-perfil');
+        btn.innerText = 'GUARDANDO...';
+        btn.disabled = true;
+        try {
+            const bodyData = {
+                nombre: document.getElementById('edit-nombre').value,
+                apellido: document.getElementById('edit-apellido').value,
+                telefono: document.getElementById('edit-telefono').value,
+                password: document.getElementById('edit-password').value
+            };
+            const response = await fetch('http://localhost:8080/api/perfil/actualizar', {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(bodyData)
+            });
+
+            if (response.ok) {
+                alert("¡Datos actualizados exitosamente!");
+                document.getElementById('user-display-name').innerText = bodyData.nombre;
+                document.getElementById('edit-password').value = '';
+            } else {
+                alert("No se pudo actualizar el perfil.");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Error de conexión.");
+        } finally {
+            btn.innerText = 'GUARDAR DATOS';
+            btn.disabled = false;
+        }
+    }
   </script>
+<script>
+    async function checkNotificacionesBadge() {
+        try {
+            const res = await fetch('http://localhost:8080/api/notificaciones/contador', { headers: { 'Authorization': 'Bearer ' + token } });
+            if(res.ok) {
+                const data = await res.json();
+                if(data.noLeidas > 0) {
+                    document.getElementById('notif-badge')?.classList.remove('hidden');
+                }
+            }
+        } catch(e) {}
+    }
+    checkNotificacionesBadge();
+</script>
 </body>
 </html>
