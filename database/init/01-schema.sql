@@ -116,6 +116,7 @@ CREATE TABLE IF NOT EXISTS establecimientos (
     aforo_actual INT DEFAULT 0,
     telefono VARCHAR(255),
     horario_atencion VARCHAR(255),
+    reservas_habilitadas BOOLEAN DEFAULT FALSE,
     estado ENUM('PENDIENTE','APROBADO','RECHAZADO') DEFAULT 'PENDIENTE',
     moderador_id BIGINT,
     fecha_aprobacion DATETIME,

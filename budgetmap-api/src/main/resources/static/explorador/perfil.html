@@ -136,7 +136,37 @@
         if(resUser.ok) {
             const user = await resUser.json();
             document.getElementById('saldo-puntos').innerText = `${user.puntosAcumulados || 0} Pts`;
-            if(user.planId || user.plan) document.getElementById('plan-actual').innerText = 'PRO';
+            
+            // Lógica para detectar si es PRO
+            if(user.rol === 'EXPLORADOR_PRO' || user.planId || user.plan) {
+                document.getElementById('plan-actual').innerText = 'PRO';
+                document.getElementById('plan-actual').classList.add('text-indigo-400');
+                const btnUpgrade = document.getElementById('btn-upgrade-pro');
+                if(btnUpgrade) btnUpgrade.style.display = 'none';
+
+                // Cambiar las X por ✅ en la lista de beneficios y resaltar el texto
+                const listaBeneficios = document.querySelector('ul.text-xs.text-slate-400');
+                if (listaBeneficios) {
+                    listaBeneficios.innerHTML = `
+                        <li class="flex items-center gap-2 font-bold text-white">✅ Radar extendido (hasta 10km)</li>
+                        <li class="flex items-center gap-2 font-bold text-white">✅ Reservas Ilimitadas</li>
+                        <li class="flex items-center gap-2 font-bold text-white">✅ Cupones exclusivos PRO</li>
+                        <li class="flex items-center gap-2 font-bold text-white">✅ Experiencia sin Anuncios</li>
+                    `;
+                }
+
+                // Aumentar el límite del slider del radar a 10km
+                const radarSlider = document.getElementById('radio-slider');
+                if (radarSlider) {
+                    radarSlider.max = "10000";
+                    const radarMsg = radarSlider.nextElementSibling;
+                    if (radarMsg && radarMsg.tagName.toLowerCase() === 'p') {
+                        radarMsg.innerText = "🌟 Eres PRO: Radar extendido desbloqueado (hasta 10km).";
+                        radarMsg.classList.remove("text-slate-400");
+                        radarMsg.classList.add("text-indigo-400", "font-bold");
+                    }
+                }
+            }
             
             document.getElementById('user-display-name').innerText = user.nombre || 'Explorador';
             document.getElementById('user-email-display').innerText = user.email || '';
@@ -234,10 +264,18 @@
       }
     });
 
-    async function iniciarPagoPro() {
-        const btn = document.getElementById('btn-upgrade-pro');
+    function iniciarPagoPro() {
+        document.getElementById('mock-payment-modal').classList.remove('hidden');
+    }
+
+    function cerrarSimulador() {
+        document.getElementById('mock-payment-modal').classList.add('hidden');
+    }
+
+    async function confirmarPagoSimulado() {
+        const btn = document.getElementById('btn-confirm-mock-payment');
         const originalText = btn.innerText;
-        btn.innerText = 'PROCESANDO PAGO...';
+        btn.innerText = 'Procesando...';
         btn.disabled = true;
 
         try {
@@ -249,22 +287,15 @@
             });
 
             if (response.ok) {
-                const data = await response.json();
-                // Redirigir al usuario al link del Sandbox de Mercado Pago
-                window.location.href = data.urlPago;
+                alert("¡Pago Simulado Exitoso! Ya eres usuario PRO.");
+                location.reload();
             } else {
-                try {
-                    const errorData = await response.json();
-                    alert("Error en pasarela: " + (errorData.error || "Intenta de nuevo."));
-                } catch (e) {
-                    alert("No se pudo generar el enlace de pago. Revisa la consola del Backend.");
-                }
+                alert("Ocurrió un error en el simulador.");
                 btn.innerText = originalText;
                 btn.disabled = false;
             }
         } catch (error) {
-            console.error("Error de conexión con la pasarela:", error);
-            alert("Error de red al conectar con la pasarela de pagos.");
+            alert("Error de conexión en el simulador.");
             btn.innerText = originalText;
             btn.disabled = false;
         }
@@ -320,5 +351,32 @@
     }
     checkNotificacionesBadge();
 </script>
+<!-- MODAL SIMULADOR DE PAGOS -->
+<div id="mock-payment-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 p-4">
+    <div class="bg-gray-800 border border-gray-700 rounded-2xl shadow-2xl w-full max-w-md p-6 relative">
+        <button onclick="cerrarSimulador()" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+        <div class="text-center mb-6">
+            <div class="bg-indigo-500/20 p-3 rounded-full inline-block mb-3">
+                <svg class="w-10 h-10 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+            </div>
+            <h2 class="text-2xl font-bold text-white mb-2">Simulador PSE</h2>
+            <p class="text-gray-400 text-sm">Estás en el entorno de pruebas local. No se realizarán cargos reales.</p>
+        </div>
+        <div class="bg-gray-900 rounded-lg p-4 mb-6">
+            <div class="flex justify-between text-gray-300 mb-2"><span>Suscripción:</span> <span class="font-semibold text-white">Plan PRO - BudgetMap</span></div>
+            <div class="flex justify-between text-gray-300"><span>Total a pagar:</span> <span class="font-bold text-indigo-400">$29.900 COP</span></div>
+        </div>
+        <div class="flex gap-3">
+            <button onclick="cerrarSimulador()" class="flex-1 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors">Cancelar</button>
+            <button id="btn-confirm-mock-payment" onclick="confirmarPagoSimulado()" class="flex-1 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold shadow-lg shadow-indigo-500/30 transition-all flex items-center justify-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Aprobar Pago
+            </button>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>

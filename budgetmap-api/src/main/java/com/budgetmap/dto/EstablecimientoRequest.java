@@ -31,5 +31,6 @@ public class EstablecimientoRequest {
     private Integer aforoMaximo;
     private String telefono;
     private String horarioAtencion;
+    private Boolean reservasHabilitadas;
 
 }

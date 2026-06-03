@@ -25,10 +25,11 @@
                     class="relative bg-white rounded-full w-12 h-12 md:w-16 md:h-16 shadow-md ring-1 ring-black/5 flex items-center justify-center z-0 hidden sm:flex">
                     <img src="/images/logo.png" alt="Logo BudgetMap"
                         class="absolute w-16 h-16 md:w-24 md:h-24 max-w-none object-contain transform transition duration-500 hover:scale-110 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 drop-shadow-xl" />
-                </div><span class="text-xl font-black tracking-widest drop-shadow-md mx-2"><a href="/index.html" class="hover:text-emerald-600 transition">BUDGETMAP</a></span>
+                </div><span class="text-xl font-black tracking-widest drop-shadow-md mx-2"><a href="/index.html"
+                        class="hover:text-emerald-600 transition">BUDGETMAP</a></span>
                 <span
                     class="bg-emerald-600 text-white px-3 py-1 rounded-full font-black text-[10px] uppercase tracking-tighter">ALIADO</span>
-                <h1 class="font-black tracking-widest text-emerald-900 uppercase">PANEL DE GESTI覰</h1>
+                <h1 class="font-black tracking-widest text-emerald-900 uppercase">PANEL DE GESTI脫N</h1>
             </div>
 
             <div class="flex gap-6 text-xs font-bold uppercase tracking-widest hidden md:flex">
@@ -39,7 +40,8 @@
                     class="text-slate-400 hover:text-emerald-600 transition">Promociones</a>
             </div>
 
-            <button onclick="cerrarSesion()" class="text-[12px] text-slate-400 font-bold hover:text-red-500 transition">SALIR</button>
+            <button onclick="cerrarSesion()"
+                class="text-[12px] text-slate-400 font-bold hover:text-red-500 transition">SALIR</button>
         </div>
     </nav>
 
@@ -55,7 +57,7 @@
             <div class="bg-white p-6 rounded-3xl border border-emerald-100 shadow-sm transition-all hover:shadow-md">
                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Aforo Ocupado</p>
                 <h3 id="stat-aforo" class="text-4xl font-black text-slate-800 mt-2">-- / --</h3>
-                <p class="text-[10px] text-slate-400 mt-2">Capacidad actual seg鷑 registros en tiempo real</p>
+                <p class="text-[10px] text-slate-400 mt-2">Capacidad actual segun registros en tiempo real</p>
             </div>
             <div class="bg-white p-6 rounded-3xl border border-emerald-100 shadow-sm transition-all hover:shadow-md">
                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Reservas para Hoy</p>
@@ -63,7 +65,7 @@
                 <p class="text-[10px] text-emerald-600/70 mt-2">Clientes agendados pendientes por ingresar</p>
             </div>
             <div class="bg-white p-6 rounded-3xl border border-emerald-100 shadow-sm transition-all hover:shadow-md">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Campa馻s Activas</p>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Campa帽as Activas</p>
                 <h3 id="stat-promos" class="text-4xl font-black text-blue-600 mt-2">--</h3>
                 <p class="text-[10px] text-blue-600/70 mt-2">Cupones y descuentos visibles en el mapa</p>
             </div>
@@ -73,12 +75,12 @@
             class="bg-emerald-900 rounded-3xl p-8 text-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 shadow-xl relative overflow-hidden">
             <div class="z-10">
                 <h2 class="text-2xl font-black uppercase tracking-tight">Flujo de Entrada Continuo</h2>
-                <p class="text-emerald-200 text-xs mt-1">縏ienes clientes esperando en la puerta? Valida los c骴igos de
+                <p class="text-emerald-200 text-xs mt-1">驴Tienes clientes esperando en la puerta? Valida los c贸digos de
                     reserva al instante.</p>
             </div>
             <button onclick="location.href='/aliado/check-in.html'"
                 class="z-10 bg-white text-emerald-900 px-8 py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-emerald-50 transition-all shadow-md shrink-0">
-                Abrir M骴ulo Check-In
+                Abrir M贸dulo Check-In
             </button>
             <div
                 class="absolute -right-16 -bottom-16 w-44 h-44 bg-emerald-800 rounded-full opacity-50 pointer-events-none">
@@ -91,7 +93,7 @@
             cargarDatosDashboard();
         });
 
-        // Carga de la informaci髇 veraz desde la base de datos de producci髇
+        // Carga de la informaci贸n veraz desde la base de datos de producci贸n
         async function cargarDatosDashboard() {
             try {
                 const responseEst = await fetch('http://localhost:8080/api/establecimientos/mi-establecimiento', {
@@ -102,7 +104,7 @@
                     const est = await responseEst.json();
 
                     // Actualizar UI con datos reales
-                    document.getElementById('nombre-negocio').innerText = `Gesti髇 de: ${est.nombre}`;
+                    document.getElementById('nombre-negocio').innerText = `Gesti贸n de: ${est.nombre}`;
                     document.getElementById('stat-aforo').innerText = `${est.aforoActual || 0} / ${est.aforoMaximo || 0}`;
 
                     // Peticiones secundarias para contadores operacionales
@@ -116,8 +118,8 @@
                     cerrarSesion();
                 }
             } catch (error) {
-                console.error("Error cr韙ico de sincronizaci髇:", error);
-                document.getElementById('nombre-negocio').innerText = "Error de Conexi髇 Local";
+                console.error("Error cr铆tico de sincronizaci锟絥:", error);
+                document.getElementById('nombre-negocio').innerText = "Error de Conexi锟絥 Local";
             }
         }
 
@@ -147,7 +149,7 @@
             } catch (e) { document.getElementById('stat-reservas').textContent = "0"; }
         }
 
-        // Proceso completo de destrucci髇 de sesi髇
+        // Proceso completo de destrucci贸n de sesi贸n
         function cerrarSesion() {
             localStorage.clear();
             sessionStorage.clear();

@@ -10,8 +10,9 @@ import java.time.LocalTime;
 @Data
 public class ReservaRequest {
 
-    @NotNull(message = "El establecimiento es obligatorio")
+    // Ahora es opcional: se puede reservar en establecimiento O en evento
     private Long establecimientoId;
+    private Long eventoId;
 
     @NotNull(message = "La fecha de reserva es obligatoria")
     @Future(message = "La fecha debe ser futura")

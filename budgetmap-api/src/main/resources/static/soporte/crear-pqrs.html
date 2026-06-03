@@ -6,7 +6,7 @@
   <title>Soporte y PQRS - BudgetMap</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    // Seguridad básica
+    // Seguridad bï¿½sica
     const token = localStorage.getItem('jwt_token');
     if (!token) window.location.href = '/login.html';
   
@@ -37,21 +37,21 @@
   <main class="flex-1 max-w-2xl mx-auto w-full mt-10 px-6 pb-20">
     
     <div class="text-center mb-10">
-      <h1 class="text-3xl font-black text-gray-800 dark:text-white">¿Cómo podemos ayudarte?</h1>
-      <p class="text-gray-500 dark:text-gray-400 mt-2">Tu opinión nos ayuda a mejorar la experiencia BudgetMap en tu ciudad.</p>
+      <h1 class="text-3xl font-black text-gray-800 dark:text-white">ï¿½Cï¿½mo podemos ayudarte?</h1>
+      <p class="text-gray-500 dark:text-gray-400 mt-2">Tu opiniï¿½n nos ayuda a mejorar la experiencia BudgetMap en tu ciudad.</p>
     </div>
 
     <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-8 border border-gray-100 dark:border-gray-700">
       <form id="pqrsForm" class="space-y-6">
         
         <div>
-          <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">¿Qué deseas reportar?</label>
+          <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">ï¿½Quï¿½ deseas reportar?</label>
           <div class="grid grid-cols-2 gap-3">
             <label class="cursor-pointer">
               <input type="radio" name="tipo" value="PETICION" class="peer hidden" checked>
               <div class="p-3 text-center rounded-xl border-2 border-gray-100 dark:border-gray-700 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 dark:peer-checked:bg-emerald-900/20 transition">
                 <span class="text-xl block">?????</span>
-                <span class="text-[10px] font-bold uppercase dark:text-gray-300">Petición</span>
+                <span class="text-[10px] font-bold uppercase dark:text-gray-300">Peticiï¿½n</span>
               </div>
             </label>
             <label class="cursor-pointer">
@@ -86,7 +86,7 @@
 
         <div>
           <label for="descripcion" class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Detalles de tu mensaje:</label>
-          <textarea id="descripcion" rows="5" required placeholder="Cuéntanos más detalles para poder ayudarte mejor..."
+          <textarea id="descripcion" rows="5" required placeholder="Cuï¿½ntanos mï¿½s detalles para poder ayudarte mejor..."
                     class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none dark:text-white transition resize-none"></textarea>
         </div>
 
@@ -100,8 +100,8 @@
         <div class="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-4xl mx-auto shadow-inner">
           ?
         </div>
-        <h2 class="text-2xl font-black text-gray-800 dark:text-white">¡Mensaje Recibido!</h2>
-        <p class="text-gray-500">Hemos registrado tu PQRS con éxito. Nuestro equipo de moderación te responderá pronto en tu bandeja de notificaciones.</p>
+        <h2 class="text-2xl font-black text-gray-800 dark:text-white">ï¿½Mensaje Recibido!</h2>
+        <p class="text-gray-500">Hemos registrado tu PQRS con ï¿½xito. Nuestro equipo de moderaciï¿½n te responderï¿½ pronto en tu bandeja de notificaciones.</p>
         <button onclick="window.location.href='/explorador/dashboard.html'" class="mt-4 text-emerald-600 font-bold hover:underline">
           Volver al Inicio
         </button>
@@ -138,12 +138,12 @@
           document.getElementById('pqrsForm').classList.add('hidden');
           document.getElementById('successState').classList.remove('hidden');
         } else {
-          alert("Hubo un problema al enviar tu solicitud. Intenta más tarde.");
+          alert("Hubo un problema al enviar tu solicitud. Intenta mï¿½s tarde.");
           btn.disabled = false;
           btn.textContent = "ENVIAR SOLICITUD";
         }
       } catch (error) {
-        alert("Error de conexión con el servidor.");
+        alert("Error de conexiÃ³n con el servidor.");
         btn.disabled = false;
         btn.textContent = "ENVIAR SOLICITUD";
       }

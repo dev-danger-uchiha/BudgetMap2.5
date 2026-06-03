@@ -120,6 +120,7 @@ public class EstablecimientoService {
                 .aforoMaximo(request.getAforoMaximo())
                 .telefono(request.getTelefono())
                 .horarioAtencion(request.getHorarioAtencion())
+                .reservasHabilitadas(request.getReservasHabilitadas() != null ? request.getReservasHabilitadas() : false)
                 .estado(EstadoAprobacion.PENDIENTE)
                 .aforoActual(0)
                 .activo(true)
@@ -148,6 +149,7 @@ public class EstablecimientoService {
         if (request.getAforoMaximo() != null) est.setAforoMaximo(request.getAforoMaximo());
         if (request.getImagenUrl() != null) est.setImagenUrl(request.getImagenUrl());
         if (request.getRutPdfUrl() != null) est.setRutPdfUrl(request.getRutPdfUrl());
+        if (request.getReservasHabilitadas() != null) est.setReservasHabilitadas(request.getReservasHabilitadas());
 
         return convertirAResponse(establecimientoRepository.save(est));
     }
@@ -167,23 +169,51 @@ public class EstablecimientoService {
         Point puntoUbicacion = geometryFactory.createPoint(
                 new Coordinate(request.getLongitud(), request.getLatitud()));
 
+        boolean requiresApproval = false;
+
+        // Check NIT change
+        if (request.getNit() != null && !request.getNit().equals(est.getNit())) {
+            est.setNit(request.getNit());
+            requiresApproval = true;
+        }
+
+        // Check PDF change
+        if (request.getRutPdfUrl() != null && !request.getRutPdfUrl().equals(est.getRutPdfUrl())) {
+            est.setRutPdfUrl(request.getRutPdfUrl());
+            requiresApproval = true;
+        }
+
+        // Check Address/Location change
+        boolean direccionCambiada = request.getDireccion() != null && !request.getDireccion().equals(est.getDireccion());
+        boolean coordenadasCambiadas = (request.getLatitud() != null && !request.getLatitud().equals(est.getLatitud())) || 
+                                       (request.getLongitud() != null && !request.getLongitud().equals(est.getLongitud()));
+        if (direccionCambiada || coordenadasCambiadas) {
+            est.setDireccion(request.getDireccion());
+            est.setLatitud(request.getLatitud());
+            est.setLongitud(request.getLongitud());
+            est.setUbicacion(puntoUbicacion);
+            requiresApproval = true;
+        }
+
+        // Update the rest without requiring approval
         est.setNombre(request.getNombre());
         est.setDescripcion(request.getDescripcion());
         est.setCategoria(request.getCategoria());
-        est.setDireccion(request.getDireccion());
-        est.setLatitud(request.getLatitud());
-        est.setLongitud(request.getLongitud());
-        est.setUbicacion(puntoUbicacion);
         est.setImagenUrl(request.getImagenUrl());
-        est.setRutPdfUrl(request.getRutPdfUrl());
         est.setAforoMaximo(request.getAforoMaximo());
         est.setTelefono(request.getTelefono());
         est.setHorarioAtencion(request.getHorarioAtencion());
-        est.setEstado(EstadoAprobacion.PENDIENTE);
-        est.setMotivoRechazo(null);
-        est.setFechaAprobacion(null);
+        if (request.getReservasHabilitadas() != null) est.setReservasHabilitadas(request.getReservasHabilitadas());
+        
+        if (requiresApproval) {
+            est.setEstado(EstadoAprobacion.PENDIENTE);
+            est.setMotivoRechazo(null);
+            est.setFechaAprobacion(null);
+            log.info("Establecimiento ID: {} actualizado. Vuelve a estado PENDIENTE por cambios sensibles.", id);
+        } else {
+            log.info("Establecimiento ID: {} actualizado. Mantiene su estado actual.", id);
+        }
 
-        log.info("Establecimiento ID: {} actualizado. Vuelve a estado PENDIENTE.", id);
         return convertirAResponse(establecimientoRepository.save(est));
     }
 
@@ -279,6 +309,7 @@ public class EstablecimientoService {
                 .activo(est.getActivo())
                 .destacado(est.getDestacado())
                 .verificado(est.getVerificado())
+                .reservasHabilitadas(est.getReservasHabilitadas())
                 .createdAt(est.getCreatedAt())
                 .propietarioId(est.getPropietario().getId())
                 .propietarioNombre(est.getPropietario().getNombre())

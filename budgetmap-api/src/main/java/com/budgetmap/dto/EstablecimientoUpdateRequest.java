@@ -14,4 +14,5 @@ public class EstablecimientoUpdateRequest {
     private Integer aforoMaximo;
     private String imagenUrl;
     private String rutPdfUrl;
+    private Boolean reservasHabilitadas;
 }

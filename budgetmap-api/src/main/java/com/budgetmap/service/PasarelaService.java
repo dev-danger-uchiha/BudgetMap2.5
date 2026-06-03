@@ -2,104 +2,61 @@ package com.budgetmap.service;
 
 import com.budgetmap.exception.ResourceNotFoundException;
 import com.budgetmap.model.Usuario;
-import com.mercadopago.client.preference.*;
-import com.mercadopago.exceptions.MPApiException;
-import com.mercadopago.exceptions.MPException;
-import com.mercadopago.resources.preference.Preference;
+import com.budgetmap.repository.UsuarioRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
+import org.springframework.jdbc.core.JdbcTemplate;
+import jakarta.annotation.PostConstruct;
 
 @Slf4j
 @Service
 public class PasarelaService {
 
-    @Value("${budgetmap.url.webhook}")
-    private String webhookUrl;
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
-    /**
-     * Genera una preferencia de pago en Mercado Pago.
-     * Principio: Defensive programming validando inputs antes de llamar a la API externa.
-     */
-    public String crearPreferenciaPago(Usuario usuario, String nombrePlan, BigDecimal precio) {
-        if (usuario == null || nombrePlan == null || precio == null || precio.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Datos de facturación inválidos para generar el pago.");
-        }
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
+    @PostConstruct
+    public void fixRolColumnType() {
         try {
-            PreferenceClient client = new PreferenceClient();
-
-            // 1. Configurar el ítem a cobrar
-            PreferenceItemRequest item = PreferenceItemRequest.builder()
-                    .title(nombrePlan)
-                    .quantity(1)
-                    .currencyId("COP")
-                    .unitPrice(precio)
-                    .build();
-            List<PreferenceItemRequest> items = new ArrayList<>();
-            items.add(item);
-
-            // 2. Configurar el pagador (Payer) obligatorio para pasar las políticas de riesgo
-            PreferencePayerRequest payer = PreferencePayerRequest.builder()
-                    .email(usuario.getEmail() != null ? usuario.getEmail() : "comprador@budgetmap.com")
-                    .name(usuario.getNombre() != null ? usuario.getNombre() : "Usuario PRO")
-                    .build();
-
-            // 3. Configurar urls de retorno
-            PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
-                    .success("https://budgetmap.com/pago-exitoso")
-                    .failure("https://budgetmap.com/pago-fallido")
-                    .pending("https://budgetmap.com/pago-pendiente")
-                    .build();
-
-            // 4. Construir la solicitud asociándola al usuario de nuestro sistema (External Reference)
-            PreferenceRequest.PreferenceRequestBuilder requestBuilder = PreferenceRequest.builder()
-                    .items(items)
-                    .payer(payer)
-                    .backUrls(backUrls)
-                    .autoReturn("approved")
-                    .externalReference(usuario.getId().toString()); // Clave para conciliar en el Webhook
-
-            if (webhookUrl != null && !webhookUrl.contains("tu-dominio-ngrok.com")) {
-                requestBuilder.notificationUrl(webhookUrl);
-            }
-            PreferenceRequest request = requestBuilder.build();
-
-            Preference preference = client.create(request);
-            log.info("Preferencia creada exitosamente para usuario ID {}: {}", usuario.getId(), preference.getId());
-            
-            // En Sandbox se usa el sandbox_init_point, en PROD se usa init_point
-            return preference.getSandboxInitPoint(); 
-
-        } catch (MPApiException apiException) {
-            String causaDetallada = apiException.getApiResponse().getContent();
-            log.error("Error de la API de Mercado Pago. Status: {}, Causa: {}",
-                    apiException.getApiResponse().getStatusCode(),
-                    causaDetallada);
-            throw new RuntimeException("Mercado Pago rechazó la petición: " + causaDetallada);
-        } catch (MPException ex) {
-            log.error("Error interno del SDK de Mercado Pago: {}", ex.getMessage());
-            throw new RuntimeException("Error interno al procesar la pasarela.");
+            // Corrige el tipo de columna en MySQL para que acepte cualquier longitud de String de la Enum
+            jdbcTemplate.execute("ALTER TABLE usuarios MODIFY COLUMN rol VARCHAR(50) NOT NULL");
+            log.info("Columna 'rol' alterada correctamente a VARCHAR(50)");
+        } catch (Exception e) {
+            log.warn("No se pudo alterar la columna rol (puede que ya esté correcta o haya otro problema): {}", e.getMessage());
         }
     }
 
     /**
-     * Procesa la notificación (Webhook) de Mercado Pago.
-     * Aquí aplicamos @Transactional para asegurar consistencia en BD.
+     * Procesa un pago simulado y asciende al usuario a PRO inmediatamente.
      */
     @Transactional
-    public void procesarWebhook(String tipo, String dataId) {
-        if ("payment".equals(tipo)) {
-            log.info("Procesando webhook de pago con ID: {}", dataId);
-            // TODO: Inicializar PaymentClient, hacer get(dataId), verificar estado (approved)
-            // Obtener el external_reference (Usuario ID) y actualizar su fecha de suscripción.
-        } else {
-            log.debug("Evento ignorado (No es 'payment'): {}", tipo);
+    public void procesarPagoSimulado(Usuario usuario, String nombrePlan) {
+        log.info("Iniciando simulación de pago para plan: {} por el usuario ID {}", nombrePlan, usuario.getId());
+        
+        // Simular validación
+        if (usuario == null) {
+            throw new IllegalArgumentException("Usuario no válido para simulación.");
         }
+
+        // Buscar el usuario en la base de datos para actualizarlo
+        Usuario usuarioEntity = usuarioRepository.findById(usuario.getId())
+            .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + usuario.getId()));
+
+        // Actualizar el rol a EXPLORADOR_PRO
+        usuarioEntity.setRol(com.budgetmap.model.enums.RolUsuario.EXPLORADOR_PRO);
+        usuarioRepository.save(usuarioEntity);
+        
+        log.info("Simulación exitosa: El usuario ID {} ahora es PRO.", usuarioEntity.getId());
+    }
+
+    @Transactional
+    public void procesarWebhook(String tipo, String dataId) {
+        // Obsoleto en la versión simulada
+        log.info("Webhook recibido en simulador tipo: {}, data: {}", tipo, dataId);
     }
 }

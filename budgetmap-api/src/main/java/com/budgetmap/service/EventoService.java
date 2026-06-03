@@ -325,6 +325,7 @@ public class EventoService {
                 .establecimientoId(evento.getEstablecimiento() != null ? evento.getEstablecimiento().getId() : null)
                 .establecimientoNombre(
                         evento.getEstablecimiento() != null ? evento.getEstablecimiento().getNombre() : null)
+                .requiereReserva(evento.getPrecio() != null && evento.getPrecio().compareTo(java.math.BigDecimal.ZERO) > 0)
                 .build();
     }
 

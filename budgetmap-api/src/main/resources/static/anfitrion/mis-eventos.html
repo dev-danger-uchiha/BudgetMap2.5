@@ -251,7 +251,7 @@
                             </div>
                             <div class="mt-4 pt-4 border-t border-slate-50 flex justify-between items-center">
                                 <span class="text-[10px] font-bold text-slate-500 uppercase">Boletas: <span class="text-blue-600">${ev.aforoActual || 0}</span> / ${ev.aforoMaximo}</span>
-                                ${estadoVirtual === 'ACTIVA' ? `<button onclick="eliminarEvento(${ev.id})" class="text-[10px] font-bold text-red-500 hover:text-red-700 bg-red-50 px-2 py-1 rounded uppercase tracking-widest">Cancelar</button>` : `<span class="text-[9px] text-slate-400 font-bold tracking-widest uppercase">CERRADO</span>`}
+                                ${estadoVirtual === 'ACTIVA' ? `<button onclick="verReservas(${ev.id})" class="text-[10px] font-bold text-blue-500 hover:text-blue-700 bg-blue-50 px-2 py-1 rounded uppercase tracking-widest mr-1">Reservas</button><button onclick="eliminarEvento(${ev.id})" class="text-[10px] font-bold text-red-500 hover:text-red-700 bg-red-50 px-2 py-1 rounded uppercase tracking-widest">Cancelar</button>` : `<span class="text-[9px] text-slate-400 font-bold tracking-widest uppercase">CERRADO</span>`}
                             </div>
                         </div>
                         `;
@@ -294,6 +294,31 @@
             finally { btn.disabled = false; btn.innerText = "Publicar Evento"; }
         });
 
+        async function verReservas(eventoId) {
+            document.getElementById('modal-reservas').classList.remove('hidden');
+            const lista = document.getElementById('lista-reservas-modal');
+            lista.innerHTML = '<p class="text-sm text-center">Cargando reservas...</p>';
+            try {
+                const res = await fetch(`http://localhost:8080/api/mis-reservas/evento/${eventoId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (res.ok) {
+                    const reservas = await res.json();
+                    if(reservas.length === 0) {
+                        lista.innerHTML = '<p class="text-xs text-center text-slate-500">No hay reservas aún.</p>';
+                    } else {
+                        lista.innerHTML = reservas.map(r => `
+                            <div class="border-b py-2 flex justify-between items-center">
+                                <div>
+                                    <p class="text-xs font-bold">${r.codigoReserva} <span class="bg-slate-200 text-slate-600 px-1 rounded">${r.estado}</span></p>
+                                    <p class="text-[10px] text-slate-500">${r.numeroPersonas} personas - ${new Date(r.fechaReserva).toLocaleDateString()}</p>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                }
+            } catch(e) { lista.innerHTML = '<p class="text-red-500 text-sm">Error de conexión</p>'; }
+        }
+        function cerrarModalReservas() { document.getElementById('modal-reservas').classList.add('hidden'); }
+
         async function eliminarEvento(id) {
             if (!confirm("¿Deseas cancelar y borrar este evento?")) return;
             const res = await fetch(`http://localhost:8080/api/eventos/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
@@ -304,6 +329,16 @@
             localStorage.clear(); sessionStorage.clear(); window.location.href = '/login.html';
         }
     </script>
+    <!-- Modal Reservas -->
+    <div id="modal-reservas" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex justify-center items-center p-4">
+        <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-2xl">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-black text-slate-800 uppercase tracking-widest">Reservas del Evento</h3>
+                <button onclick="cerrarModalReservas()" class="text-slate-400 hover:text-red-500 font-bold">&#10005;</button>
+            </div>
+            <div id="lista-reservas-modal" class="max-h-60 overflow-y-auto space-y-2"></div>
+        </div>
+    </div>
 </body>
 
 </html>

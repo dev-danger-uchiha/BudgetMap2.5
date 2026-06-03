@@ -74,6 +74,10 @@ public class Establecimiento {
     private String horarioAtencion;
 
     @Builder.Default
+    @Column(name = "reservas_habilitadas", nullable = false, columnDefinition = "TINYINT(1)")
+    private Boolean reservasHabilitadas = false;
+
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private EstadoAprobacion estado = EstadoAprobacion.PENDIENTE;
@@ -92,7 +96,7 @@ public class Establecimiento {
     @Column(name = "pin_destacado")
     private Boolean pinDestacado;
 
-    @Column(name = "verificado")
+    @Column(name = "verificado", columnDefinition = "TINYINT(1)")
     private Boolean verificado = false;
 
     @Column(name = "color_pin", length = 20)

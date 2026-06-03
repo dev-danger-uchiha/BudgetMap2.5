@@ -124,11 +124,12 @@ public class UsuarioController {
                         usuarioService.contarPorRol(RolUsuario.MODERADOR) +
                         usuarioService.contarPorRol(RolUsuario.LOCAL_ALIADO) +
                         usuarioService.contarPorRol(RolUsuario.ANFITRION) +
-                        usuarioService.contarPorRol(RolUsuario.EXPLORADOR),
+                        usuarioService.contarPorRol(RolUsuario.EXPLORADOR) +
+                        usuarioService.contarPorRol(RolUsuario.EXPLORADOR_PRO),
                 "administradores", usuarioService.contarPorRol(RolUsuario.ADMINISTRADOR),
                 "moderadores", usuarioService.contarPorRol(RolUsuario.MODERADOR),
                 "localesAliados", usuarioService.contarPorRol(RolUsuario.LOCAL_ALIADO),
                 "anfitriones", usuarioService.contarPorRol(RolUsuario.ANFITRION),
-                "exploradores", usuarioService.contarPorRol(RolUsuario.EXPLORADOR)));
+                "exploradores", usuarioService.contarPorRol(RolUsuario.EXPLORADOR) + usuarioService.contarPorRol(RolUsuario.EXPLORADOR_PRO)));
     }
 }

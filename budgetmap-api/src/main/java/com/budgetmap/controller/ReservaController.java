@@ -78,4 +78,10 @@ public class ReservaController {
         reservaService.cancelar(id, userDetails.getId(), motivo);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/mis-reservas/evento/{eventoId}")
+    @PreAuthorize("hasRole('ANFITRION')")
+    public ResponseEntity<List<ReservaResponse>> listarReservasEvento(@PathVariable Long eventoId) {
+        return ResponseEntity.ok(reservaService.listarPorEvento(eventoId));
+    }
 }

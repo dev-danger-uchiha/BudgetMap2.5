@@ -5,5 +5,6 @@ public enum RolUsuario {
     MODERADOR,
     LOCAL_ALIADO,
     ANFITRION,
-    EXPLORADOR
+    EXPLORADOR,
+    EXPLORADOR_PRO
 }

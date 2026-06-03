@@ -116,13 +116,14 @@ public class WebSecurityConfig {
                 .requestMatchers("/api/usuarios/me").authenticated()
 
                 // ======================================================
-                // 4. REGLAS ESPECÍFICAS PARA EL ROL: EXPLORADOR
+                // 4. REGLAS ESPECÍFICAS PARA EL ROL: EXPLORADOR Y PRO
                 // ======================================================
-                .requestMatchers("/api/config-alertas/**").hasRole("EXPLORADOR")
-                .requestMatchers("/api/notificaciones/**").hasRole("EXPLORADOR")
-                .requestMatchers(HttpMethod.POST, "/api/reservas").hasRole("EXPLORADOR")
-                .requestMatchers("/api/reservas/mis-reservas").hasRole("EXPLORADOR")
-                .requestMatchers("/api/reservas/*/cancelar").hasRole("EXPLORADOR")
+                .requestMatchers("/api/config-alertas/**").hasAnyRole("EXPLORADOR", "EXPLORADOR_PRO")
+                .requestMatchers("/api/notificaciones/**").hasAnyRole("EXPLORADOR", "EXPLORADOR_PRO")
+                .requestMatchers(HttpMethod.POST, "/api/reservas").hasAnyRole("EXPLORADOR", "EXPLORADOR_PRO")
+                .requestMatchers("/api/reservas/mis-reservas").hasAnyRole("EXPLORADOR", "EXPLORADOR_PRO")
+                .requestMatchers("/api/reservas/*/cancelar").hasAnyRole("EXPLORADOR", "EXPLORADOR_PRO")
+                .requestMatchers("/api/pasarela/**").hasAnyRole("EXPLORADOR", "EXPLORADOR_PRO")
 
                 // ======================================================
                 // 5. REGLAS ESPECÍFICAS PARA EL ROL: LOCAL_ALIADO
@@ -148,10 +149,10 @@ public class WebSecurityConfig {
                 // ======================================================
                 // 7. REGLAS MULTI-ROL (Lecturas Cruzadas de Datos)
                 // ======================================================
-                .requestMatchers(HttpMethod.GET, "/api/establecimientos/*").hasAnyRole("EXPLORADOR", "LOCAL_ALIADO", "ADMINISTRADOR")
-                .requestMatchers(HttpMethod.GET, "/api/eventos/*").hasAnyRole("EXPLORADOR", "ANFITRION", "ADMINISTRADOR")
-                .requestMatchers(HttpMethod.GET, "/api/promociones/establecimiento/*").hasAnyRole("EXPLORADOR", "LOCAL_ALIADO", "ADMINISTRADOR")
-                .requestMatchers(HttpMethod.GET, "/api/promociones/mi-establecimiento/*").hasAnyRole("EXPLORADOR", "LOCAL_ALIADO")
+                .requestMatchers(HttpMethod.GET, "/api/establecimientos/*").hasAnyRole("EXPLORADOR", "EXPLORADOR_PRO", "LOCAL_ALIADO", "ADMINISTRADOR")
+                .requestMatchers(HttpMethod.GET, "/api/eventos/*").hasAnyRole("EXPLORADOR", "EXPLORADOR_PRO", "ANFITRION", "ADMINISTRADOR")
+                .requestMatchers(HttpMethod.GET, "/api/promociones/establecimiento/*").hasAnyRole("EXPLORADOR", "EXPLORADOR_PRO", "LOCAL_ALIADO", "ADMINISTRADOR")
+                .requestMatchers(HttpMethod.GET, "/api/promociones/mi-establecimiento/*").hasAnyRole("EXPLORADOR", "EXPLORADOR_PRO", "LOCAL_ALIADO")
 
                 // ======================================================
                 // 8. REGLAS EXCLUSIVAS PARA: MODERADOR / ADMINISTRADOR

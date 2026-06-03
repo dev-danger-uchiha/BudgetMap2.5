@@ -63,7 +63,7 @@
   <div class="flex flex-col lg:flex-row flex-1 h-full relative overflow-y-auto lg:overflow-hidden">
     
     <!-- PANEL IZQUIERDO: LUGARES -->
-    <div class="w-full lg:w-72 shrink-0 h-[45vh] lg:h-full bg-slate-900/95 backdrop-blur shadow-xl border-b lg:border-b-0 lg:border-r border-slate-700 flex flex-col z-10 order-2 lg:order-1">
+    <div class="w-full lg:w-60 shrink-0 h-[45vh] lg:h-full bg-slate-900/95 backdrop-blur shadow-xl border-b lg:border-b-0 lg:border-r border-slate-700 flex flex-col z-10 order-2 lg:order-1">
       <div class="p-4 border-b border-slate-800 flex justify-between items-center">
         <h2 class="text-white font-black text-sm uppercase tracking-widest flex items-center gap-2">📍 Lugares Públicos</h2>
       </div>
@@ -75,11 +75,30 @@
     <!-- CENTRO: MAPA Y EVENTOS -->
     <div class="w-full lg:flex-1 min-w-0 flex flex-col relative z-0 order-1 lg:order-2">
       
-      <!-- MAPA -->
-      <div id="mapa-radar" class="h-[45vh] lg:h-auto lg:flex-1 relative z-0 shrink-0 lg:shrink"></div>
+      <!-- MAPA CONTENEDOR -->
+      <div class="h-[45vh] lg:h-auto lg:flex-1 relative z-0 shrink-0 lg:shrink w-full">
+          <!-- MAPA -->
+          <div id="mapa-radar" class="absolute inset-0 z-0"></div>
+          
+          <!-- CONTROLES DE FILTRO FLOTANTES -->
+          <div class="absolute top-4 right-4 z-[1000] bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-slate-200 flex flex-col gap-3 min-w-[220px]">
+             <h3 class="text-[10px] font-black uppercase text-slate-800 tracking-widest flex justify-between items-center mb-1">
+                Filtros
+             </h3>
+             <label class="flex items-center gap-2 cursor-pointer group mt-1">
+                 <input type="checkbox" id="filter-destacados" class="w-4 h-4 rounded text-orange-500 focus:ring-orange-500 cursor-pointer" onchange="aplicarFiltros()">
+                 <span class="text-xs font-bold text-slate-700 group-hover:text-orange-600 transition">⭐ Solo Destacados</span>
+             </label>
+             <div class="mt-1">
+                 <input type="text" id="filter-nombre" placeholder="🔍 Buscar por nombre..." 
+                        class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 bg-white" 
+                        onkeyup="aplicarFiltros()">
+             </div>
+          </div>
+      </div>
       
       <!-- PANEL INFERIOR: EVENTOS -->
-      <div class="h-64 shrink-0 bg-slate-900/95 backdrop-blur shadow-[0_-10px_20px_rgba(0,0,0,0.5)] border-t border-slate-700 flex flex-col z-10 relative">
+      <div class="h-48 shrink-0 bg-slate-900/95 backdrop-blur shadow-[0_-10px_20px_rgba(0,0,0,0.5)] border-t border-slate-700 flex flex-col z-10 relative">
         <div class="p-3 border-b border-slate-800 flex justify-between items-center">
           <h2 class="text-white font-black text-sm uppercase tracking-widest flex items-center gap-2">🎟️ Eventos</h2>
         </div>
@@ -90,7 +109,7 @@
     </div>
 
     <!-- PANEL DERECHO: ESTABLECIMIENTOS -->
-    <div class="w-full lg:w-72 shrink-0 h-[45vh] lg:h-full bg-slate-900/95 backdrop-blur shadow-[-10px_0_20px_rgba(0,0,0,0.5)] border-t lg:border-t-0 lg:border-l border-slate-700 flex flex-col z-10 order-3">
+    <div class="w-full lg:w-60 shrink-0 h-[45vh] lg:h-full bg-slate-900/95 backdrop-blur shadow-[-10px_0_20px_rgba(0,0,0,0.5)] border-t lg:border-t-0 lg:border-l border-slate-700 flex flex-col z-10 order-3">
       <div class="p-4 border-b border-slate-800 flex justify-between items-center">
         <h2 class="text-white font-black text-sm uppercase tracking-widest flex items-center gap-2">🍔 Establecimientos</h2>
       </div>
@@ -114,9 +133,62 @@
 
     let mapa;
     let layerGroup;
+    let radarCircle;
     let todosLosPuntos = [];
     let userLocation = L.latLng(4.6097, -74.0817);
     let userRadioMetros = 2000;
+    
+    let allLugares = [];
+    let allEstablecimientos = [];
+    let allEventos = [];
+
+    function aplicarFiltros() {
+        const soloDestacados = document.getElementById('filter-destacados').checked;
+        const textoFiltro = document.getElementById('filter-nombre') ? document.getElementById('filter-nombre').value.toLowerCase().trim() : '';
+        
+        const filtrarData = (items, isEvento) => {
+            return items.filter(item => {
+                if (soloDestacados && !item.destacado) return false;
+                if (textoFiltro && item.nombre && !item.nombre.toLowerCase().includes(textoFiltro)) return false;
+                
+                let lat, lng;
+                if (isEvento) {
+                    if (item.lugarId) {
+                        const lugar = allLugares.find(l => l.id === item.lugarId);
+                        if (lugar) { lat = lugar.latitud; lng = lugar.longitud; }
+                    } else if (item.establecimientoId) {
+                        const est = allEstablecimientos.find(e => e.id === item.establecimientoId);
+                        if (est) { lat = est.latitud; lng = est.longitud; }
+                    }
+                } else {
+                    lat = item.latitud;
+                    lng = item.longitud;
+                }
+                
+                if (!lat || !lng) return false;
+                
+                item._lat = lat;
+                item._lng = lng;
+
+                return userLocation.distanceTo(L.latLng(lat, lng)) <= userRadioMetros;
+            });
+        };
+
+        const lugaresFiltrados = filtrarData(allLugares, false);
+        const establecimientosFiltrados = filtrarData(allEstablecimientos, false);
+        const eventosFiltrados = filtrarData(allEventos, true);
+
+        todosLosPuntos = [];
+        layerGroup.clearLayers();
+        
+        renderLugares(lugaresFiltrados);
+        renderEstablecimientos(establecimientosFiltrados);
+        renderEventos(eventosFiltrados);
+
+        agregarAlMapa(lugaresFiltrados, 'LUGAR', 'bg-blue-500', 'text-blue-600');
+        agregarAlMapa(establecimientosFiltrados, 'ESTABLECIMIENTO', 'bg-amber-500', 'text-amber-600');
+        agregarAlMapa(eventosFiltrados, 'EVENTO', 'bg-purple-500', 'text-purple-600');
+    }
 
     function toggleMenu(event) {
         event.stopPropagation();
@@ -202,7 +274,7 @@
             userRadioMetros = config.radioMetros || 2000;
         }
 
-        L.circle(userLocation, {
+        radarCircle = L.circle(userLocation, {
             color: '#f97316',
             fillColor: '#f97316',
             fillOpacity: 0.08,
@@ -211,51 +283,11 @@
             dashArray: '5, 5'
         }).addTo(mapa);
 
-        let lugares = [], establecimientos = [], eventos = [];
-        if (resLugares.ok) { const d = await resLugares.json(); lugares = ordenarData(d.content || d); }
-        if (resEst.ok) { const d = await resEst.json(); establecimientos = ordenarData(d.content || d); }
-        if (resEv.ok) { const d = await resEv.json(); eventos = ordenarData(d.content || d); }
+        if (resLugares.ok) { const d = await resLugares.json(); allLugares = ordenarData(d.content || d); }
+        if (resEst.ok) { const d = await resEst.json(); allEstablecimientos = ordenarData(d.content || d); }
+        if (resEv.ok) { const d = await resEv.json(); allEventos = ordenarData(d.content || d); }
 
-        // Filtrar por distancia
-        const filtrarPorDistancia = (items, isEvento) => {
-            return items.filter(item => {
-                let lat, lng;
-                if (isEvento) {
-                    if (item.lugarId) {
-                        const lugar = lugares.find(l => l.id === item.lugarId);
-                        if (lugar) { lat = lugar.latitud; lng = lugar.longitud; }
-                    } else if (item.establecimientoId) {
-                        const est = establecimientos.find(e => e.id === item.establecimientoId);
-                        if (est) { lat = est.latitud; lng = est.longitud; }
-                    }
-                } else {
-                    lat = item.latitud;
-                    lng = item.longitud;
-                }
-                
-                if (!lat || !lng) return false;
-                
-                item._lat = lat;
-                item._lng = lng;
-
-                return userLocation.distanceTo(L.latLng(lat, lng)) <= userRadioMetros;
-            });
-        };
-
-        lugares = filtrarPorDistancia(lugares, false);
-        establecimientos = filtrarPorDistancia(establecimientos, false);
-        eventos = filtrarPorDistancia(eventos, true);
-
-        todosLosPuntos = [];
-        
-        renderLugares(lugares);
-        renderEstablecimientos(establecimientos);
-        renderEventos(eventos);
-
-        layerGroup.clearLayers();
-        agregarAlMapa(lugares, 'LUGAR', 'bg-blue-500', 'text-blue-600');
-        agregarAlMapa(establecimientos, 'ESTABLECIMIENTO', 'bg-amber-500', 'text-amber-600');
-        agregarAlMapa(eventos, 'EVENTO', 'bg-purple-500', 'text-purple-600');
+        aplicarFiltros();
         
       } catch (error) {
         console.error("Error al cargar radar:", error);

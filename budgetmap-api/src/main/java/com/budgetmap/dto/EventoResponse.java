@@ -40,4 +40,5 @@ public class EventoResponse {
     private String lugarNombre;
     private Long establecimientoId;
     private String establecimientoNombre;
+    private Boolean requiereReserva; // true si precio > 0
 }

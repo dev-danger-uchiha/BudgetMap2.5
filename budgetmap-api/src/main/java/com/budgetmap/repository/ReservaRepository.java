@@ -37,4 +37,9 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
 
     @Query("SELECT r FROM Reserva r WHERE r.fechaReserva = :fecha AND r.estado = 'CONFIRMADA'")
     List<Reserva> findReservasDelDia(@Param("fecha") LocalDate fecha);
+
+    List<Reserva> findByEventoId(Long eventoId);
+
+    @Query("SELECT COALESCE(SUM(r.numeroPersonas), 0) FROM Reserva r WHERE r.evento.id = :eventoId AND r.estado IN ('PENDIENTE', 'CONFIRMADA')")
+    Integer sumAforoByEventoId(@Param("eventoId") Long eventoId);
 }

@@ -5,10 +5,12 @@ import com.budgetmap.dto.ReservaResponse;
 import com.budgetmap.exception.ReservaException;
 import com.budgetmap.exception.ResourceNotFoundException;
 import com.budgetmap.model.Establecimiento;
+import com.budgetmap.model.Evento;
 import com.budgetmap.model.Reserva;
 import com.budgetmap.model.Usuario;
 import com.budgetmap.model.enums.EstadoReserva;
 import com.budgetmap.repository.EstablecimientoRepository;
+import com.budgetmap.repository.EventoRepository;
 import com.budgetmap.repository.ReservaRepository;
 import com.budgetmap.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -28,6 +31,9 @@ import java.util.stream.Collectors;
 public class ReservaService {
 
     private static final Logger logger = LoggerFactory.getLogger(ReservaService.class);
+
+    // Comisión por reserva confirmada con promoción ($500 COP)
+    private static final BigDecimal COMISION_RESERVA = new BigDecimal("500.00");
 
     @Autowired
     private ReservaRepository reservaRepository;
@@ -39,10 +45,13 @@ public class ReservaService {
     private EstablecimientoRepository establecimientoRepository;
 
     @Autowired
+    private EventoRepository eventoRepository;
+
+    @Autowired
     private UsuarioService usuarioService;
 
     @Autowired
-    private PuntosService puntosService; // Motor de puntos inyectado correctamente
+    private PuntosService puntosService;
 
     public List<ReservaResponse> listarTodas() {
         return reservaRepository.findAll().stream()
@@ -50,9 +59,20 @@ public class ReservaService {
                 .collect(Collectors.toList());
     }
 
+    // =========================================================================
+    // CREAR RESERVA: Soporta evento (si tiene costo) O establecimiento (si habilitó reservas)
+    // =========================================================================
     @Transactional
     public ReservaResponse crear(ReservaRequest request, Long usuarioId) {
         logger.info("Iniciando creación de reserva para el usuario ID: {}", usuarioId);
+
+        // Validación: debe enviar eventoId O establecimientoId, no ambos ni ninguno
+        if (request.getEventoId() == null && request.getEstablecimientoId() == null) {
+            throw new ReservaException("Debe especificar un evento o un establecimiento para reservar");
+        }
+        if (request.getEventoId() != null && request.getEstablecimientoId() != null) {
+            throw new ReservaException("No puede reservar en un evento y un establecimiento a la vez");
+        }
 
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> {
@@ -60,42 +80,95 @@ public class ReservaService {
                     return new ResourceNotFoundException("Usuario no encontrado");
                 });
 
-        Establecimiento est = establecimientoRepository.findById(request.getEstablecimientoId())
-                .orElseThrow(() -> {
-                    logger.error("Establecimiento no encontrado: ID {}", request.getEstablecimientoId());
-                    return new ResourceNotFoundException("Establecimiento no encontrado");
-                });
-
-        Integer aforoOcupado = reservaRepository.sumAforoByEstablecimientoAndFecha(
-                est.getId(), request.getFechaReserva());
-        if (aforoOcupado == null) aforoOcupado = 0;
-
-        Integer aforoMaximo = est.getAforoMaximo() != null ? est.getAforoMaximo() : Integer.MAX_VALUE;
-
-        if (aforoOcupado + request.getNumeroPersonas() > aforoMaximo) {
-            logger.warn("Aforo excedido. Establecimiento ID: {}, Aforo actual: {}, Intentó reservar: {}", 
-                        est.getId(), aforoOcupado, request.getNumeroPersonas());
-            throw new ReservaException("No hay cupo disponible para esa fecha");
-        }
-
-        Reserva reserva = Reserva.builder()
+        Reserva.ReservaBuilder reservaBuilder = Reserva.builder()
                 .codigoReserva(generarCodigoReserva())
                 .usuario(usuario)
-                .establecimiento(est)
                 .fechaReserva(request.getFechaReserva())
                 .horaInicio(request.getHoraInicio())
                 .horaFin(request.getHoraFin())
                 .numeroPersonas(request.getNumeroPersonas())
-                .estado(EstadoReserva.CONFIRMADA)
+                .estado(EstadoReserva.PENDIENTE) // Siempre PENDIENTE hasta que confirmen el código
                 .puntosOtorgados(calcularPuntos(request.getNumeroPersonas()))
-                .notas(request.getNotas())
-                .build();
+                .notas(request.getNotas());
 
+        // --- RESERVA EN EVENTO (solo si tiene precio > 0) ---
+        if (request.getEventoId() != null) {
+            Evento evento = eventoRepository.findById(request.getEventoId())
+                    .orElseThrow(() -> {
+                        logger.error("Evento no encontrado: ID {}", request.getEventoId());
+                        return new ResourceNotFoundException("Evento no encontrado");
+                    });
+
+            // Regla de negocio: solo eventos con costo permiten reserva
+            if (evento.getPrecio() == null || evento.getPrecio().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new ReservaException("Este evento es gratuito y no requiere reserva");
+            }
+
+            // Validar aforo del evento
+            if (evento.getAforoMaximo() != null) {
+                Integer aforoOcupado = reservaRepository.sumAforoByEventoId(evento.getId());
+                if (aforoOcupado == null) aforoOcupado = 0;
+
+                if (aforoOcupado + request.getNumeroPersonas() > evento.getAforoMaximo()) {
+                    logger.warn("Aforo excedido en evento ID: {}. Ocupado: {}, Intentó: {}",
+                            evento.getId(), aforoOcupado, request.getNumeroPersonas());
+                    throw new ReservaException("No hay cupo disponible para este evento");
+                }
+            }
+
+            // Incrementar aforo actual del evento
+            evento.setAforoActual(evento.getAforoActual() + request.getNumeroPersonas());
+            eventoRepository.save(evento);
+
+            reservaBuilder.evento(evento);
+            // Si el evento está vinculado a un lugar, lo asociamos también
+            if (evento.getLugar() != null) {
+                reservaBuilder.lugar(evento.getLugar());
+            }
+
+            logger.info("Reserva vinculada a evento ID: {} (precio: {})", evento.getId(), evento.getPrecio());
+        }
+
+        // --- RESERVA EN ESTABLECIMIENTO (solo si tiene reservas habilitadas) ---
+        if (request.getEstablecimientoId() != null) {
+            Establecimiento est = establecimientoRepository.findById(request.getEstablecimientoId())
+                    .orElseThrow(() -> {
+                        logger.error("Establecimiento no encontrado: ID {}", request.getEstablecimientoId());
+                        return new ResourceNotFoundException("Establecimiento no encontrado");
+                    });
+
+            // Regla de negocio: solo si el aliado activó las reservas
+            if (!Boolean.TRUE.equals(est.getReservasHabilitadas())) {
+                throw new ReservaException("Este establecimiento no tiene habilitadas las reservas");
+            }
+
+            // Validar aforo del establecimiento
+            Integer aforoOcupado = reservaRepository.sumAforoByEstablecimientoAndFecha(
+                    est.getId(), request.getFechaReserva());
+            if (aforoOcupado == null) aforoOcupado = 0;
+
+            Integer aforoMaximo = est.getAforoMaximo() != null ? est.getAforoMaximo() : Integer.MAX_VALUE;
+
+            if (aforoOcupado + request.getNumeroPersonas() > aforoMaximo) {
+                logger.warn("Aforo excedido. Establecimiento ID: {}, Aforo actual: {}, Intentó reservar: {}",
+                        est.getId(), aforoOcupado, request.getNumeroPersonas());
+                throw new ReservaException("No hay cupo disponible para esa fecha");
+            }
+
+            reservaBuilder.establecimiento(est);
+            logger.info("Reserva vinculada a establecimiento ID: {}", est.getId());
+        }
+
+        Reserva reserva = reservaBuilder.build();
         Reserva guardada = reservaRepository.save(reserva);
-        logger.info("Reserva creada exitosamente: Código {}", guardada.getCodigoReserva());
+        logger.info("Reserva creada exitosamente: Código {} | Estado: PENDIENTE | Puntos potenciales: {}",
+                guardada.getCodigoReserva(), guardada.getPuntosOtorgados());
         return convertirAResponse(guardada);
     }
 
+    // =========================================================================
+    // CANCELAR RESERVA
+    // =========================================================================
     @Transactional
     public void cancelar(Long id, Long usuarioId, String motivo) {
         logger.info("Solicitud de cancelación de reserva ID: {} por el usuario ID: {}", id, usuarioId);
@@ -112,12 +185,24 @@ public class ReservaService {
             throw new ReservaException("La reserva ya no puede ser cancelada");
         }
 
+        // Si fue reserva de evento, devolver aforo
+        if (reserva.getEvento() != null) {
+            Evento evento = reserva.getEvento();
+            evento.setAforoActual(Math.max(0, evento.getAforoActual() - reserva.getNumeroPersonas()));
+            eventoRepository.save(evento);
+            logger.debug("Aforo del evento ID: {} restaurado tras cancelación", evento.getId());
+        }
+
         reserva.setEstado(EstadoReserva.CANCELADA);
         reserva.setMotivoCancelacion(motivo);
         reservaRepository.save(reserva);
         logger.info("Reserva ID: {} cancelada exitosamente.", id);
     }
 
+    // =========================================================================
+    // CONFIRMAR ASISTENCIA (Aliado/Anfitrión ingresa el código)
+    // → Aquí se otorgan los puntos al explorador
+    // =========================================================================
     @Transactional
     public ReservaResponse confirmarAsistencia(String codigoReserva, Long propietarioId) {
         logger.info("Confirmando asistencia para la reserva con código: {}", codigoReserva);
@@ -125,6 +210,7 @@ public class ReservaService {
         Reserva reserva = reservaRepository.findByCodigoReserva(codigoReserva)
                 .orElseThrow(() -> new ResourceNotFoundException("Reserva no encontrada"));
 
+        // Verificar permisos: el propietario del establecimiento o creador del evento
         boolean tienePermiso = false;
         if (reserva.getEstablecimiento() != null) {
             tienePermiso = reserva.getEstablecimiento().getPropietario().getId().equals(propietarioId);
@@ -141,21 +227,35 @@ public class ReservaService {
             throw new IllegalStateException("Esta reserva ya fue completada");
         }
 
+        if (reserva.getEstado() == EstadoReserva.CANCELADA) {
+            throw new IllegalStateException("No se puede confirmar una reserva cancelada");
+        }
+
         reserva.setEstado(EstadoReserva.COMPLETADA);
         reserva.setFechaValidacion(LocalDateTime.now());
 
         try {
-            // Otorgar puntos dinámicos al completar la asistencia
+            // *** MOMENTO CLAVE: Otorgar puntos SOLO al confirmar asistencia ***
             puntosService.sumarPuntos(reserva.getUsuario().getId(), reserva.getPuntosOtorgados());
-            logger.debug("Puntos sumados correctamente para el usuario ID: {}", reserva.getUsuario().getId());
+            logger.info("Puntos otorgados al explorador ID: {} → +{} puntos",
+                    reserva.getUsuario().getId(), reserva.getPuntosOtorgados());
         } catch (Exception e) {
             logger.error("Error al sumar puntos en la reserva código: {}", codigoReserva, e);
             throw e;
         }
 
+        // Aplicar comisión si la reserva tiene promoción asociada
+        if (reserva.getPromocion() != null) {
+            reserva.setComisionCobrada(COMISION_RESERVA);
+            logger.debug("Comisión de {} COP aplicada a reserva con promoción", COMISION_RESERVA);
+        }
+
         return convertirAResponse(reservaRepository.save(reserva));
     }
 
+    // =========================================================================
+    // CONSULTAS
+    // =========================================================================
     public List<ReservaResponse> listarPorUsuario(Long usuarioId) {
         return reservaRepository.findByUsuarioId(usuarioId).stream()
                 .map(this::convertirAResponse)
@@ -173,6 +273,12 @@ public class ReservaService {
                 .collect(Collectors.toList());
     }
 
+    public List<ReservaResponse> listarPorEvento(Long eventoId) {
+        return reservaRepository.findByEventoId(eventoId).stream()
+                .map(this::convertirAResponse)
+                .collect(Collectors.toList());
+    }
+
     public ReservaResponse obtenerPorId(Long id) {
         Reserva reserva = reservaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Reserva no encontrada"));
@@ -185,6 +291,9 @@ public class ReservaService {
         return convertirAResponse(reserva);
     }
 
+    // =========================================================================
+    // UTILIDADES INTERNAS
+    // =========================================================================
     private String generarCodigoReserva() {
         return UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     }
@@ -194,16 +303,37 @@ public class ReservaService {
     }
 
     private ReservaResponse convertirAResponse(Reserva reserva) {
+        String nombreEstablecimiento = null;
+        String nombreEvento = null;
+        String tipoReserva;
+
+        if (reserva.getEvento() != null) {
+            nombreEvento = reserva.getEvento().getNombre();
+            tipoReserva = "EVENTO";
+            // Si también hay establecimiento (evento dentro de un local), lo mostramos
+            if (reserva.getEstablecimiento() != null) {
+                nombreEstablecimiento = reserva.getEstablecimiento().getNombre();
+            }
+        } else if (reserva.getEstablecimiento() != null) {
+            nombreEstablecimiento = reserva.getEstablecimiento().getNombre();
+            tipoReserva = "ESTABLECIMIENTO";
+        } else {
+            tipoReserva = "DESCONOCIDO";
+        }
+
         return ReservaResponse.builder()
                 .id(reserva.getId())
                 .codigoReserva(reserva.getCodigoReserva())
-                .nombreEstablecimiento(reserva.getEstablecimiento().getNombre())
+                .nombreEstablecimiento(nombreEstablecimiento)
+                .nombreEvento(nombreEvento)
+                .tipoReserva(tipoReserva)
                 .fechaReserva(reserva.getFechaReserva())
                 .horaInicio(reserva.getHoraInicio())
                 .horaFin(reserva.getHoraFin())
                 .numeroPersonas(reserva.getNumeroPersonas())
                 .estado(reserva.getEstado())
                 .puntosOtorgados(reserva.getPuntosOtorgados())
+                .comisionCobrada(reserva.getComisionCobrada())
                 .createdAt(reserva.getCreatedAt())
                 .build();
     }

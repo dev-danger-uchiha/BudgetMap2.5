@@ -35,6 +35,7 @@ public class EstablecimientoResponse {
     
     private Boolean destacado;
     private Boolean verificado;
+    private Boolean reservasHabilitadas;
     
     private Long propietarioId;
     private String propietarioNombre;
