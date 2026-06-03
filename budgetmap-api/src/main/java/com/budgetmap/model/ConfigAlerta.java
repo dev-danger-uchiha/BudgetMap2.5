@@ -27,15 +27,15 @@ public class ConfigAlerta {
     private Integer radioMetros = 500;
 
     @Builder.Default
-    @Column(name = "notificar_promociones")
+    @Column(name = "notificar_promociones", columnDefinition = "TINYINT(1)")
     private Boolean notificarPromociones = true;
 
     @Builder.Default
-    @Column(name = "notificar_eventos")
+    @Column(name = "notificar_eventos", columnDefinition = "TINYINT(1)")
     private Boolean notificarEventos = true;
 
     @Builder.Default
-    @Column(name = "activo")
+    @Column(name = "activo", columnDefinition = "TINYINT(1)")
     private Boolean activo = true;
 
     @UpdateTimestamp

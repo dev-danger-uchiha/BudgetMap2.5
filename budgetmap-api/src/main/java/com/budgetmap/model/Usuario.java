@@ -47,11 +47,11 @@ public class Usuario {
     private Integer puntosAcumulados = 0;
 
     @Builder.Default
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TINYINT(1)")
     private Boolean activo = true;
 
     @Builder.Default
-    @Column(name = "email_verificado", nullable = false)
+    @Column(name = "email_verificado", nullable = false, columnDefinition = "TINYINT(1)")
     private Boolean emailVerificado = false;
 
     @Column(name = "ultimo_acceso")

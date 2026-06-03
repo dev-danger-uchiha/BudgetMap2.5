@@ -72,7 +72,7 @@ public class Evento {
     private String imagenUrl;
 
     @Builder.Default
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TINYINT(1)")
     private Boolean activo = true;
 
     @Builder.Default
@@ -91,10 +91,10 @@ public class Evento {
     private String motivoRechazo;
 
     @Builder.Default
-    @Column(name = "destacado")
+    @Column(name = "destacado", columnDefinition = "TINYINT(1)")
     private Boolean destacado = false;
 
-    @Column(name = "verificado")
+    @Column(name = "verificado", columnDefinition = "TINYINT(1)")
     private Boolean verificado = false;
 
     @CreationTimestamp

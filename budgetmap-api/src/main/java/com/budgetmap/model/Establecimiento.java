@@ -93,7 +93,7 @@ public class Establecimiento {
     private String motivoRechazo;
 
     // --- NUEVOS CAMPOS: PUBLICIDAD Y ADS ---
-    @Column(name = "pin_destacado")
+    @Column(name = "pin_destacado", columnDefinition = "TINYINT(1)")
     private Boolean pinDestacado;
 
     @Column(name = "verificado", columnDefinition = "TINYINT(1)")
@@ -106,11 +106,11 @@ public class Establecimiento {
     private LocalDateTime finPublicidad;
 
     @Builder.Default
-    @Column(name = "destacado", nullable = false)
+    @Column(name = "destacado", nullable = false, columnDefinition = "TINYINT(1)")
     private Boolean destacado = false;
 
     @Builder.Default
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TINYINT(1)")
     private Boolean activo = true;
 
     @CreationTimestamp

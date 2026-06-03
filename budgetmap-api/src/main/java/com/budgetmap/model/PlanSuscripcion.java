@@ -28,18 +28,19 @@ public class PlanSuscripcion {
     @Column(name = "precio_mensual", nullable = false)
     private BigDecimal precioMensual;
 
-    @Column(name = "permite_promos_ilimitadas")
+    @Column(name = "permite_promos_ilimitadas", columnDefinition = "TINYINT(1)")
     private Boolean permitePromosIlimitadas;
 
-    @Column(name = "permite_estadisticas_avanzadas")
+    @Column(name = "permite_estadisticas_avanzadas", columnDefinition = "TINYINT(1)")
     private Boolean permiteEstadisticasAvanzadas;
 
-    @Column(name = "acceso_anticipado_ofertas")
+    @Column(name = "acceso_anticipado_ofertas", columnDefinition = "TINYINT(1)")
     private Boolean accesoAnticipadoOfertas;
 
-    @Column(name = "sin_anuncios")
+    @Column(name = "sin_anuncios", columnDefinition = "TINYINT(1)")
     private Boolean sinAnuncios;
 
+    @Column(columnDefinition = "TINYINT(1)")
     private Boolean activo;
 
     @Column(name = "created_at", insertable = false, updatable = false)

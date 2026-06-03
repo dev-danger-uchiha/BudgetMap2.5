@@ -66,14 +66,14 @@ public class Promocion {
 
     // --- NUEVO CAMPO: ACCESO ANTICIPADO FREEMIUM ---
     @Builder.Default
-    @Column(name = "solo_pro", nullable = false)
+    @Column(name = "solo_pro", nullable = false, columnDefinition = "TINYINT(1)")
     private Boolean soloPro = false;
 
     @Column(name = "imagen_url", length = 500)
     private String imagenUrl;
 
     @Builder.Default
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TINYINT(1)")
     private Boolean activo = true;
 
     @CreationTimestamp

@@ -84,14 +84,14 @@ public class Lugar {
 
     // --- NUEVO CAMPO: FILTRO INDEX ---
     @Builder.Default
-    @Column(name = "destacado")
+    @Column(name = "destacado", columnDefinition = "TINYINT(1)")
     private Boolean destacado = false;
 
-    @Column(name = "verificado")
+    @Column(name = "verificado", columnDefinition = "TINYINT(1)")
     private Boolean verificado = false;
 
     @Builder.Default
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TINYINT(1)")
     private Boolean activo = true;
 
     @CreationTimestamp

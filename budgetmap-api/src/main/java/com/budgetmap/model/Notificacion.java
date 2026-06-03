@@ -41,7 +41,7 @@ public class Notificacion {
     private String referenciaTipo;
 
     @Builder.Default
-    @Column(name = "leida", nullable = false)
+    @Column(name = "leida", nullable = false, columnDefinition = "TINYINT(1)")
     private Boolean leida = false;
 
     @Column(name = "fecha_lectura")

@@ -36,7 +36,7 @@ public class CuponRedimido {
     private Integer puntosGastados;
 
     @Builder.Default
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TINYINT(1)")
     private Boolean usado = false; // Cambiará a true cuando el restaurante lo valide
 
     @Column(name = "fecha_redencion")
