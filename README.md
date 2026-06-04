@@ -1,198 +1,118 @@
-ARQUITECTURA FINAL PROPUESTA PARA BUDGETMAP
+# 🚀 BudgetMap Ecosystem
 
-1️⃣ OBJETIVO DEL PROYECTO
-BudgetMap será una plataforma para:
-✔ Mostrar lugares poco conocidos (parques, museos, sitios turísticos)
-✔ Mostrar eventos en esos lugares (culturales, deportivos, artísticos, veterinarios)
-✔ Gestión de establecimientos con registro y aprobación (restaurantes, parqueaderos)
-✔ Permitir reservas en establecimientos aprobados
-✔ Sistema de PQRS y sugerencias
-✔ Uso de roles claramente diferenciados:
+> **BudgetMap** es una plataforma integral e inteligente diseñada para democratizar el acceso al entretenimiento, turismo local y eventos, eliminando sobrecostos. Conecta a usuarios exploradores con establecimientos comerciales (Aliados) y organizadores de eventos (Anfitriones) a través de un ecosistema seguro, gamificado y altamente responsivo.
 
-ADMIN
-MODERADOR
-ESTABLECIMIENTO
-CLIENTE
+![Microservicios](https://img.shields.io/badge/Arquitectura-Microservicios-blue)
+![Spring Boot](https://img.shields.io/badge/Core_API-Spring_Boot_3-brightgreen.svg)
+![Python Flask](https://img.shields.io/badge/Geo_Service-Python_Flask-yellow.svg)
+![Java](https://img.shields.io/badge/Java-17-orange.svg)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.4-38B2AC.svg)
+![License](https://img.shields.io/badge/Licencia-Privada-blue.svg)
 
-Visitantes no registrados → solo vistas públicas
+---
 
-2️⃣ ENTIDADES (MODELO EXACTO NECESARIO)
-🟦Usuario
-id: Long
-username: String
-password: String
-rol: Rol (ADMIN, MODERADOR, ESTABLECIMIENTO, CLIENTE)
-estado: EstadoUsuario (ACTIVO, PENDIENTE, RECHAZADO)
-nombre
-email
-telefono
+## 🏛️ Arquitectura del Sistema (Microservicios)
 
-🟩 Lugar
-id
-nombre
-tipoLugar (PARQUE, MUSEO, SITIO_TURISTICO)
-descripcion
-ciudad
-direccion
-latitud
-longitud
-estado (PUBLICADO, BORRADOR)
-creadoPor (MODERADOR)
+BudgetMap utiliza una arquitectura distribuida para maximizar el rendimiento y separar responsabilidades. El ecosistema se compone de dos grandes módulos:
 
-🟧 Evento
-id
-titulo
-tipoEvento (CULTURAL, DEPORTIVO, ARTISTICO, VETERINARIO)
-fechaInicio
-fechaFin
-descripcion
-lugarId
-creadoPor (MODERADOR)
+### 1. 🟢 `budgetmap-api` (Core Monolith & Frontend)
+Este es el motor principal del sistema. Desarrollado en **Java 17 y Spring Boot 3**, maneja la seguridad, persistencia principal y renderizado del cliente.
+- **Seguridad:** Spring Security con Tokens JWT (JSON Web Tokens) sin estado.
+- **Persistencia:** MySQL 8+ vía Spring Data JPA y pool de conexiones HikariCP.
+- **Frontend Híbrido:** HTML5 + Vanilla JS + TailwindCSS. Diseñado bajo el enfoque "Mobile-First", incluye gráficos analíticos (`Chart.js`) y generación nativa de reportes (`jsPDF`).
+- **Lógica de Negocio:** Gestión de Roles, Reservas, Creación de Eventos, Ticketing y Pagos.
 
-🟨 Establecimiento
-id
-nombre
-tipo (RESTAURANTE, PARQUEADERO)
-descripcion
-ubicacion
-estado (PENDIENTE, APROBADO, RECHAZADO)
-contacto
-horarios
-creadoPor (usuario establecimiento)
+### 2. 🌍 `budgetmap-geo` (Geo & Analytics Microservice)
+Microservicio especializado en análisis geoespacial, filtros complejos y límites de peticiones (Rate Limiting).
+- **Framework:** Python Flask.
+- **Base de Datos:** SQLAlchemy para consultas avanzadas y reportes analíticos.
+- **Seguridad / Rate Limiting:** Flask-Limiter para proteger las API contra abusos volumétricos (ej. endpoints limitados a peticiones por minuto).
+- **Rutas Principales:** `/api/geo` (Geolocalización espacial), `/api/filtros` (Filtros dinámicos), y `/api/reportes` (Extracción y minería de datos).
 
-🟪 Reserva
-id
-usuarioId (CLIENTE)
-establecimientoId
-fechaReserva
-estado (PENDIENTE, CONFIRMADA, CANCELADA)
+---
 
-🟫 PQRS / Sugerencia
-id
-usuarioId
-tipo (PQRS, SUGERENCIA)
-mensaje
-estado (ABIERTA, ASIGNADA, RESPONDIDA)
-asignadoA (ADMIN/MODERADOR)
+## 🌟 Características Principales y Roles
 
-3️⃣ FLUJOS POR ROL (FUNCIONALIDAD REAL)
+El ecosistema se divide en 4 perfiles principales, con paneles (Dashboards) adaptables 100% a dispositivos móviles:
 
-👑 ADMIN
-CRUD completo de usuarios
-CRUD de lugares
-CRUD de establecimientos
-Gestionar PQRS (asignar y responder)
-Aprobar moderadores y establecimientos
-Generar reportes generales
+### 1. 🛡️ Panel Administrativo (Control Center)
+- **Inteligencia de Negocio:** Estadísticas globales en tiempo real utilizando `Chart.js` (Evolución de usuarios, Composición de establecimientos, Métricas financieras).
+- **Reportes Profesionales:** Exportación milimétrica a PDF corporativo utilizando coordenadas en `jsPDF`.
+- **Gestión Integral:** Aprobación de locales y eventos, moderación de usuarios y sistema de PQRS (Peticiones, Quejas, Reclamos y Sugerencias).
 
-🟦 MODERADOR
-CRUD de lugares
-CRUD de eventos
-Aprobar establecimientos
-Ver PQRS asignadas
+### 2. 🏪 Panel de Aliados
+- **Gestión de Locales:** Administración de información, aforo y geolocalización de establecimientos.
+- **Creación de Promociones:** Motor para publicar ofertas dinámicas que el motor geoespacial distribuye en la zona.
+- **Radar Comercial:** Monitoreo de interacciones de clientes y control de reservas en vivo.
 
-🟧 ESTABLECIMIENTO
-Registrarse → queda PENDIENTE
-Cuando esté aprobado:
-editar su perfil
-administrar reservas
-confirmar/cancelar reservas
+### 3. 🎟️ Panel de Anfitriones
+- **Gestión de Eventos:** Planificación de eventos con aforo estricto y precios dinámicos.
+- **Check-In Mobile-First:** Módulo web-app nativo que permite escanear códigos de ticket en la entrada para validación instantánea y control de asistencia en portería.
 
-🟩 CLIENTE
-ver lugares públicos
-ver eventos de cualquier lugar
-hacer reservas en establecimientos aprobados
-recibir notificaciones
-crear PQRS y sugerencias
+### 4. 🧭 Experiencia del Explorador (Usuario Final)
+- **Radar Dinámico:** Motor de descubrimiento para hallar lugares ocultos impulsado por el microservicio Geo.
+- **Ahorro e Interactividad:** Reservas con cálculo de descuentos automáticos.
+- **Gamificación:** Leaderboard en tiempo real que premia la recurrencia con Tokens y un Top 5 de la comunidad.
 
-🌐 VISITANTE NO REGISTRADO
-ver página de inicio
-ver lugares públicos
-ver eventos
-registrarse
-iniciar sesión
+---
 
-4️⃣ RUTAS Y VISTAS (REORGANIZADAS Y CORREGIDAS)
-Aquí está la estructura correcta de vistas que sí debes tener, basada en Spring Boot + Thymeleaf.
+## 📂 Estructura del Repositorio
 
-📁 templates/public/
-home.html
-lugares.html
-detalle-lugar.html
-evento.html
+```text
+PROYECTO REAL/
+├── budgetmap-api/         # ☕ Microservicio Core Java (Spring Boot)
+│   ├── src/main/java/     # Lógica transaccional, Modelos, Controladores
+│   ├── src/main/resources/
+│   │   ├── static/        # Vistas Frontend de todos los roles (Tailwind + JS)
+│   │   └── application.properties
+│   └── pom.xml
+├── budgetmap-geo/         # 🐍 Microservicio Geo y Analítica (Python)
+│   ├── app.py             # Inicialización de Flask y Rate Limiting
+│   ├── routes/            # Blueprint endpoints (geo_routes, alert_routes)
+│   ├── services/          # Lógica analítica y cruce de datos
+│   └── requirements.txt
+├── database/              # Dumps y esquemas de base de datos SQL
+├── scripts/               # Scripts de soporte o mantenimiento
+└── README.md              # Este archivo global
+```
 
-📁 templates/auth/
-login.html
-registro.html
+---
 
-📁 templates/admin/
-dashboard.html
-usuarios.html
-reportes.html
-lugares.html
-establecimientos.html
-pqrs.html
+## 🚀 Instalación y Puesta en Marcha
 
-📁 templates/moderador/
-dashboard.html
-lugares.html
-crear-lugar.html
-editar-lugar.html
-eventos.html
-establecimientos-pendientes.html
+Dado que el proyecto maneja microservicios, debes levantar ambos para la funcionalidad completa:
 
-📁 templates/establecimiento/
-dashboard.html
-perfil.html
-reservas.html
+### 1. Levantar la Base de Datos
+- Asegúrate de tener **MySQL 8+** activo y crea la base de datos principal:
+  ```sql
+  CREATE DATABASE budgetmap CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+  ```
 
-📁 templates/cliente/
-dashboard.html
-reservas.html
-pqrs.html
+### 2. Levantar API Principal (Java)
+```bash
+cd budgetmap-api
+mvn clean install -U
+mvn spring-boot:run
+```
+> La API y el Portal Web estarán disponibles en: **http://localhost:8080/**
 
-5️⃣ RUTAS CONTROLADAS POR ROLES
-🌐 PÚBLICAS
-GET /
-GET /home
-GET /lugares
-GET /lugares/{id}
-GET /lugares/{id}/eventos
-GET /login
-GET /registro
-POST /registro
+### 3. Levantar Microservicio Geo (Python)
+Requiere Python 3.9+ instalado:
+```bash
+cd budgetmap-geo
+pip install -r requirements.txt
+python app.py
+```
+> El servicio Geo y analítica estará corriendo en: **http://localhost:5000/**
 
-👑 ADMIN
-GET /admin/dashboard
-GET /admin/usuarios
-GET /admin/usuarios/crear
-POST /admin/usuarios
-GET /admin/lugares
-GET /admin/establecimientos
-GET /admin/reportes
-GET /admin/pqrs
+---
 
-🟦 MODERADOR
-GET /moderador/dashboard
-GET /moderador/lugares
-GET /moderador/lugares/crear
-POST /moderador/lugares
-GET /moderador/eventos
-POST /moderador/eventos
-GET /moderador/establecimientos/pendientes
-POST /moderador/establecimientos/{id}/aprobar
+## 📱 Ecosistema Ultra-Responsivo
+Todo el frontend ubicado en `budgetmap-api/src/main/resources/static` está programado bajo un estándar "Mobile-First":
+- **Navbars Híbridas y Swipes:** Las barras de navegación superiores se transforman en carruseles horizontales ocultos y listados de iconos adaptables, garantizando navegación fluida a un dedo.
+- **Tablas Fluidas:** Protección anti-overflow en listados masivos.
+- **Vistas Dedicadas:** El Módulo Check-In de anfitriones elimina todo el ruido de la pantalla para convertir cualquier dispositivo en un escáner industrial inmersivo.
 
-🟧 ESTABLECIMIENTO
-GET /establecimiento/dashboard
-GET /establecimiento/perfil
-POST /establecimiento/perfil
-GET /establecimiento/reservas
-POST /establecimiento/reservas/{id}/confirmar
-POST /establecimiento/reservas/{id}/cancelar
+---
 
-🟩 CLIENTE
-GET /cliente/dashboard
-GET /cliente/reservas
-POST /cliente/reservas
-GET /cliente/pqrs
-POST /cliente/pqrs
+**BudgetMap Team © 2026** - *Innovación en Economía Local, Gamificación y Eventos*
