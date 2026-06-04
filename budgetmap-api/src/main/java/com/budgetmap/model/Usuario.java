@@ -57,6 +57,18 @@ public class Usuario {
     @Column(name = "ultimo_acceso")
     private LocalDateTime ultimoAcceso;
 
+    // --- NUEVOS CAMPOS: SEGURIDAD Y BLOQUEO ---
+    @Builder.Default
+    @Column(name = "intentos_fallidos", nullable = false)
+    private Integer intentosFallidos = 0;
+
+    @Builder.Default
+    @Column(name = "cuenta_bloqueada", nullable = false, columnDefinition = "TINYINT(1)")
+    private Boolean cuentaBloqueada = false;
+
+    @Column(name = "fecha_desbloqueo")
+    private LocalDateTime fechaDesbloqueo;
+
     // --- NUEVOS CAMPOS: MODELO DE NEGOCIO ---
     @Column(name = "avatar_url", length = 500)
     private String avatarUrl;
@@ -108,5 +120,9 @@ public class Usuario {
             activo = true;
         if (emailVerificado == null)
             emailVerificado = false;
+        if (intentosFallidos == null)
+            intentosFallidos = 0;
+        if (cuentaBloqueada == null)
+            cuentaBloqueada = false;
     }
 }

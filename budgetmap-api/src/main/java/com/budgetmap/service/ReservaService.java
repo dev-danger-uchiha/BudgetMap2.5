@@ -267,13 +267,23 @@ public class ReservaService {
                 .map(this::convertirAResponse);
     }
 
-    public List<ReservaResponse> listarPorEstablecimiento(Long estId) {
+    public List<ReservaResponse> listarPorEstablecimiento(Long estId, Long currentUserId) {
+        Establecimiento est = establecimientoRepository.findById(estId)
+                .orElseThrow(() -> new ResourceNotFoundException("Establecimiento no encontrado"));
+        if (!est.getPropietario().getId().equals(currentUserId)) {
+            throw new SecurityException("No tiene permisos para ver reservas de este establecimiento");
+        }
         return reservaRepository.findByEstablecimientoId(estId).stream()
                 .map(this::convertirAResponse)
                 .collect(Collectors.toList());
     }
 
-    public List<ReservaResponse> listarPorEvento(Long eventoId) {
+    public List<ReservaResponse> listarPorEvento(Long eventoId, Long currentUserId) {
+        Evento evento = eventoRepository.findById(eventoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Evento no encontrado"));
+        if (!evento.getCreador().getId().equals(currentUserId)) {
+            throw new SecurityException("No tiene permisos para ver reservas de este evento");
+        }
         return reservaRepository.findByEventoId(eventoId).stream()
                 .map(this::convertirAResponse)
                 .collect(Collectors.toList());
@@ -282,6 +292,28 @@ public class ReservaService {
     public ReservaResponse obtenerPorId(Long id) {
         Reserva reserva = reservaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Reserva no encontrada"));
+        return convertirAResponse(reserva);
+    }
+
+    public ReservaResponse obtenerPorIdSeguro(Long id, Long currentUserId, boolean isAdmin) {
+        Reserva reserva = reservaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Reserva no encontrada"));
+                
+        boolean hasAccess = isAdmin;
+        if (!hasAccess) {
+            hasAccess = reserva.getUsuario().getId().equals(currentUserId);
+        }
+        if (!hasAccess && reserva.getEstablecimiento() != null) {
+            hasAccess = reserva.getEstablecimiento().getPropietario().getId().equals(currentUserId);
+        }
+        if (!hasAccess && reserva.getEvento() != null) {
+            hasAccess = reserva.getEvento().getCreador().getId().equals(currentUserId);
+        }
+        
+        if (!hasAccess) {
+            logger.warn("Acceso denegado a reserva ID: {} por usuario ID: {}", id, currentUserId);
+            throw new SecurityException("No tiene permisos para ver esta reserva");
+        }
         return convertirAResponse(reserva);
     }
 

@@ -32,4 +32,10 @@ public class AuthController {
     public ResponseEntity<UsuarioDTO> registroExplorador(@Valid @RequestBody RegistroRequest request) {
         return ResponseEntity.ok(authService.registrarExplorador(request));
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@RequestHeader("Authorization") String token) {
+        authService.logout(token);
+        return ResponseEntity.ok().build();
+    }
 }

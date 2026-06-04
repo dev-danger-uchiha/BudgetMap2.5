@@ -84,6 +84,20 @@ public class EstablecimientoService {
         return convertirAResponse(est);
     }
 
+    public EstablecimientoResponse obtenerPorIdSeguro(Long id, Long currentUserId, boolean isAdmin) {
+        Establecimiento est = establecimientoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Establecimiento no encontrado"));
+                
+        if (est.getEstado() != EstadoAprobacion.APROBADO) {
+            boolean hasAccess = isAdmin || (currentUserId != null && est.getPropietario().getId().equals(currentUserId));
+            if (!hasAccess) {
+                log.warn("Acceso denegado a establecimiento ID: {} por usuario ID: {}", id, currentUserId);
+                throw new ResourceNotFoundException("Establecimiento no encontrado");
+            }
+        }
+        return convertirAResponse(est);
+    }
+
     public List<EstablecimientoResponse> listarPorPropietario(Long propietarioId) {
         return establecimientoRepository.findByPropietarioId(propietarioId).stream()
                 .map(this::convertirAResponse)

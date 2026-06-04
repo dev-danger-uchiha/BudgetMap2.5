@@ -74,10 +74,20 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+            // Nota de Seguridad: CSRF está deshabilitado porque la API es Stateless y usa tokens JWT en la cabecera Authorization.
+            // Si los tokens JWT se migraran a cookies (HttpOnly), CSRF DEBE ser habilitado obligatoriamente.
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .headers(headers -> headers.frameOptions(frame -> frame.disable()))
+            
+            // 0. IMPONER HTTPS Y CABECERAS DE SEGURIDAD BASE
+            // Nota: Se delega el forzado de HTTPS a la infraestructura (Render) para no romper el entorno local (localhost).
+            .headers(headers -> headers
+                .frameOptions(frame -> frame.deny()) // Proteccion contra Clickjacking (X-Frame-Options: DENY)
+                // CSP Relajado para permitir estilos en línea, fuentes externas (Google Fonts) y CDNs
+                .contentSecurityPolicy(csp -> csp.policyDirectives("default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; frame-ancestors 'none';")) 
+                .httpStrictTransportSecurity(hsts -> hsts.includeSubDomains(true).maxAgeInSeconds(31536000)) // HSTS (1 año)
+            )
             .exceptionHandling(exception -> exception
                 .authenticationEntryPoint((request, response, authException) -> {
                     response.setStatus(HttpStatus.UNAUTHORIZED.value());

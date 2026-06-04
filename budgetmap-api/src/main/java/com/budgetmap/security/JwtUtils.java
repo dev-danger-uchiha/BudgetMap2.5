@@ -52,10 +52,7 @@ public class JwtUtils {
         UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
 
         return Jwts.builder()
-                .subject(userPrincipal.getUsername())
-                .claim("id", userPrincipal.getId())
-                .claim("nombre", userPrincipal.getNombre())
-                .claim("rol", userPrincipal.getRol().name())
+                .subject(String.valueOf(userPrincipal.getId())) // Using ID instead of email to avoid PII exposure
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
                 .signWith(getSigningKey())
@@ -64,73 +61,37 @@ public class JwtUtils {
 
     public String generateTokenFromUsername(String username, Long id, String nombre, RolUsuario rol) {
         return Jwts.builder()
-                .subject(username)
-                .claim("id", id)
-                .claim("nombre", nombre)
-                .claim("rol", rol.name())
+                .subject(String.valueOf(id)) // Using ID instead of email
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
                 .signWith(getSigningKey())
                 .compact();
     }
 
-    public String getUserNameFromJwtToken(String token) {
+    public String getSubjectFromJwtToken(String token) {
         try {
             Claims claims = parseClaims(token);
             return claims.getSubject();
         } catch (ExpiredJwtException e) {
-            log.warn("Token expirado al obtener username: {}", maskToken(token));
+            log.warn("Token expirado al obtener subject: {}", maskToken(token));
             throw e;
         }
     }
 
     public Long getUserIdFromJwtToken(String token) {
         try {
-            Claims claims = parseClaims(token);
-            Object idClaim = claims.get("id");
-
-            if (idClaim == null) {
-                log.error("Token no contiene claim 'id'");
-                return null;
-            }
-
-            if (idClaim instanceof Integer) {
-                return ((Integer) idClaim).longValue();
-            }
-            if (idClaim instanceof Long) {
-                return (Long) idClaim;
-            }
-
-            log.error("Tipo de claim 'id' no valido: {}", idClaim.getClass());
-            return null;
-
-        } catch (JwtException e) {
+            String subject = getSubjectFromJwtToken(token);
+            return Long.parseLong(subject);
+        } catch (Exception e) {
             log.error("Error al obtener userId del token: {}", e.getMessage());
             return null;
         }
     }
 
+    // Method kept for compatibility but should not be used anymore since rol is removed from token.
     public RolUsuario getRolFromJwtToken(String token) {
-        try {
-            Claims claims = parseClaims(token);
-            String rolStr = claims.get("rol", String.class);
-
-            if (rolStr == null) {
-                log.error("Token no contiene claim 'rol'");
-                return null;
-            }
-
-            try {
-                return RolUsuario.valueOf(rolStr);
-            } catch (IllegalArgumentException e) {
-                log.error("Rol no valido en token: {}", rolStr);
-                return null;
-            }
-
-        } catch (JwtException e) {
-            log.error("Error al obtener rol del token: {}", e.getMessage());
-            return null;
-        }
+        log.warn("Intentando obtener rol desde el token, pero el claim fue removido por seguridad.");
+        return null;
     }
 
     public Claims getAllClaimsFromToken(String token) {
@@ -159,6 +120,15 @@ public class JwtUtils {
         }
 
         return false;
+    }
+
+    public Date getExpirationDateFromToken(String token) {
+        try {
+            Claims claims = parseClaims(token);
+            return claims.getExpiration();
+        } catch (ExpiredJwtException e) {
+            return e.getClaims().getExpiration();
+        }
     }
 
     public boolean isTokenExpired(String token) {

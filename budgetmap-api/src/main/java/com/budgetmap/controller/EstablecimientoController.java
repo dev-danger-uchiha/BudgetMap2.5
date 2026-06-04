@@ -48,8 +48,13 @@ public class EstablecimientoController {
     }
 
     @GetMapping("/establecimientos/{id}")
-    public ResponseEntity<EstablecimientoResponse> obtenerPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(establecimientoService.obtenerPorId(id));
+    public ResponseEntity<EstablecimientoResponse> obtenerPorId(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        Long currentUserId = userDetails != null ? userDetails.getId() : null;
+        boolean isAdmin = userDetails != null && userDetails.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMINISTRADOR") || a.getAuthority().equals("ROLE_MODERADOR"));
+        return ResponseEntity.ok(establecimientoService.obtenerPorIdSeguro(id, currentUserId, isAdmin));
     }
 
     // --- ENDPOINTS DE ADMINISTRACIÓN (ADMIN/MODERADOR) ---

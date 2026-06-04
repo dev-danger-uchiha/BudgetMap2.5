@@ -39,8 +39,26 @@ public class AuthService {
     @Autowired
     private JwtUtils jwtUtils;
 
+    @Autowired
+    private com.budgetmap.repository.TokenRevocadoRepository tokenRevocadoRepository;
+
     public LoginResponse autenticar(LoginRequest loginRequest) {
         log.info("Iniciando proceso de autenticación para el email: {}", loginRequest.getEmail());
+        
+        Usuario usuario = usuarioRepository.findByEmail(loginRequest.getEmail()).orElse(null);
+
+        if (usuario != null && Boolean.TRUE.equals(usuario.getCuentaBloqueada())) {
+            if (usuario.getFechaDesbloqueo() != null && java.time.LocalDateTime.now().isBefore(usuario.getFechaDesbloqueo())) {
+                long minutosRestantes = java.time.Duration.between(java.time.LocalDateTime.now(), usuario.getFechaDesbloqueo()).toMinutes();
+                throw new CuentaBloqueadaException("La cuenta está bloqueada por demasiados intentos fallidos.", Math.max(1, minutosRestantes));
+            } else {
+                usuario.setCuentaBloqueada(false);
+                usuario.setIntentosFallidos(0);
+                usuario.setFechaDesbloqueo(null);
+                usuarioRepository.save(usuario);
+            }
+        }
+
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -51,6 +69,13 @@ public class AuthService {
             String jwt = jwtUtils.generateJwtToken(authentication);
 
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+
+            if (usuario != null) {
+                usuario.setIntentosFallidos(0);
+                usuario.setCuentaBloqueada(false);
+                usuario.setFechaDesbloqueo(null);
+                usuarioRepository.save(usuario);
+            }
 
             log.info("Usuario autenticado exitosamente: {}", userDetails.getUsername());
 
@@ -65,6 +90,22 @@ public class AuthService {
 
         } catch (BadCredentialsException e) {
             log.warn("Intento de autenticación fallido para: {}", loginRequest.getEmail());
+            
+            if (usuario != null) {
+                int intentos = (usuario.getIntentosFallidos() == null ? 0 : usuario.getIntentosFallidos()) + 1;
+                usuario.setIntentosFallidos(intentos);
+                
+                if (intentos >= 5) {
+                    usuario.setCuentaBloqueada(true);
+                    usuario.setFechaDesbloqueo(java.time.LocalDateTime.now().plusMinutes(15));
+                    usuarioRepository.save(usuario);
+                    log.warn("Cuenta bloqueada por superar intentos fallidos: {}", usuario.getEmail());
+                    throw new CuentaBloqueadaException("Cuenta bloqueada por superar el máximo de intentos fallidos.", 15);
+                } else {
+                    usuarioRepository.save(usuario);
+                }
+            }
+            
             throw new CredencialesInvalidasException("Email o contraseña incorrectos");
         }
     }
@@ -159,5 +200,26 @@ public class AuthService {
                 .ultimoAcceso(usuario.getUltimoAcceso())
                 .createdAt(usuario.getCreatedAt())
                 .build();
+    }
+
+    @Transactional
+    public void logout(String token) {
+        if (token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+        
+        if (token != null && jwtUtils.validateJwtToken(token)) {
+            java.util.Date expiration = jwtUtils.getExpirationDateFromToken(token);
+            java.time.LocalDateTime expirationLdt = java.time.LocalDateTime.ofInstant(
+                    expiration.toInstant(), java.time.ZoneId.systemDefault());
+                    
+            com.budgetmap.model.TokenRevocado tokenRevocado = com.budgetmap.model.TokenRevocado.builder()
+                    .token(token)
+                    .fechaExpiracion(expirationLdt)
+                    .build();
+                    
+            tokenRevocadoRepository.save(tokenRevocado);
+            log.info("Token añadido a la blacklist (logout exitoso).");
+        }
     }
 }

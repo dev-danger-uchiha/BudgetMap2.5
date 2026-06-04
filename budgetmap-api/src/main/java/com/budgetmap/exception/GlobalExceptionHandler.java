@@ -70,6 +70,23 @@ public class GlobalExceptionHandler {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
         }
 
+        @ExceptionHandler(CuentaBloqueadaException.class)
+        @ResponseStatus(HttpStatus.FORBIDDEN)
+        public ResponseEntity<ErrorResponse> handleCuentaBloqueada(
+                        CuentaBloqueadaException ex, WebRequest request) {
+
+                log.warn("Intento de acceso a cuenta bloqueada: {}", ex.getMessage());
+
+                ErrorResponse error = new ErrorResponse(
+                                LocalDateTime.now(),
+                                HttpStatus.FORBIDDEN.value(),
+                                "Cuenta Bloqueada",
+                                ex.getMessage() + " (Minutos restantes: " + ex.getMinutosRestantes() + ")",
+                                request.getDescription(false).replace("uri=", ""));
+
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+        }
+
         @ExceptionHandler(AccessDeniedException.class)
         @ResponseStatus(HttpStatus.FORBIDDEN)
         public ResponseEntity<ErrorResponse> handleAccessDenied(

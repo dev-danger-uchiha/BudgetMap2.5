@@ -53,13 +53,20 @@ public class ReservaController {
 
     @GetMapping("/mis-reservas/establecimiento/{estId}")
     @PreAuthorize("hasRole('LOCAL_ALIADO')")
-    public ResponseEntity<List<ReservaResponse>> listarReservasEstablecimiento(@PathVariable Long estId) {
-        return ResponseEntity.ok(reservaService.listarPorEstablecimiento(estId));
+    public ResponseEntity<List<ReservaResponse>> listarReservasEstablecimiento(
+            @PathVariable Long estId,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return ResponseEntity.ok(reservaService.listarPorEstablecimiento(estId, userDetails.getId()));
     }
 
     @GetMapping("/reservas/{id}")
-    public ResponseEntity<ReservaResponse> obtenerPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(reservaService.obtenerPorId(id));
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ReservaResponse> obtenerPorId(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        boolean isAdmin = userDetails.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMINISTRADOR") || a.getAuthority().equals("ROLE_MODERADOR"));
+        return ResponseEntity.ok(reservaService.obtenerPorIdSeguro(id, userDetails.getId(), isAdmin));
     }
 
     @PostMapping("/reservas")
@@ -81,7 +88,9 @@ public class ReservaController {
 
     @GetMapping("/mis-reservas/evento/{eventoId}")
     @PreAuthorize("hasRole('ANFITRION')")
-    public ResponseEntity<List<ReservaResponse>> listarReservasEvento(@PathVariable Long eventoId) {
-        return ResponseEntity.ok(reservaService.listarPorEvento(eventoId));
+    public ResponseEntity<List<ReservaResponse>> listarReservasEvento(
+            @PathVariable Long eventoId,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return ResponseEntity.ok(reservaService.listarPorEvento(eventoId, userDetails.getId()));
     }
 }
