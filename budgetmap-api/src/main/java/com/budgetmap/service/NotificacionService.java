@@ -35,9 +35,33 @@ public class NotificacionService {
                 .getContent().stream().map(this::convertirAResponse).collect(Collectors.toList());
     }
 
-    public Page<NotificacionResponse> listarPorUsuarioPaginado(Long usuarioId, Pageable pageable) {
-        return notificacionRepository.findByUsuarioIdOrderByCreatedAtDesc(usuarioId, pageable)
-                .map(this::convertirAResponse);
+    public Page<NotificacionResponse> listarPorUsuarioPaginado(Long usuarioId, Pageable pageable, String tipo, Boolean leida) {
+        List<com.budgetmap.model.Notificacion> notificaciones = notificacionRepository.findByUsuarioIdOrderByCreatedAtDesc(usuarioId, Pageable.unpaged()).getContent();
+
+        if (tipo != null && !tipo.isBlank()) {
+            notificaciones = notificaciones.stream()
+                    .filter(n -> n.getTipo().name().equalsIgnoreCase(tipo))
+                    .collect(Collectors.toList());
+        }
+
+        if (leida != null) {
+            notificaciones = notificaciones.stream()
+                    .filter(n -> n.getLeida() != null && n.getLeida() == leida)
+                    .collect(Collectors.toList());
+        }
+
+        int start = (int) pageable.getOffset();
+        List<NotificacionResponse> dtos;
+        if (start >= notificaciones.size()) {
+            dtos = new java.util.ArrayList<>();
+        } else {
+            int end = Math.min(start + pageable.getPageSize(), notificaciones.size());
+            dtos = notificaciones.subList(start, end).stream()
+                    .map(this::convertirAResponse)
+                    .collect(Collectors.toList());
+        }
+
+        return new org.springframework.data.domain.PageImpl<>(dtos, pageable, notificaciones.size());
     }
 
     public List<NotificacionResponse> listarNoLeidas(Long usuarioId) {

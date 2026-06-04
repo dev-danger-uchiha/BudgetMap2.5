@@ -244,9 +244,54 @@ public class ReservaService {
                 .collect(Collectors.toList());
     }
 
-    public Page<ReservaResponse> listarPorUsuarioPaginado(Long usuarioId, Pageable pageable) {
-        return reservaRepository.findByUsuarioIdOrderByCreatedAtDesc(usuarioId, pageable)
-                .map(reservaMapper::toResponse);
+    public Page<ReservaResponse> listarPorUsuarioPaginado(Long usuarioId, Pageable pageable, String tipo, String nombre, java.time.LocalDate fecha) {
+        List<Reserva> reservas = reservaRepository.findByUsuarioId(usuarioId);
+
+        if (tipo != null && !tipo.isBlank()) {
+            reservas = reservas.stream()
+                    .filter(r -> {
+                        if (tipo.equalsIgnoreCase("EVENTO")) return r.getEvento() != null;
+                        if (tipo.equalsIgnoreCase("ESTABLECIMIENTO")) return r.getEstablecimiento() != null;
+                        return true;
+                    })
+                    .collect(Collectors.toList());
+        }
+
+        if (nombre != null && !nombre.isBlank()) {
+            String q = nombre.toLowerCase();
+            reservas = reservas.stream()
+                    .filter(r ->
+                            (r.getEvento() != null && r.getEvento().getNombre().toLowerCase().contains(q)) ||
+                            (r.getEstablecimiento() != null && r.getEstablecimiento().getNombre().toLowerCase().contains(q))
+                    )
+                    .collect(Collectors.toList());
+        }
+
+        if (fecha != null) {
+            reservas = reservas.stream()
+                    .filter(r -> r.getFechaReserva() != null && r.getFechaReserva().isEqual(fecha))
+                    .collect(Collectors.toList());
+        }
+
+        reservas.sort((r1, r2) -> {
+            if (r2.getCreatedAt() != null && r1.getCreatedAt() != null) {
+                return r2.getCreatedAt().compareTo(r1.getCreatedAt());
+            }
+            return 0;
+        });
+
+        int start = (int) pageable.getOffset();
+        List<ReservaResponse> dtos;
+        if (start >= reservas.size()) {
+            dtos = new java.util.ArrayList<>();
+        } else {
+            int end = Math.min(start + pageable.getPageSize(), reservas.size());
+            dtos = reservas.subList(start, end).stream()
+                    .map(reservaMapper::toResponse)
+                    .collect(Collectors.toList());
+        }
+
+        return new org.springframework.data.domain.PageImpl<>(dtos, pageable, reservas.size());
     }
 
     public List<ReservaResponse> listarPorEstablecimiento(Long estId, Long currentUserId) {

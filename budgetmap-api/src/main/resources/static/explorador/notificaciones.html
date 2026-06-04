@@ -37,8 +37,35 @@
     }
   </script>
 
-  <main class="w-full px-6 md:px-10 mt-6 px-4 pb-10 space-y-3" id="lista-notificaciones">
-    <p class="text-center text-orange-500 font-bold mt-10 animate-pulse">Cargando buzón...</p>
+  <main class="w-full px-6 md:px-10 mt-6 px-4 pb-10 space-y-3">
+    <!-- Filtros -->
+    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 mb-6 flex flex-col sm:flex-row gap-4 items-end">
+        <div class="w-full sm:w-1/3">
+            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Tipo</label>
+            <select id="filtro-tipo" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-orange-500">
+                <option value="">Todos</option>
+                <option value="RESERVA_ESTADO">Reservas</option>
+                <option value="PROMOCION_NUEVA">Promociones</option>
+                <option value="ALERTA_PROXIMIDAD">Cercanía</option>
+                <option value="PQRS_RESPUESTA">PQRS</option>
+            </select>
+        </div>
+        <div class="w-full sm:w-1/3">
+            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Estado</label>
+            <select id="filtro-leida" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-orange-500">
+                <option value="">Todas</option>
+                <option value="false">No Leídas</option>
+                <option value="true">Leídas</option>
+            </select>
+        </div>
+        <div class="w-full sm:w-auto">
+            <button onclick="cargarNotificaciones()" class="w-full sm:w-auto bg-orange-500 text-white font-black text-[10px] uppercase tracking-widest px-4 py-2.5 rounded-lg hover:bg-orange-600 shadow-md">Aplicar Filtros</button>
+        </div>
+    </div>
+
+    <div id="lista-notificaciones" class="space-y-3">
+      <p class="text-center text-orange-500 font-bold mt-10 animate-pulse">Cargando buzón...</p>
+    </div>
   </main>
 
   <script>
@@ -46,14 +73,24 @@
 
     async function cargarNotificaciones() {
         const lista = document.getElementById('lista-notificaciones');
+        const filtroTipo = document.getElementById('filtro-tipo').value;
+        const filtroLeida = document.getElementById('filtro-leida').value;
+        
+        lista.innerHTML = '<p class="text-center text-orange-500 font-bold mt-10 animate-pulse">Cargando buzón...</p>';
+        
         try {
-            const res = await fetch('http://localhost:8080/api/notificaciones', {
+            const params = new URLSearchParams({ size: 100 });
+            if (filtroTipo) params.append('tipo', filtroTipo);
+            if (filtroLeida) params.append('leida', filtroLeida);
+
+            const res = await fetch(`http://localhost:8080/api/notificaciones/paginado?${params}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
-                const notificaciones = await res.json();
+                const data = await res.json();
+                const notificaciones = data.content || data || [];
                 if (notificaciones.length === 0) {
-                    lista.innerHTML = '<p class="text-center text-slate-400 font-bold p-8">No tienes notificaciones nuevas.</p>';
+                    lista.innerHTML = '<p class="text-center text-slate-400 font-bold p-8">No tienes notificaciones con estos filtros.</p>';
                     return;
                 }
 

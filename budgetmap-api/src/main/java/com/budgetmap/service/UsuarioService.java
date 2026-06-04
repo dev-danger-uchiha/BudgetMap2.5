@@ -141,10 +141,11 @@ public class UsuarioService {
         List<Usuario> usuarios = usuarioRepository.findAll();
 
         if (criterio != null && !criterio.isBlank()) {
+            String crit = criterio.toLowerCase();
             usuarios = usuarios.stream()
-                    .filter(u -> u.getNombre().toLowerCase().contains(criterio.toLowerCase()) ||
-                                u.getApellido().toLowerCase().contains(criterio.toLowerCase()) ||
-                                u.getEmail().toLowerCase().contains(criterio.toLowerCase()))
+                    .filter(u -> (u.getNombre() != null && u.getNombre().toLowerCase().contains(crit)) ||
+                                 (u.getApellido() != null && u.getApellido().toLowerCase().contains(crit)) ||
+                                 (u.getEmail() != null && u.getEmail().toLowerCase().contains(crit)))
                     .collect(Collectors.toList());
         }
 
@@ -161,15 +162,21 @@ public class UsuarioService {
 
         if (activo != null) {
             usuarios = usuarios.stream()
-                    .filter(u -> u.getActivo() == activo)
+                    .filter(u -> u.getActivo() != null && u.getActivo().equals(activo))
                     .collect(Collectors.toList());
         }
 
         int start = (int) pageable.getOffset();
-        int end = Math.min(start + pageable.getPageSize(), usuarios.size());
-        List<UsuarioDTO> dtos = usuarios.subList(start, end).stream()
-                .map(usuarioMapper::toDto)
-                .collect(Collectors.toList());
+        List<UsuarioDTO> dtos;
+        
+        if (start >= usuarios.size()) {
+            dtos = new java.util.ArrayList<>();
+        } else {
+            int end = Math.min(start + pageable.getPageSize(), usuarios.size());
+            dtos = usuarios.subList(start, end).stream()
+                    .map(usuarioMapper::toDto)
+                    .collect(Collectors.toList());
+        }
 
         return new org.springframework.data.domain.PageImpl<>(dtos, pageable, usuarios.size());
     }

@@ -40,8 +40,11 @@ public class ReservaController {
     @PreAuthorize("hasAnyRole('EXPLORADOR', 'EXPLORADOR_PRO')")
     public ResponseEntity<Page<ReservaResponse>> listarMisReservas(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
-            @org.springframework.data.web.PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(reservaService.listarPorUsuarioPaginado(userDetails.getId(), pageable));
+            @org.springframework.data.web.PageableDefault(size = 20) Pageable pageable,
+            @RequestParam(required = false) String tipo,
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate fecha) {
+        return ResponseEntity.ok(reservaService.listarPorUsuarioPaginado(userDetails.getId(), pageable, tipo, nombre, fecha));
     }
 
     @GetMapping("/mis-reservas/establecimiento/{estId}")

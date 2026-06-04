@@ -164,10 +164,16 @@ public class PQRSService {
         pqrsList.sort((p1, p2) -> p2.getCreatedAt().compareTo(p1.getCreatedAt()));
 
         int start = (int) pageable.getOffset();
-        int end = Math.min(start + pageable.getPageSize(), pqrsList.size());
-        List<PQRSResponse> dtos = pqrsList.subList(start, end).stream()
-                .map(pqrsMapper::toResponse)
-                .collect(Collectors.toList());
+        List<PQRSResponse> dtos;
+        
+        if (start >= pqrsList.size()) {
+            dtos = new java.util.ArrayList<>();
+        } else {
+            int end = Math.min(start + pageable.getPageSize(), pqrsList.size());
+            dtos = pqrsList.subList(start, end).stream()
+                    .map(pqrsMapper::toResponse)
+                    .collect(Collectors.toList());
+        }
 
         return new org.springframework.data.domain.PageImpl<>(dtos, pageable, pqrsList.size());
     }

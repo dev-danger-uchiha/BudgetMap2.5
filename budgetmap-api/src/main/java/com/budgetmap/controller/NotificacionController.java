@@ -28,8 +28,10 @@ public class NotificacionController {
     @GetMapping("/notificaciones/paginado")
     public ResponseEntity<Page<NotificacionResponse>> listarMisNotificacionesPaginado(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
-            Pageable pageable) {
-        return ResponseEntity.ok(notificacionService.listarPorUsuarioPaginado(userDetails.getId(), pageable));
+            Pageable pageable,
+            @RequestParam(required = false) String tipo,
+            @RequestParam(required = false) Boolean leida) {
+        return ResponseEntity.ok(notificacionService.listarPorUsuarioPaginado(userDetails.getId(), pageable, tipo, leida));
     }
 
     @GetMapping("/notificaciones/no-leidas")

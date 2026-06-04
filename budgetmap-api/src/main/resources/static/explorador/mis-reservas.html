@@ -44,11 +44,34 @@
   </script>
 
   <main class="w-full px-6 md:px-10 px-4 mt-8 pb-12">
-    <div class="flex bg-slate-200 p-1 rounded-2xl mb-8 shadow-inner">
-      <button onclick="cargarMisReservas('ACTIVA')"
+    <div class="flex bg-slate-200 p-1 rounded-2xl mb-4 shadow-inner">
+      <button onclick="cambiarPestana('ACTIVA')" id="btn-activa"
         class="flex-1 py-3 text-xs font-black uppercase rounded-xl bg-white text-orange-600 shadow-sm transition">Próximos</button>
-      <button onclick="cargarMisReservas('HISTORIAL')"
+      <button onclick="cambiarPestana('HISTORIAL')" id="btn-historial"
         class="flex-1 py-3 text-xs font-black uppercase text-slate-500 hover:text-slate-800 transition">Historial</button>
+    </div>
+
+    <!-- Filtros -->
+    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 mb-6 flex flex-col md:flex-row gap-4 items-end">
+        <div class="w-full md:w-1/3">
+            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Buscar por nombre</label>
+            <input type="text" id="filtro-nombre" placeholder="Ej: Concierto, Restaurante..." class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-orange-500">
+        </div>
+        <div class="w-full md:w-1/4">
+            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Tipo</label>
+            <select id="filtro-tipo" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-orange-500">
+                <option value="">Todos</option>
+                <option value="EVENTO">Evento</option>
+                <option value="ESTABLECIMIENTO">Establecimiento</option>
+            </select>
+        </div>
+        <div class="w-full md:w-1/4">
+            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Fecha exacta</label>
+            <input type="date" id="filtro-fecha" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-orange-500">
+        </div>
+        <div class="w-full md:w-auto">
+            <button onclick="cargarMisReservas()" class="w-full md:w-auto bg-orange-500 text-white font-black text-[10px] uppercase tracking-widest px-4 py-2.5 rounded-lg hover:bg-orange-600 shadow-md">Aplicar Filtros</button>
+        </div>
     </div>
 
     <div id="lista-reservas" class="space-y-6">
@@ -60,23 +83,47 @@
     let estadoActual = 'ACTIVA';
 
     document.addEventListener("DOMContentLoaded", () => {
-      cargarMisReservas('ACTIVA');
+      cargarMisReservas();
     });
 
-    async function cargarMisReservas(filtroEstado) {
-      estadoActual = filtroEstado;
+    function cambiarPestana(estado) {
+        estadoActual = estado;
+        if (estado === 'ACTIVA') {
+            document.getElementById('btn-activa').classList.add('bg-white', 'text-orange-600', 'shadow-sm');
+            document.getElementById('btn-activa').classList.remove('text-slate-500');
+            document.getElementById('btn-historial').classList.add('text-slate-500');
+            document.getElementById('btn-historial').classList.remove('bg-white', 'text-orange-600', 'shadow-sm');
+        } else {
+            document.getElementById('btn-historial').classList.add('bg-white', 'text-orange-600', 'shadow-sm');
+            document.getElementById('btn-historial').classList.remove('text-slate-500');
+            document.getElementById('btn-activa').classList.add('text-slate-500');
+            document.getElementById('btn-activa').classList.remove('bg-white', 'text-orange-600', 'shadow-sm');
+        }
+        cargarMisReservas();
+    }
+
+    async function cargarMisReservas() {
+      const filtroNombre = document.getElementById('filtro-nombre').value;
+      const filtroTipo = document.getElementById('filtro-tipo').value;
+      const filtroFecha = document.getElementById('filtro-fecha').value;
+      
       const contenedor = document.getElementById('lista-reservas');
       contenedor.innerHTML = '<p class="text-center text-orange-500 font-bold mt-10 animate-pulse">Buscando entradas...</p>';
 
       try {
-        const response = await fetch('http://localhost:8080/api/mis-reservas', {
+        const params = new URLSearchParams({ size: 100 });
+        if (filtroNombre) params.append('nombre', filtroNombre);
+        if (filtroTipo) params.append('tipo', filtroTipo);
+        if (filtroFecha) params.append('fecha', filtroFecha);
+
+        const response = await fetch(`http://localhost:8080/api/mis-reservas?${params}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
 
         if (response.ok) {
           const rawReservas = await response.json();
           const reservas = rawReservas.content || rawReservas || [];
-          let filtradas = reservas.filter(r => filtroEstado === 'ACTIVA'
+          let filtradas = reservas.filter(r => estadoActual === 'ACTIVA'
             ? (r.estado === 'PENDIENTE' || r.estado === 'CONFIRMADA')
             : (r.estado === 'CANCELADA' || r.estado === 'COMPLETADA' || r.estado === 'NO_ASISTIO')
           );
@@ -146,7 +193,7 @@
         });
         if (response.ok) {
           alert("Reserva cancelada exitosamente.");
-          cargarMisReservas(estadoActual);
+          cargarMisReservas();
         } else { alert("No se pudo cancelar la reserva en el servidor."); }
       } catch (error) { alert("Error de conexión al intentar cancelar."); }
     }
