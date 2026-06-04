@@ -26,14 +26,14 @@ public class EventoController {
     private EventoService eventoService;
 
     @GetMapping("/eventos")
-    public ResponseEntity<List<EventoResponse>> listarTodos() {
-        return ResponseEntity.ok(eventoService.listarTodos());
+    public ResponseEntity<Page<EventoResponse>> listarTodos(@org.springframework.data.web.PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(eventoService.listarTodos(pageable));
     }
 
     @GetMapping("/eventos/pendientes")
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'MODERADOR')")
-    public ResponseEntity<List<EventoResponse>> listarPendientes() {
-        return ResponseEntity.ok(eventoService.listarPendientesAprobacion());
+    public ResponseEntity<Page<EventoResponse>> listarPendientes(@org.springframework.data.web.PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(eventoService.listarPendientesAprobacion(pageable));
     }
 
     @GetMapping("/eventos/admin/paginado")
@@ -70,13 +70,8 @@ public class EventoController {
     }
 
     @GetMapping("/eventos/activos")
-    public ResponseEntity<List<EventoResponse>> listarActivos() {
-        return ResponseEntity.ok(eventoService.listarActivos());
-    }
-
-    @GetMapping("/eventos/activos/paginado")
-    public ResponseEntity<Page<EventoResponse>> listarActivosPaginado(Pageable pageable) {
-        return ResponseEntity.ok(eventoService.listarActivosPaginado(pageable));
+    public ResponseEntity<Page<EventoResponse>> listarActivos(@org.springframework.data.web.PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(eventoService.listarActivos(pageable));
     }
 
     @GetMapping("/eventos/destacados")

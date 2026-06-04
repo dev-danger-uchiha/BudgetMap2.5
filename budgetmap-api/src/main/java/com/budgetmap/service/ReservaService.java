@@ -1,5 +1,8 @@
 package com.budgetmap.service;
 
+import com.budgetmap.mapper.ReservaMapper;
+import lombok.RequiredArgsConstructor;
+
 import com.budgetmap.dto.ReservaRequest;
 import com.budgetmap.dto.ReservaResponse;
 import com.budgetmap.exception.ReservaException;
@@ -28,6 +31,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class ReservaService {
 
     private static final Logger logger = LoggerFactory.getLogger(ReservaService.class);
@@ -35,28 +39,17 @@ public class ReservaService {
     // Comisión por reserva confirmada con promoción ($500 COP)
     private static final BigDecimal COMISION_RESERVA = new BigDecimal("500.00");
 
-    @Autowired
-    private ReservaRepository reservaRepository;
+    private final ReservaRepository reservaRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final EstablecimientoRepository establecimientoRepository;
+    private final EventoRepository eventoRepository;
+    private final UsuarioService usuarioService;
+    private final PuntosService puntosService;
+    private final ReservaMapper reservaMapper;
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-
-    @Autowired
-    private EstablecimientoRepository establecimientoRepository;
-
-    @Autowired
-    private EventoRepository eventoRepository;
-
-    @Autowired
-    private UsuarioService usuarioService;
-
-    @Autowired
-    private PuntosService puntosService;
-
-    public List<ReservaResponse> listarTodas() {
-        return reservaRepository.findAll().stream()
-                .map(this::convertirAResponse)
-                .collect(Collectors.toList());
+    public Page<ReservaResponse> listarTodas(Pageable pageable) {
+        return reservaRepository.findAll(pageable)
+                .map(reservaMapper::toResponse);
     }
 
     // =========================================================================
@@ -66,13 +59,7 @@ public class ReservaService {
     public ReservaResponse crear(ReservaRequest request, Long usuarioId) {
         logger.info("Iniciando creación de reserva para el usuario ID: {}", usuarioId);
 
-        // Validación: debe enviar eventoId O establecimientoId, no ambos ni ninguno
-        if (request.getEventoId() == null && request.getEstablecimientoId() == null) {
-            throw new ReservaException("Debe especificar un evento o un establecimiento para reservar");
-        }
-        if (request.getEventoId() != null && request.getEstablecimientoId() != null) {
-            throw new ReservaException("No puede reservar en un evento y un establecimiento a la vez");
-        }
+        validarRequest(request);
 
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> {
@@ -87,83 +74,78 @@ public class ReservaService {
                 .horaInicio(request.getHoraInicio())
                 .horaFin(request.getHoraFin())
                 .numeroPersonas(request.getNumeroPersonas())
-                .estado(EstadoReserva.PENDIENTE) // Siempre PENDIENTE hasta que confirmen el código
+                .estado(EstadoReserva.PENDIENTE)
                 .puntosOtorgados(calcularPuntos(request.getNumeroPersonas()))
                 .notas(request.getNotas());
 
-        // --- RESERVA EN EVENTO (solo si tiene precio > 0) ---
         if (request.getEventoId() != null) {
-            Evento evento = eventoRepository.findById(request.getEventoId())
-                    .orElseThrow(() -> {
-                        logger.error("Evento no encontrado: ID {}", request.getEventoId());
-                        return new ResourceNotFoundException("Evento no encontrado");
-                    });
-
-            // Regla de negocio: solo eventos con costo permiten reserva
-            if (evento.getPrecio() == null || evento.getPrecio().compareTo(BigDecimal.ZERO) <= 0) {
-                throw new ReservaException("Este evento es gratuito y no requiere reserva");
-            }
-
-            // Validar aforo del evento
-            if (evento.getAforoMaximo() != null) {
-                Integer aforoOcupado = reservaRepository.sumAforoByEventoId(evento.getId());
-                if (aforoOcupado == null) aforoOcupado = 0;
-
-                if (aforoOcupado + request.getNumeroPersonas() > evento.getAforoMaximo()) {
-                    logger.warn("Aforo excedido en evento ID: {}. Ocupado: {}, Intentó: {}",
-                            evento.getId(), aforoOcupado, request.getNumeroPersonas());
-                    throw new ReservaException("No hay cupo disponible para este evento");
-                }
-            }
-
-            // Incrementar aforo actual del evento
-            evento.setAforoActual(evento.getAforoActual() + request.getNumeroPersonas());
-            eventoRepository.save(evento);
-
-            reservaBuilder.evento(evento);
-            // Si el evento está vinculado a un lugar, lo asociamos también
-            if (evento.getLugar() != null) {
-                reservaBuilder.lugar(evento.getLugar());
-            }
-
-            logger.info("Reserva vinculada a evento ID: {} (precio: {})", evento.getId(), evento.getPrecio());
+            procesarReservaEvento(request, reservaBuilder);
         }
 
-        // --- RESERVA EN ESTABLECIMIENTO (solo si tiene reservas habilitadas) ---
         if (request.getEstablecimientoId() != null) {
-            Establecimiento est = establecimientoRepository.findById(request.getEstablecimientoId())
-                    .orElseThrow(() -> {
-                        logger.error("Establecimiento no encontrado: ID {}", request.getEstablecimientoId());
-                        return new ResourceNotFoundException("Establecimiento no encontrado");
-                    });
-
-            // Regla de negocio: solo si el aliado activó las reservas
-            if (!Boolean.TRUE.equals(est.getReservasHabilitadas())) {
-                throw new ReservaException("Este establecimiento no tiene habilitadas las reservas");
-            }
-
-            // Validar aforo del establecimiento
-            Integer aforoOcupado = reservaRepository.sumAforoByEstablecimientoAndFecha(
-                    est.getId(), request.getFechaReserva());
-            if (aforoOcupado == null) aforoOcupado = 0;
-
-            Integer aforoMaximo = est.getAforoMaximo() != null ? est.getAforoMaximo() : Integer.MAX_VALUE;
-
-            if (aforoOcupado + request.getNumeroPersonas() > aforoMaximo) {
-                logger.warn("Aforo excedido. Establecimiento ID: {}, Aforo actual: {}, Intentó reservar: {}",
-                        est.getId(), aforoOcupado, request.getNumeroPersonas());
-                throw new ReservaException("No hay cupo disponible para esa fecha");
-            }
-
-            reservaBuilder.establecimiento(est);
-            logger.info("Reserva vinculada a establecimiento ID: {}", est.getId());
+            procesarReservaEstablecimiento(request, reservaBuilder);
         }
 
         Reserva reserva = reservaBuilder.build();
         Reserva guardada = reservaRepository.save(reserva);
-        logger.info("Reserva creada exitosamente: Código {} | Estado: PENDIENTE | Puntos potenciales: {}",
+        logger.info("Reserva creada exitosamente: Código {} | Estado: PENDIENTE | Puntos: {}",
                 guardada.getCodigoReserva(), guardada.getPuntosOtorgados());
-        return convertirAResponse(guardada);
+        return reservaMapper.toResponse(guardada);
+    }
+
+    private void validarRequest(ReservaRequest request) {
+        if (request.getEventoId() == null && request.getEstablecimientoId() == null) {
+            throw new ReservaException("Debe especificar un evento o un establecimiento para reservar");
+        }
+        if (request.getEventoId() != null && request.getEstablecimientoId() != null) {
+            throw new ReservaException("No puede reservar en un evento y un establecimiento a la vez");
+        }
+    }
+
+    private void procesarReservaEvento(ReservaRequest request, Reserva.ReservaBuilder builder) {
+        Evento evento = eventoRepository.findById(request.getEventoId())
+                .orElseThrow(() -> new ResourceNotFoundException("Evento no encontrado"));
+
+        if (evento.getPrecio() == null || evento.getPrecio().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ReservaException("Este evento es gratuito y no requiere reserva");
+        }
+
+        if (evento.getAforoMaximo() != null) {
+            Integer aforoOcupado = reservaRepository.sumAforoByEventoId(evento.getId());
+            if (aforoOcupado == null) aforoOcupado = 0;
+
+            if (aforoOcupado + request.getNumeroPersonas() > evento.getAforoMaximo()) {
+                throw new ReservaException("No hay cupo disponible para este evento");
+            }
+        }
+
+        evento.setAforoActual(evento.getAforoActual() + request.getNumeroPersonas());
+        eventoRepository.save(evento);
+
+        builder.evento(evento);
+        if (evento.getLugar() != null) {
+            builder.lugar(evento.getLugar());
+        }
+    }
+
+    private void procesarReservaEstablecimiento(ReservaRequest request, Reserva.ReservaBuilder builder) {
+        Establecimiento est = establecimientoRepository.findById(request.getEstablecimientoId())
+                .orElseThrow(() -> new ResourceNotFoundException("Establecimiento no encontrado"));
+
+        if (!Boolean.TRUE.equals(est.getReservasHabilitadas())) {
+            throw new ReservaException("Este establecimiento no tiene habilitadas las reservas");
+        }
+
+        Integer aforoOcupado = reservaRepository.sumAforoByEstablecimientoAndFecha(est.getId(), request.getFechaReserva());
+        if (aforoOcupado == null) aforoOcupado = 0;
+
+        Integer aforoMaximo = est.getAforoMaximo() != null ? est.getAforoMaximo() : Integer.MAX_VALUE;
+
+        if (aforoOcupado + request.getNumeroPersonas() > aforoMaximo) {
+            throw new ReservaException("No hay cupo disponible para esa fecha");
+        }
+
+        builder.establecimiento(est);
     }
 
     // =========================================================================
@@ -250,7 +232,7 @@ public class ReservaService {
             logger.debug("Comisión de {} COP aplicada a reserva con promoción", COMISION_RESERVA);
         }
 
-        return convertirAResponse(reservaRepository.save(reserva));
+        return reservaMapper.toResponse(reservaRepository.save(reserva));
     }
 
     // =========================================================================
@@ -258,13 +240,13 @@ public class ReservaService {
     // =========================================================================
     public List<ReservaResponse> listarPorUsuario(Long usuarioId) {
         return reservaRepository.findByUsuarioId(usuarioId).stream()
-                .map(this::convertirAResponse)
+                .map(reservaMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
     public Page<ReservaResponse> listarPorUsuarioPaginado(Long usuarioId, Pageable pageable) {
         return reservaRepository.findByUsuarioIdOrderByCreatedAtDesc(usuarioId, pageable)
-                .map(this::convertirAResponse);
+                .map(reservaMapper::toResponse);
     }
 
     public List<ReservaResponse> listarPorEstablecimiento(Long estId, Long currentUserId) {
@@ -274,7 +256,7 @@ public class ReservaService {
             throw new SecurityException("No tiene permisos para ver reservas de este establecimiento");
         }
         return reservaRepository.findByEstablecimientoId(estId).stream()
-                .map(this::convertirAResponse)
+                .map(reservaMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
@@ -285,14 +267,14 @@ public class ReservaService {
             throw new SecurityException("No tiene permisos para ver reservas de este evento");
         }
         return reservaRepository.findByEventoId(eventoId).stream()
-                .map(this::convertirAResponse)
+                .map(reservaMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
     public ReservaResponse obtenerPorId(Long id) {
         Reserva reserva = reservaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Reserva no encontrada"));
-        return convertirAResponse(reserva);
+        return reservaMapper.toResponse(reserva);
     }
 
     public ReservaResponse obtenerPorIdSeguro(Long id, Long currentUserId, boolean isAdmin) {
@@ -314,13 +296,13 @@ public class ReservaService {
             logger.warn("Acceso denegado a reserva ID: {} por usuario ID: {}", id, currentUserId);
             throw new SecurityException("No tiene permisos para ver esta reserva");
         }
-        return convertirAResponse(reserva);
+        return reservaMapper.toResponse(reserva);
     }
 
     public ReservaResponse obtenerPorCodigo(String codigo) {
         Reserva reserva = reservaRepository.findByCodigoReserva(codigo)
                 .orElseThrow(() -> new ResourceNotFoundException("Reserva no encontrada"));
-        return convertirAResponse(reserva);
+        return reservaMapper.toResponse(reserva);
     }
 
     // =========================================================================
@@ -332,41 +314,5 @@ public class ReservaService {
 
     private Integer calcularPuntos(Integer numeroPersonas) {
         return numeroPersonas * 10;
-    }
-
-    private ReservaResponse convertirAResponse(Reserva reserva) {
-        String nombreEstablecimiento = null;
-        String nombreEvento = null;
-        String tipoReserva;
-
-        if (reserva.getEvento() != null) {
-            nombreEvento = reserva.getEvento().getNombre();
-            tipoReserva = "EVENTO";
-            // Si también hay establecimiento (evento dentro de un local), lo mostramos
-            if (reserva.getEstablecimiento() != null) {
-                nombreEstablecimiento = reserva.getEstablecimiento().getNombre();
-            }
-        } else if (reserva.getEstablecimiento() != null) {
-            nombreEstablecimiento = reserva.getEstablecimiento().getNombre();
-            tipoReserva = "ESTABLECIMIENTO";
-        } else {
-            tipoReserva = "DESCONOCIDO";
-        }
-
-        return ReservaResponse.builder()
-                .id(reserva.getId())
-                .codigoReserva(reserva.getCodigoReserva())
-                .nombreEstablecimiento(nombreEstablecimiento)
-                .nombreEvento(nombreEvento)
-                .tipoReserva(tipoReserva)
-                .fechaReserva(reserva.getFechaReserva())
-                .horaInicio(reserva.getHoraInicio())
-                .horaFin(reserva.getHoraFin())
-                .numeroPersonas(reserva.getNumeroPersonas())
-                .estado(reserva.getEstado())
-                .puntosOtorgados(reserva.getPuntosOtorgados())
-                .comisionCobrada(reserva.getComisionCobrada())
-                .createdAt(reserva.getCreatedAt())
-                .build();
     }
 }

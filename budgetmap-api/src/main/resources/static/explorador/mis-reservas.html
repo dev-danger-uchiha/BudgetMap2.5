@@ -74,7 +74,8 @@
         });
 
         if (response.ok) {
-          const reservas = await response.json();
+          const rawReservas = await response.json();
+          const reservas = rawReservas.content || rawReservas || [];
           let filtradas = reservas.filter(r => filtroEstado === 'ACTIVA'
             ? (r.estado === 'PENDIENTE' || r.estado === 'CONFIRMADA')
             : (r.estado === 'CANCELADA' || r.estado === 'COMPLETADA' || r.estado === 'NO_ASISTIO')

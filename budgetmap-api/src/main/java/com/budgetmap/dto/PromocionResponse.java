@@ -7,12 +7,13 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.io.Serializable;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PromocionResponse {
+public class PromocionResponse implements Serializable {
     private Long id;
     private String titulo;
     private String descripcion;

@@ -1,5 +1,7 @@
 package com.budgetmap.service;
 
+import lombok.RequiredArgsConstructor;
+
 import com.budgetmap.dto.DashboardStatsResponse;
 import com.budgetmap.model.enums.CategoriaEstablecimiento;
 import com.budgetmap.model.enums.EstadoAprobacion;
@@ -15,22 +17,14 @@ import java.util.Map;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class EstadisticasService {
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-
-    @Autowired
-    private EstablecimientoRepository establecimientoRepository;
-
-    @Autowired
-    private LugarRepository lugarRepository;
-
-    @Autowired
-    private ReservaRepository reservaRepository;
-
-    @Autowired
-    private PQRSRepository pqrsRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final EstablecimientoRepository establecimientoRepository;
+    private final LugarRepository lugarRepository;
+    private final ReservaRepository reservaRepository;
+    private final PQRSRepository pqrsRepository;
 
     public DashboardStatsResponse obtenerResumenGeneral() {
         log.info("Calculando estadísticas generales para el dashboard de administración...");

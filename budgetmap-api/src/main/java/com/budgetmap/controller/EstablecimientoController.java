@@ -43,8 +43,9 @@ public class EstablecimientoController {
     // --- ENDPOINTS DE CONSULTA PÚBLICA ---
 
     @GetMapping("/establecimientos/aprobados")
-    public ResponseEntity<List<EstablecimientoResponse>> listarAprobados() {
-        return ResponseEntity.ok(establecimientoService.listarAprobados());
+    public ResponseEntity<org.springframework.data.domain.Page<EstablecimientoResponse>> listarAprobados(
+            @org.springframework.data.web.PageableDefault(size = 20) org.springframework.data.domain.Pageable pageable) {
+        return ResponseEntity.ok(establecimientoService.listarAprobados(pageable));
     }
 
     @GetMapping("/establecimientos/{id}")
@@ -61,8 +62,9 @@ public class EstablecimientoController {
 
     @GetMapping("/establecimientos/pendientes")
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'MODERADOR')")
-    public ResponseEntity<List<EstablecimientoResponse>> listarPendientes() {
-        return ResponseEntity.ok(establecimientoService.listarPendientesAprobacion());
+    public ResponseEntity<org.springframework.data.domain.Page<EstablecimientoResponse>> listarPendientes(
+            @org.springframework.data.web.PageableDefault(size = 20) org.springframework.data.domain.Pageable pageable) {
+        return ResponseEntity.ok(establecimientoService.listarPendientesAprobacion(pageable));
     }
 
     @GetMapping("/establecimientos/admin/paginado")

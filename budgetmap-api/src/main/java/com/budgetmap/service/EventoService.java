@@ -1,5 +1,8 @@
 package com.budgetmap.service;
 
+import com.budgetmap.mapper.EventoMapper;
+import lombok.RequiredArgsConstructor;
+
 import com.budgetmap.dto.EventoRequest;
 import com.budgetmap.dto.EventoResponse;
 import com.budgetmap.exception.EventoException;
@@ -25,33 +28,31 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class EventoService {
 
-    @Autowired
-    private EventoRepository eventoRepository;
+    private final EventoRepository eventoRepository;
+    private final LugarRepository lugarRepository;
+    private final EstablecimientoRepository establecimientoRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final EventoMapper eventoMapper;
 
-    @Autowired
-    private LugarRepository lugarRepository;
-
-    @Autowired
-    private EstablecimientoRepository establecimientoRepository;
-
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-
-    public List<EventoResponse> listarTodos() {
-        return eventoRepository.findAll().stream().map(this::convertirAResponse).collect(Collectors.toList());
+    public Page<EventoResponse> listarTodos(Pageable pageable) {
+        return eventoRepository.findAll(pageable).map(eventoMapper::toResponse);
     }
 
-    public List<EventoResponse> listarPendientesAprobacion() {
-        return eventoRepository.findByEstado(EstadoAprobacion.PENDIENTE).stream()
-                .map(this::convertirAResponse).collect(Collectors.toList());
+    public Page<EventoResponse> listarPendientesAprobacion(Pageable pageable) {
+        return eventoRepository.findByEstadoAndActivoTrue(EstadoAprobacion.PENDIENTE, pageable)
+                .map(eventoMapper::toResponse);
     }
 
     @Transactional
+    @CacheEvict(value = "eventos_activos", allEntries = true)
     public void aprobar(Long id, Long moderadorId) {
         log.info("Moderador ID: {} aprobando evento ID: {}", moderadorId, id);
         Evento evento = obtenerPorIdEntity(id);
@@ -67,6 +68,7 @@ public class EventoService {
     }
 
     @Transactional
+    @CacheEvict(value = "eventos_activos", allEntries = true)
     public void rechazar(Long id, Long moderadorId, String motivo) {
         log.warn("Moderador ID: {} rechazando evento ID: {}. Motivo: {}", moderadorId, id, motivo);
         Evento evento = obtenerPorIdEntity(id);
@@ -80,20 +82,15 @@ public class EventoService {
         eventoRepository.save(evento);
     }
 
-    public List<EventoResponse> listarActivos() {
+    @Cacheable(value = "eventos_activos")
+    public Page<EventoResponse> listarActivos(Pageable pageable) {
         return eventoRepository.findByActivoTrueAndFechaInicioGreaterThanEqualOrderByFechaInicioAsc(
-                LocalDate.now(), Pageable.unpaged()).getContent().stream()
-                .map(this::convertirAResponse).collect(Collectors.toList());
-    }
-
-    public Page<EventoResponse> listarActivosPaginado(Pageable pageable) {
-        return eventoRepository.findByActivoTrueAndFechaInicioGreaterThanEqualOrderByFechaInicioAsc(
-                LocalDate.now(), pageable).map(this::convertirAResponse);
+                LocalDate.now(), pageable).map(eventoMapper::toResponse);
     }
 
     public List<EventoResponse> listarDestacados() {
         return eventoRepository.findDestacados(LocalDate.now()).stream()
-                .map(this::convertirAResponse).collect(Collectors.toList());
+                .map(eventoMapper::toResponse).collect(Collectors.toList());
     }
 
     public Evento obtenerPorIdEntity(Long id) {
@@ -105,20 +102,21 @@ public class EventoService {
     }
 
     public EventoResponse obtenerPorId(Long id) {
-        return convertirAResponse(obtenerPorIdEntity(id));
+        return eventoMapper.toResponse(obtenerPorIdEntity(id));
     }
 
     public List<EventoResponse> listarPorLugar(Long lugarId) {
         return eventoRepository.findByLugarId(lugarId).stream()
-                .map(this::convertirAResponse).collect(Collectors.toList());
+                .map(eventoMapper::toResponse).collect(Collectors.toList());
     }
 
     public List<EventoResponse> listarPorCreador(Long creadorId) {
         return eventoRepository.findByCreadorIdAndActivoTrue(creadorId).stream()
-                .map(this::convertirAResponse).collect(Collectors.toList());
+                .map(eventoMapper::toResponse).collect(Collectors.toList());
     }
 
     @Transactional
+    @CacheEvict(value = "eventos_activos", allEntries = true)
     public EventoResponse crear(EventoRequest request, Long creadorId) {
         log.info("Iniciando creación de evento '{}' por el usuario ID: {}", request.getNombre(), creadorId);
 
@@ -172,10 +170,11 @@ public class EventoService {
 
         Evento guardado = eventoRepository.save(evento);
         log.info("Evento creado exitosamente con ID: {}", guardado.getId());
-        return convertirAResponse(guardado);
+        return eventoMapper.toResponse(guardado);
     }
 
     @Transactional
+    @CacheEvict(value = "eventos_activos", allEntries = true)
     public EventoResponse actualizar(Long id, EventoRequest request, Long creadorId) {
         log.info("Usuario ID: {} solicita actualizar el evento ID: {}", creadorId, id);
         Evento evento = obtenerPorIdEntity(id);
@@ -197,7 +196,7 @@ public class EventoService {
         evento.setImagenUrl(request.getImagenUrl());
 
         log.debug("Evento ID: {} actualizado correctamente", id);
-        return convertirAResponse(eventoRepository.save(evento));
+        return eventoMapper.toResponse(eventoRepository.save(evento));
     }
 
     @Transactional
@@ -209,6 +208,7 @@ public class EventoService {
     }
 
     @Transactional
+    @CacheEvict(value = "eventos_activos", allEntries = true)
     public void eliminar(Long id, Long creadorId) {
         log.info("Solicitud de eliminación de evento ID: {} por usuario ID: {}", id, creadorId);
         Evento evento = obtenerPorIdEntity(id);
@@ -225,7 +225,7 @@ public class EventoService {
 
     public List<EventoResponse> buscarPorRangoFechas(LocalDate inicio, LocalDate fin) {
         return eventoRepository.findByRangoFechas(inicio, fin).stream()
-                .map(this::convertirAResponse).collect(Collectors.toList());
+                .map(eventoMapper::toResponse).collect(Collectors.toList());
     }
 
     public Page<EventoResponse> listarMisEventosPaginado(Long creadorId, Pageable pageable, String tipo, String nombre, String estado) {
@@ -279,7 +279,7 @@ public class EventoService {
         int start = (int) pageable.getOffset();
         int end = Math.min(start + pageable.getPageSize(), eventos.size());
         List<EventoResponse> dtos = eventos.subList(start, end).stream()
-                .map(this::convertirAResponse)
+                .map(eventoMapper::toResponse)
                 .collect(Collectors.toList());
 
         return new org.springframework.data.domain.PageImpl<>(dtos, pageable, eventos.size());
@@ -298,46 +298,16 @@ public class EventoService {
         return stats;
     }
 
-    private EventoResponse convertirAResponse(Evento evento) {
-        return EventoResponse.builder()
-                .id(evento.getId())
-                .nombre(evento.getNombre())
-                .descripcion(evento.getDescripcion())
-                .tipoEvento(evento.getTipoEvento())
-                .fechaInicio(evento.getFechaInicio())
-                .fechaFin(evento.getFechaFin())
-                .horaInicio(evento.getHoraInicio())
-                .horaFin(evento.getHoraFin())
-                .aforoMaximo(evento.getAforoMaximo())
-                .aforoActual(evento.getAforoActual())
-                .precio(evento.getPrecio())
-                .imagenUrl(evento.getImagenUrl())
-                .activo(evento.getActivo())
-                .destacado(evento.getDestacado())
-                .verificado(evento.getVerificado())
-                .estado(evento.getEstado())
-                .motivoRechazo(evento.getMotivoRechazo())
-                .createdAt(evento.getCreatedAt())
-                .creadorId(evento.getCreador() != null ? evento.getCreador().getId() : null)
-                .creadorNombre(evento.getCreador() != null ? evento.getCreador().getNombre() : null)
-                .lugarId(evento.getLugar() != null ? evento.getLugar().getId() : null)
-                .lugarNombre(evento.getLugar() != null ? evento.getLugar().getNombre() : null)
-                .establecimientoId(evento.getEstablecimiento() != null ? evento.getEstablecimiento().getId() : null)
-                .establecimientoNombre(
-                        evento.getEstablecimiento() != null ? evento.getEstablecimiento().getNombre() : null)
-                .requiereReserva(evento.getPrecio() != null && evento.getPrecio().compareTo(java.math.BigDecimal.ZERO) > 0)
-                .build();
-    }
-
-    @Scheduled(cron = "0 * * * * ?") // Se ejecuta cada minuto
-    @Transactional
+    @org.springframework.scheduling.annotation.Scheduled(cron = "0 * * * * ?") // Se ejecuta cada minuto
+    @org.springframework.transaction.annotation.Transactional
+    @org.springframework.cache.annotation.CacheEvict(value = "eventos_activos", allEntries = true)
     public void desactivarEventosFinalizados() {
         log.info("Iniciando tarea programada para desactivar eventos finalizados...");
-        LocalDateTime ahora = LocalDateTime.now();
-        LocalDate hoy = ahora.toLocalDate();
-        LocalTime horaActual = ahora.toLocalTime();
+        java.time.LocalDateTime ahora = java.time.LocalDateTime.now();
+        java.time.LocalDate hoy = ahora.toLocalDate();
+        java.time.LocalTime horaActual = ahora.toLocalTime();
         
-        List<Evento> eventosActivos = eventoRepository.findAllByActivoTrue();
+        java.util.List<Evento> eventosActivos = eventoRepository.findAllByActivoTrue();
         
         int desactivados = 0;
         for (Evento evento : eventosActivos) {
@@ -367,6 +337,6 @@ public class EventoService {
 
     public Page<EventoResponse> listarFiltradoAdmin(String texto, EstadoAprobacion estado, LocalDate fechaInicio, LocalDate fechaFin, Pageable pageable) {
         return eventoRepository.findFiltradoAdmin(texto, estado, fechaInicio, fechaFin, pageable)
-                .map(this::convertirAResponse);
+                .map(eventoMapper::toResponse);
     }
 }

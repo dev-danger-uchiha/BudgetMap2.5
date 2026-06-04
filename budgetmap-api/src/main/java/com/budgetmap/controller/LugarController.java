@@ -28,24 +28,19 @@ public class LugarController {
 
     @GetMapping("/lugares")
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'MODERADOR')")
-    public ResponseEntity<List<Lugar>> listarTodos() {
-        return ResponseEntity.ok(lugarService.listarTodos());
+    public ResponseEntity<Page<Lugar>> listarTodos(@org.springframework.data.web.PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(lugarService.listarTodos(pageable));
     }
 
     @GetMapping("/lugares/aprobados")
-    public ResponseEntity<List<Lugar>> listarAprobados() {
-        return ResponseEntity.ok(lugarService.listarAprobados());
-    }
-
-    @GetMapping("/lugares/aprobados/paginado")
-    public ResponseEntity<Page<Lugar>> listarAprobadosPaginado(Pageable pageable) {
-        return ResponseEntity.ok(lugarService.listarAprobadosPaginado(pageable));
+    public ResponseEntity<Page<com.budgetmap.dto.LugarDestacadoDTO>> listarAprobados(@org.springframework.data.web.PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(lugarService.listarAprobados(pageable));
     }
 
     @GetMapping("/lugares/pendientes")
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'MODERADOR')")
-    public ResponseEntity<List<Lugar>> listarPendientes() {
-        return ResponseEntity.ok(lugarService.listarPendientesAprobacion());
+    public ResponseEntity<Page<Lugar>> listarPendientes(@org.springframework.data.web.PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(lugarService.listarPendientesAprobacion(pageable));
     }
 
     @GetMapping("/lugares/admin/paginado")

@@ -261,7 +261,8 @@
 
                 if (!res.ok) throw new Error("No se pudo cargar el historial.");
 
-                const data = await res.json();
+                const rawData = await res.json();
+                const data = rawData.content || rawData || [];
 
                 if (!data || data.length === 0) {
                     container.innerHTML = `

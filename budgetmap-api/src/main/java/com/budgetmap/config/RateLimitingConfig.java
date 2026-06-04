@@ -32,7 +32,7 @@ public class RateLimitingConfig extends OncePerRequestFilter {
      * ✅ Corregido para Bucket4j 8.x con Bandwidth.builder()
      */
     private Bucket createGeneralBucket() {
-        Bandwidth limit = Bandwidth.simple(100, Duration.ofMinutes(1));
+        Bandwidth limit = Bandwidth.simple(1000, Duration.ofMinutes(1));
         
         return Bucket.builder()
                 .addLimit(limit)
@@ -45,7 +45,7 @@ public class RateLimitingConfig extends OncePerRequestFilter {
      * ✅ Corregido para Bucket4j 8.x con Bandwidth.builder()
      */
     private Bucket createAuthBucket() {
-        Bandwidth limit = Bandwidth.simple(5, Duration.ofMinutes(1));
+        Bandwidth limit = Bandwidth.simple(500, Duration.ofMinutes(1));
         
         return Bucket.builder()
                 .addLimit(limit)

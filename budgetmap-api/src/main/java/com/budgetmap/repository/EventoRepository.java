@@ -21,6 +21,8 @@ public interface EventoRepository extends JpaRepository<Evento, Long> {
     List<Evento> findByCreadorId(Long creadorId);
     List<Evento> findByCreadorIdAndActivoTrue(Long creadorId);
 
+    Page<Evento> findByEstadoAndActivoTrue(com.budgetmap.model.enums.EstadoAprobacion estado, Pageable pageable);
+
     Page<Evento> findByActivoTrueAndFechaInicioGreaterThanEqualOrderByFechaInicioAsc(LocalDate fecha,
             Pageable pageable);
 

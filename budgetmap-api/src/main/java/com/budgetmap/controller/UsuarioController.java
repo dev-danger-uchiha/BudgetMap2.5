@@ -23,8 +23,8 @@ public class UsuarioController {
 
     @GetMapping("/usuarios")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
-    public ResponseEntity<List<UsuarioDTO>> listarTodos() {
-        return ResponseEntity.ok(usuarioService.listarTodos());
+    public ResponseEntity<Page<UsuarioDTO>> listarTodos(@org.springframework.data.web.PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(usuarioService.listarTodos(pageable));
     }
 
     @GetMapping("/usuarios/paginado")

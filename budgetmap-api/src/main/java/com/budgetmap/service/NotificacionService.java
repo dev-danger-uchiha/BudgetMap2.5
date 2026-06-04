@@ -1,5 +1,7 @@
 package com.budgetmap.service;
 
+import lombok.RequiredArgsConstructor;
+
 import com.budgetmap.dto.NotificacionResponse;
 import com.budgetmap.exception.ResourceNotFoundException;
 import com.budgetmap.model.Notificacion;
@@ -21,16 +23,12 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class NotificacionService {
 
-    @Autowired
-    private NotificacionRepository notificacionRepository;
-
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-
-    @Autowired
-    private com.budgetmap.repository.ConfigAlertaRepository configAlertaRepository;
+    private final NotificacionRepository notificacionRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final com.budgetmap.repository.ConfigAlertaRepository configAlertaRepository;
 
     public List<NotificacionResponse> listarPorUsuario(Long usuarioId) {
         return notificacionRepository.findByUsuarioIdOrderByCreatedAtDesc(usuarioId, Pageable.unpaged())

@@ -1,5 +1,7 @@
 package com.budgetmap.service;
 
+import lombok.RequiredArgsConstructor;
+
 import com.budgetmap.dto.CompraPlanRequest;
 import com.budgetmap.dto.PlanSuscripcionDTO;
 import com.budgetmap.dto.TransaccionResponse;
@@ -23,16 +25,12 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class SuscripcionService {
 
-    @Autowired
-    private PlanSuscripcionRepository planRepository;
-
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-
-    @Autowired
-    private TransaccionRepository transaccionRepository;
+    private final PlanSuscripcionRepository planRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final TransaccionRepository transaccionRepository;
 
     public List<PlanSuscripcionDTO> obtenerPlanesActivos() {
         log.debug("Consultando catálogo de planes de suscripción activos");

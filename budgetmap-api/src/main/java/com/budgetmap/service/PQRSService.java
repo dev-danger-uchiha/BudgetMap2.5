@@ -1,5 +1,8 @@
 package com.budgetmap.service;
 
+import com.budgetmap.mapper.PQRSMapper;
+import lombok.RequiredArgsConstructor;
+
 import com.budgetmap.dto.PQRSRequest;
 import com.budgetmap.dto.PQRSResponse;
 import com.budgetmap.exception.ResourceNotFoundException;
@@ -22,37 +25,34 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class PQRSService {
 
-    @Autowired
-    private PQRSRepository pqrsRepository;
+    private final PQRSRepository pqrsRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final NotificacionService notificacionService;
+    private final PQRSMapper pqrsMapper;
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-
-    @Autowired
-    private NotificacionService notificacionService;
-
-    public List<PQRSResponse> listarTodos() {
-        return pqrsRepository.findAll().stream().map(this::convertirAResponse).collect(Collectors.toList());
+    public Page<PQRSResponse> listarTodos(Pageable pageable) {
+        return pqrsRepository.findAll(pageable).map(pqrsMapper::toResponse);
     }
 
     public List<PQRSResponse> listarPorUsuario(Long usuarioId) {
-        return pqrsRepository.findByUsuarioId(usuarioId).stream().map(this::convertirAResponse)
+        return pqrsRepository.findByUsuarioId(usuarioId).stream().map(pqrsMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
     public Page<PQRSResponse> listarPorUsuarioPaginado(Long usuarioId, Pageable pageable) {
-        return pqrsRepository.findByUsuarioIdOrderByCreatedAtDesc(usuarioId, pageable).map(this::convertirAResponse);
+        return pqrsRepository.findByUsuarioIdOrderByCreatedAtDesc(usuarioId, pageable).map(pqrsMapper::toResponse);
     }
 
     public List<PQRSResponse> listarPendientesRespuesta() {
-        return pqrsRepository.findPendientesRespuesta().stream().map(this::convertirAResponse)
+        return pqrsRepository.findPendientesRespuesta().stream().map(pqrsMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
     public List<PQRSResponse> listarAsignadosAModerador(Long moderadorId) {
-        return pqrsRepository.findAsignadosAModerador(moderadorId).stream().map(this::convertirAResponse)
+        return pqrsRepository.findAsignadosAModerador(moderadorId).stream().map(pqrsMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
@@ -65,7 +65,7 @@ public class PQRSService {
     }
 
     public PQRSResponse obtenerPorId(Long id) {
-        return convertirAResponse(obtenerEntityPorId(id));
+        return pqrsMapper.toResponse(obtenerEntityPorId(id));
     }
 
     @Transactional
@@ -87,7 +87,7 @@ public class PQRSService {
 
         PQRS guardado = pqrsRepository.save(pqrs);
         log.info("Ticket PQRS creado con éxito. Código: {}", guardado.getCodigoTicket());
-        return convertirAResponse(guardado);
+        return pqrsMapper.toResponse(guardado);
     }
 
     @Transactional
@@ -115,7 +115,7 @@ public class PQRSService {
             log.error("Error enviando notificación de PQRS {}: {}", pqrs.getCodigoTicket(), e.getMessage());
         }
 
-        return convertirAResponse(guardado);
+        return pqrsMapper.toResponse(guardado);
     }
 
     @Transactional
@@ -166,7 +166,7 @@ public class PQRSService {
         int start = (int) pageable.getOffset();
         int end = Math.min(start + pageable.getPageSize(), pqrsList.size());
         List<PQRSResponse> dtos = pqrsList.subList(start, end).stream()
-                .map(this::convertirAResponse)
+                .map(pqrsMapper::toResponse)
                 .collect(Collectors.toList());
 
         return new org.springframework.data.domain.PageImpl<>(dtos, pageable, pqrsList.size());
@@ -178,25 +178,5 @@ public class PQRSService {
 
     private String generarCodigoTicket() {
         return "PQRS-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-    }
-
-    private PQRSResponse convertirAResponse(PQRS pqrs) {
-        return PQRSResponse.builder()
-                .id(pqrs.getId())
-                .codigoTicket(pqrs.getCodigoTicket())
-                .tipo(pqrs.getTipo())
-                .asunto(pqrs.getAsunto())
-                .descripcion(pqrs.getDescripcion())
-                .estado(pqrs.getEstado())
-                .prioridad(pqrs.getPrioridad())
-                .respuesta(pqrs.getRespuesta())
-                .fechaRespuesta(pqrs.getFechaRespuesta())
-                .adjuntos(pqrs.getAdjuntos())
-                .createdAt(pqrs.getCreatedAt())
-                .usuarioId(pqrs.getUsuario().getId())
-                .usuarioNombre(pqrs.getUsuario().getNombre())
-                .usuarioEmail(pqrs.getUsuario().getEmail())
-                .moderadorAsignadoId(pqrs.getModeradorAsignadoId())
-                .build();
     }
 }

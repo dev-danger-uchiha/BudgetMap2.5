@@ -1,5 +1,7 @@
 package com.budgetmap.service;
 
+import lombok.RequiredArgsConstructor;
+
 import com.budgetmap.dto.CanjearCuponRequest;
 import com.budgetmap.dto.CuponRedimidoDTO;
 import com.budgetmap.exception.CuponException;
@@ -22,19 +24,13 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class CuponService {
 
-    @Autowired
-    private PuntosService puntosService;
-
-    @Autowired
-    private CuponRedimidoRepository cuponRepository;
-
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-
-    @Autowired
-    private EstablecimientoRepository establecimientoRepository;
+    private final PuntosService puntosService;
+    private final CuponRedimidoRepository cuponRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final EstablecimientoRepository establecimientoRepository;
 
     @Transactional
     public CuponRedimidoDTO canjearCupon(Long usuarioId, CanjearCuponRequest request) {

@@ -27,19 +27,14 @@ public class PQRSController {
 
     @GetMapping("/pqrs")
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'MODERADOR')")
-    public ResponseEntity<List<PQRSResponse>> listarTodos() {
-        return ResponseEntity.ok(pqrsService.listarTodos());
+    public ResponseEntity<Page<PQRSResponse>> listarTodos(@org.springframework.data.web.PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(pqrsService.listarTodos(pageable));
     }
 
     @GetMapping("/mis-pqrs")
-    public ResponseEntity<List<PQRSResponse>> listarMisPQRS(@AuthenticationPrincipal UserDetailsImpl userDetails) {
-        return ResponseEntity.ok(pqrsService.listarPorUsuario(userDetails.getId()));
-    }
-
-    @GetMapping("/mis-pqrs/paginado")
-    public ResponseEntity<Page<PQRSResponse>> listarMisPQRSPaginado(
+    public ResponseEntity<Page<PQRSResponse>> listarMisPQRS(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
-            Pageable pageable) {
+            @org.springframework.data.web.PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(pqrsService.listarPorUsuarioPaginado(userDetails.getId(), pageable));
     }
 

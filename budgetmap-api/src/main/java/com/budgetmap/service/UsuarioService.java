@@ -1,5 +1,8 @@
 package com.budgetmap.service;
 
+import com.budgetmap.mapper.UsuarioMapper;
+import lombok.RequiredArgsConstructor;
+
 import com.budgetmap.dto.UsuarioDTO;
 import com.budgetmap.exception.ResourceNotFoundException;
 import com.budgetmap.model.Usuario;
@@ -18,13 +21,12 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class UsuarioService {
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final UsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final UsuarioMapper usuarioMapper;
 
     @PostConstruct
     @Transactional
@@ -51,17 +53,17 @@ public class UsuarioService {
         }
     }
 
-    public List<UsuarioDTO> listarTodos() {
-        return usuarioRepository.findAll().stream()
-                .map(this::convertirADTO)
-                .collect(Collectors.toList());
+    public Page<UsuarioDTO> listarTodos(Pageable pageable) {
+        return usuarioRepository.findAll(pageable)
+                .map(usuarioMapper::toDto);
     }
 
     public Page<UsuarioDTO> listarActivos(Pageable pageable) {
         return usuarioRepository.findByActivoTrue(pageable)
-                .map(this::convertirADTO);
+                .map(usuarioMapper::toDto);
     }
 
+    @org.springframework.cache.annotation.Cacheable(value = "leaderboard")
     public List<UsuarioDTO> obtenerLeaderboard(int limite) {
         return usuarioRepository.findAll().stream()
                 .filter(u -> Boolean.TRUE.equals(u.getActivo()))
@@ -69,7 +71,7 @@ public class UsuarioService {
                         u2.getPuntosAcumulados() != null ? u2.getPuntosAcumulados() : 0,
                         u1.getPuntosAcumulados() != null ? u1.getPuntosAcumulados() : 0))
                 .limit(limite)
-                .map(this::convertirADTO)
+                .map(usuarioMapper::toDto)
                 .collect(Collectors.toList());
     }
 
@@ -79,12 +81,12 @@ public class UsuarioService {
                     log.error("Fallo al consultar usuario: ID {} no encontrado", id);
                     return new ResourceNotFoundException("Usuario no encontrado");
                 });
-        return convertirADTO(usuario);
+        return usuarioMapper.toDto(usuario);
     }
 
     public List<UsuarioDTO> listarPorRol(RolUsuario rol) {
         return usuarioRepository.findByRol(rol).stream()
-                .map(this::convertirADTO)
+                .map(usuarioMapper::toDto)
                 .collect(Collectors.toList());
     }
 
@@ -92,7 +94,7 @@ public class UsuarioService {
         List<Usuario> usuarios = usuarioRepository.findByNombreContainingIgnoreCaseOrEmailContainingIgnoreCase(criterio,
                 criterio);
         return usuarios.stream()
-                .map(this::convertirADTO)
+                .map(usuarioMapper::toDto)
                 .collect(Collectors.toList());
     }
 
@@ -126,6 +128,7 @@ public class UsuarioService {
     }
 
     @Transactional
+    @org.springframework.cache.annotation.CacheEvict(value = "leaderboard", allEntries = true)
     public void sumarPuntos(Long id, Integer puntos) {
         log.debug("Añadiendo {} puntos extra al usuario ID: {}", puntos, id);
         Usuario usuario = usuarioRepository.findById(id)
@@ -165,7 +168,7 @@ public class UsuarioService {
         int start = (int) pageable.getOffset();
         int end = Math.min(start + pageable.getPageSize(), usuarios.size());
         List<UsuarioDTO> dtos = usuarios.subList(start, end).stream()
-                .map(this::convertirADTO)
+                .map(usuarioMapper::toDto)
                 .collect(Collectors.toList());
 
         return new org.springframework.data.domain.PageImpl<>(dtos, pageable, usuarios.size());
@@ -213,26 +216,10 @@ public class UsuarioService {
 
             Usuario guardado = usuarioRepository.save(usuario);
             log.info("Usuario creado exitosamente con ID: {}", guardado.getId());
-            return convertirADTO(guardado);
+            return usuarioMapper.toDto(guardado);
         } catch (IllegalArgumentException e) {
             throw new RuntimeException("Rol inválido: " + rol);
         }
-    }
-
-    private UsuarioDTO convertirADTO(Usuario usuario) {
-        return UsuarioDTO.builder()
-                .id(usuario.getId())
-                .nombre(usuario.getNombre())
-                .apellido(usuario.getApellido())
-                .email(usuario.getEmail())
-                .telefono(usuario.getTelefono())
-                .rol(usuario.getRol())
-                .puntosAcumulados(usuario.getPuntosAcumulados())
-                .activo(usuario.getActivo())
-                .ultimoAcceso(usuario.getUltimoAcceso())
-                .createdAt(usuario.getCreatedAt())
-                .avatarUrl(usuario.getAvatarUrl())
-                .build();
     }
 
     @Transactional

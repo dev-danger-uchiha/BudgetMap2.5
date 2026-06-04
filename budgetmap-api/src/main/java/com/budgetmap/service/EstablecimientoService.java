@@ -1,5 +1,8 @@
 package com.budgetmap.service;
 
+import com.budgetmap.mapper.EstablecimientoMapper;
+import lombok.RequiredArgsConstructor;
+
 import com.budgetmap.dto.EstablecimientoRequest;
 import com.budgetmap.dto.EstablecimientoResponse;
 import com.budgetmap.dto.EstablecimientoUpdateRequest;
@@ -25,19 +28,19 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class EstablecimientoService {
 
-    @Autowired
-    private EstablecimientoRepository establecimientoRepository;
-
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-
-    @Autowired
-    private LugarRepository lugarRepository;
+    private final EstablecimientoRepository establecimientoRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final LugarRepository lugarRepository;
+    private final EstablecimientoMapper establecimientoMapper;
 
     private final GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
 
@@ -45,7 +48,7 @@ public class EstablecimientoService {
         log.debug("Consultando establecimiento del propietario ID: {}", propietarioId);
         return establecimientoRepository.findByPropietarioId(propietarioId).stream()
                 .findFirst()
-                .map(this::convertirAResponse)
+                .map(establecimientoMapper::toResponse)
                 .orElseThrow(() -> {
                     log.warn("El usuario ID {} no tiene un establecimiento registrado", propietarioId);
                     return new ResourceNotFoundException("El usuario no tiene un establecimiento registrado");
@@ -54,25 +57,19 @@ public class EstablecimientoService {
 
     public List<EstablecimientoResponse> listarTodos() {
         return establecimientoRepository.findAll().stream()
-                .map(this::convertirAResponse)
+                .map(establecimientoMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
-    public List<EstablecimientoResponse> listarAprobados() {
-        return establecimientoRepository.findByEstado(EstadoAprobacion.APROBADO).stream()
-                .map(this::convertirAResponse)
-                .collect(Collectors.toList());
-    }
-
-    public Page<EstablecimientoResponse> listarAprobadosPaginado(Pageable pageable) {
+    @Cacheable(value = "establecimientos_aprobados")
+    public Page<EstablecimientoResponse> listarAprobados(Pageable pageable) {
         return establecimientoRepository.findByEstadoAndActivoTrue(EstadoAprobacion.APROBADO, pageable)
-                .map(this::convertirAResponse);
+                .map(establecimientoMapper::toResponse);
     }
 
-    public List<EstablecimientoResponse> listarPendientesAprobacion() {
-        return establecimientoRepository.findPendientesAprobacion().stream()
-                .map(this::convertirAResponse)
-                .collect(Collectors.toList());
+    public Page<EstablecimientoResponse> listarPendientesAprobacion(Pageable pageable) {
+        return establecimientoRepository.findByEstadoAndActivoTrue(EstadoAprobacion.PENDIENTE, pageable)
+                .map(establecimientoMapper::toResponse);
     }
 
     public EstablecimientoResponse obtenerPorId(Long id) {
@@ -81,7 +78,7 @@ public class EstablecimientoService {
                     log.error("Intento de acceder a un establecimiento inexistente. ID: {}", id);
                     return new ResourceNotFoundException("Establecimiento no encontrado");
                 });
-        return convertirAResponse(est);
+        return establecimientoMapper.toResponse(est);
     }
 
     public EstablecimientoResponse obtenerPorIdSeguro(Long id, Long currentUserId, boolean isAdmin) {
@@ -95,16 +92,17 @@ public class EstablecimientoService {
                 throw new ResourceNotFoundException("Establecimiento no encontrado");
             }
         }
-        return convertirAResponse(est);
+        return establecimientoMapper.toResponse(est);
     }
 
     public List<EstablecimientoResponse> listarPorPropietario(Long propietarioId) {
         return establecimientoRepository.findByPropietarioId(propietarioId).stream()
-                .map(this::convertirAResponse)
+                .map(establecimientoMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
     @Transactional
+    @CacheEvict(value = "establecimientos_aprobados", allEntries = true)
     public EstablecimientoResponse crear(EstablecimientoRequest request, Long propietarioId) {
         log.info("Iniciando creación de establecimiento '{}' para el propietario ID: {}", request.getNombre(), propietarioId);
         
@@ -142,10 +140,11 @@ public class EstablecimientoService {
 
         Establecimiento guardado = establecimientoRepository.save(establecimiento);
         log.info("Establecimiento creado exitosamente con ID: {}. Estado: PENDIENTE", guardado.getId());
-        return convertirAResponse(guardado);
+        return establecimientoMapper.toResponse(guardado);
     }
 
     @Transactional
+    @CacheEvict(value = "establecimientos_aprobados", allEntries = true)
     public EstablecimientoResponse actualizarDesdePerfil(Long propietarioId, EstablecimientoUpdateRequest request) {
         log.info("Actualizando perfil del establecimiento para el propietario ID: {}", propietarioId);
         
@@ -165,10 +164,11 @@ public class EstablecimientoService {
         if (request.getRutPdfUrl() != null) est.setRutPdfUrl(request.getRutPdfUrl());
         if (request.getReservasHabilitadas() != null) est.setReservasHabilitadas(request.getReservasHabilitadas());
 
-        return convertirAResponse(establecimientoRepository.save(est));
+        return establecimientoMapper.toResponse(establecimientoRepository.save(est));
     }
 
     @Transactional
+    @CacheEvict(value = "establecimientos_aprobados", allEntries = true)
     public EstablecimientoResponse actualizar(Long id, EstablecimientoRequest request, Long propietarioId) {
         log.info("Actualización completa del establecimiento ID: {} solicitada por usuario ID: {}", id, propietarioId);
         
@@ -228,10 +228,11 @@ public class EstablecimientoService {
             log.info("Establecimiento ID: {} actualizado. Mantiene su estado actual.", id);
         }
 
-        return convertirAResponse(establecimientoRepository.save(est));
+        return establecimientoMapper.toResponse(establecimientoRepository.save(est));
     }
 
     @Transactional
+    @CacheEvict(value = "establecimientos_aprobados", allEntries = true)
     public void aprobar(Long id, Long moderadorId) {
         log.info("Moderador ID: {} aprobando establecimiento ID: {}", moderadorId, id);
         Establecimiento est = establecimientoRepository.findById(id)
@@ -248,6 +249,7 @@ public class EstablecimientoService {
     }
 
     @Transactional
+    @CacheEvict(value = "establecimientos_aprobados", allEntries = true)
     public void rechazar(Long id, Long moderadorId, String motivo) {
         log.warn("Moderador ID: {} rechazando establecimiento ID: {}. Motivo: {}", moderadorId, id, motivo);
         Establecimiento est = establecimientoRepository.findById(id)
@@ -263,6 +265,7 @@ public class EstablecimientoService {
     }
 
     @Transactional
+    @CacheEvict(value = "establecimientos_aprobados", allEntries = true)
     public void actualizarAforo(Long id, Integer nuevoAforo) {
         log.debug("Actualizando aforo del establecimiento ID: {} a {}", id, nuevoAforo);
         Establecimiento est = establecimientoRepository.findById(id)
@@ -273,10 +276,11 @@ public class EstablecimientoService {
 
     public Page<EstablecimientoResponse> listarFiltradoAdmin(String texto, EstadoAprobacion estado, String nit, Pageable pageable) {
         return establecimientoRepository.findFiltradoAdmin(texto, estado, nit, pageable)
-                .map(this::convertirAResponse);
+                .map(establecimientoMapper::toResponse);
     }
 
     @Transactional
+    @CacheEvict(value = "establecimientos_aprobados", allEntries = true)
     public void eliminar(Long id, Long propietarioId) {
         log.info("Solicitud de eliminación de establecimiento ID: {} por usuario ID: {}", id, propietarioId);
         Establecimiento est = establecimientoRepository.findById(id)
@@ -300,33 +304,5 @@ public class EstablecimientoService {
 
     public Long contarPorEstado(EstadoAprobacion estado) {
         return establecimientoRepository.countByEstado(estado);
-    }
-
-    public EstablecimientoResponse convertirAResponse(Establecimiento est) {
-        return EstablecimientoResponse.builder()
-                .id(est.getId())
-                .nombre(est.getNombre())
-                .nit(est.getNit())
-                .descripcion(est.getDescripcion())
-                .categoria(est.getCategoria())
-                .direccion(est.getDireccion())
-                .latitud(est.getLatitud())
-                .longitud(est.getLongitud())
-                .imagenUrl(est.getImagenUrl())
-                .rutPdfUrl(est.getRutPdfUrl())
-                .aforoMaximo(est.getAforoMaximo())
-                .aforoActual(est.getAforoActual())
-                .telefono(est.getTelefono())
-                .horarioAtencion(est.getHorarioAtencion())
-                .estado(est.getEstado())
-                .motivoRechazo(est.getMotivoRechazo())
-                .activo(est.getActivo())
-                .destacado(est.getDestacado())
-                .verificado(est.getVerificado())
-                .reservasHabilitadas(est.getReservasHabilitadas())
-                .createdAt(est.getCreatedAt())
-                .propietarioId(est.getPropietario().getId())
-                .propietarioNombre(est.getPropietario().getNombre())
-                .build();
     }
 }

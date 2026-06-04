@@ -132,9 +132,17 @@
                     fetch('http://localhost:8080/api/eventos/pendientes', { headers: { 'Authorization': `Bearer ${token}` } })
                 ]);
 
-                let estData = resEst.ok ? await resEst.json() : [];
-                let lugData = resLug.ok ? await resLug.json() : [];
-                let evtData = resEvt.ok ? await resEvt.json() : [];
+                let estJson = resEst.ok ? await resEst.json() : {};
+                let lugJson = resLug.ok ? await resLug.json() : {};
+                let evtJson = resEvt.ok ? await resEvt.json() : {};
+
+                let estData = estJson.content || estJson;
+                let lugData = lugJson.content || lugJson;
+                let evtData = evtJson.content || evtJson;
+
+                estData = Array.isArray(estData) ? estData : [];
+                lugData = Array.isArray(lugData) ? lugData : [];
+                evtData = Array.isArray(evtData) ? evtData : [];
 
                 estData = estData.map(e => ({ ...e, tipoSolicitud: 'ESTABLECIMIENTO' }));
                 lugData = lugData.map(l => ({ ...l, tipoSolicitud: 'LUGAR' }));

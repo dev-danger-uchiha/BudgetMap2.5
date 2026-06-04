@@ -1,5 +1,8 @@
 package com.budgetmap.service;
 
+import com.budgetmap.mapper.UsuarioMapper;
+import lombok.RequiredArgsConstructor;
+
 import com.budgetmap.dto.LoginRequest;
 import com.budgetmap.dto.LoginResponse;
 import com.budgetmap.dto.RegistroRequest;
@@ -22,25 +25,21 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.scheduling.annotation.Scheduled;
+
+import java.time.LocalDateTime;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class AuthService {
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
-
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-
-    @Autowired
-    private PasswordEncoder encoder;
-
-    @Autowired
-    private JwtUtils jwtUtils;
-
-    @Autowired
-    private com.budgetmap.repository.TokenRevocadoRepository tokenRevocadoRepository;
+    private final AuthenticationManager authenticationManager;
+    private final UsuarioRepository usuarioRepository;
+    private final PasswordEncoder encoder;
+    private final JwtUtils jwtUtils;
+    private final com.budgetmap.repository.TokenRevocadoRepository tokenRevocadoRepository;
+    private final UsuarioMapper usuarioMapper;
 
     public LoginResponse autenticar(LoginRequest loginRequest) {
         log.info("Iniciando proceso de autenticación para el email: {}", loginRequest.getEmail());
@@ -139,7 +138,7 @@ public class AuthService {
 
             log.info("Usuario registrado exitosamente: {}, rol: {}", guardado.getEmail(), guardado.getRol());
 
-            return convertirADTO(guardado);
+            return usuarioMapper.toDto(guardado);
 
         } catch (DataIntegrityViolationException e) {
             log.warn("Intento de registro con email duplicado: {}", emailNormalizado);
@@ -187,20 +186,6 @@ public class AuthService {
         return telefono.trim().replaceAll("[^0-9+]", "");
     }
 
-    private UsuarioDTO convertirADTO(Usuario usuario) {
-        return UsuarioDTO.builder()
-                .id(usuario.getId())
-                .nombre(usuario.getNombre())
-                .apellido(usuario.getApellido())
-                .email(usuario.getEmail())
-                .telefono(usuario.getTelefono())
-                .rol(usuario.getRol())
-                .puntosAcumulados(usuario.getPuntosAcumulados() != null ? usuario.getPuntosAcumulados() : 0)
-                .activo(usuario.getActivo() != null ? usuario.getActivo() : true)
-                .ultimoAcceso(usuario.getUltimoAcceso())
-                .createdAt(usuario.getCreatedAt())
-                .build();
-    }
 
     @Transactional
     public void logout(String token) {
@@ -221,5 +206,12 @@ public class AuthService {
             tokenRevocadoRepository.save(tokenRevocado);
             log.info("Token añadido a la blacklist (logout exitoso).");
         }
+    }
+
+    @Scheduled(cron = "0 0 3 * * ?") // Todos los días a las 3 AM
+    @Transactional
+    public void limpiarTokensRevocadosExpirados() {
+        log.info("Ejecutando limpieza de tokens revocados expirados en la base de datos.");
+        tokenRevocadoRepository.deleteExpiredTokens(LocalDateTime.now());
     }
 }

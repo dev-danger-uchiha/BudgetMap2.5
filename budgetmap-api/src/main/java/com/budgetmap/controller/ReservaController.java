@@ -24,8 +24,8 @@ public class ReservaController {
 
     @GetMapping("/reservas")
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'MODERADOR')")
-    public ResponseEntity<List<ReservaResponse>> listarTodas() {
-        return ResponseEntity.ok(reservaService.listarTodas());
+    public ResponseEntity<Page<ReservaResponse>> listarTodas(@org.springframework.data.web.PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(reservaService.listarTodas(pageable));
     }
 
     @PutMapping("/reservas/confirmar/{codigo}")
@@ -37,17 +37,10 @@ public class ReservaController {
     }
 
     @GetMapping("/mis-reservas")
-    @PreAuthorize("hasRole('EXPLORADOR')")
-    public ResponseEntity<List<ReservaResponse>> listarMisReservas(
-            @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        return ResponseEntity.ok(reservaService.listarPorUsuario(userDetails.getId()));
-    }
-
-    @GetMapping("/mis-reservas/paginado")
-    @PreAuthorize("hasRole('EXPLORADOR')")
-    public ResponseEntity<Page<ReservaResponse>> listarMisReservasPaginado(
+    @PreAuthorize("hasAnyRole('EXPLORADOR', 'EXPLORADOR_PRO')")
+    public ResponseEntity<Page<ReservaResponse>> listarMisReservas(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
-            Pageable pageable) {
+            @org.springframework.data.web.PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(reservaService.listarPorUsuarioPaginado(userDetails.getId(), pageable));
     }
 
@@ -70,14 +63,14 @@ public class ReservaController {
     }
 
     @PostMapping("/reservas")
-    @PreAuthorize("hasRole('EXPLORADOR')")
+    @PreAuthorize("hasAnyRole('EXPLORADOR', 'EXPLORADOR_PRO')")
     public ResponseEntity<ReservaResponse> crear(@Valid @RequestBody ReservaRequest request,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
         return ResponseEntity.ok(reservaService.crear(request, userDetails.getId()));
     }
 
     @PostMapping("/reservas/{id}/cancelar")
-    @PreAuthorize("hasRole('EXPLORADOR')")
+    @PreAuthorize("hasAnyRole('EXPLORADOR', 'EXPLORADOR_PRO')")
     public ResponseEntity<Void> cancelar(@PathVariable Long id,
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @RequestBody(required = false) Map<String, String> body) {

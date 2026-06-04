@@ -1,5 +1,7 @@
 package com.budgetmap.service;
 
+import lombok.RequiredArgsConstructor;
+
 import com.budgetmap.dto.AnaliticaLocalDTO;
 import com.budgetmap.exception.ResourceNotFoundException;
 import com.budgetmap.model.AnaliticaLocal;
@@ -17,13 +19,11 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class AnaliticaLocalService {
 
-    @Autowired
-    private AnaliticaLocalRepository analiticaRepository;
-
-    @Autowired
-    private EstablecimientoRepository establecimientoRepository;
+    private final AnaliticaLocalRepository analiticaRepository;
+    private final EstablecimientoRepository establecimientoRepository;
 
     // --- MÉTODOS DE RASTREO (Tracking) ---
 

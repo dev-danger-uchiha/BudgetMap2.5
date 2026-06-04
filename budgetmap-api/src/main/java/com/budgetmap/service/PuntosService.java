@@ -1,5 +1,7 @@
 package com.budgetmap.service;
 
+import lombok.RequiredArgsConstructor;
+
 import com.budgetmap.exception.PuntosException;
 import com.budgetmap.exception.ResourceNotFoundException;
 import com.budgetmap.model.Usuario;
@@ -8,16 +10,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.cache.annotation.CacheEvict;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class PuntosService {
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
+    private final UsuarioRepository usuarioRepository;
 
     // --- LÓGICA PARA GANAR PUNTOS ---
     @Transactional
+    @CacheEvict(value = "leaderboard", allEntries = true)
     public void sumarPuntos(Long usuarioId, int cantidad) {
         log.debug("Iniciando suma de {} puntos al usuario ID: {}", cantidad, usuarioId);
         
@@ -35,6 +39,7 @@ public class PuntosService {
 
     // --- LÓGICA PARA GASTAR PUNTOS ---
     @Transactional
+    @CacheEvict(value = "leaderboard", allEntries = true)
     public void restarPuntos(Long usuarioId, int puntosRequeridos) {
         log.debug("Procesando descuento de {} puntos para el usuario ID: {}", puntosRequeridos, usuarioId);
         

@@ -10,12 +10,13 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.io.Serializable;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class EventoResponse {
+public class EventoResponse implements Serializable {
     private Long id;
     private String nombre;
     private String descripcion;

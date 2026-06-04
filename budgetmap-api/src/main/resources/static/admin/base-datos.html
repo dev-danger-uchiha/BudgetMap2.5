@@ -371,7 +371,8 @@
             try {
                 const res = await fetch(`http://localhost:8080/api/reservas`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if (!res.ok) throw new Error("Error");
-                const allReservas = await res.json();
+                const allReservasRaw = await res.json();
+                const allReservas = allReservasRaw.content || allReservasRaw || [];
                 const data = allReservas.filter(r => r.establecimientoId === estId);
                 
                 if(data.length === 0) { document.getElementById('modal-contenido').innerHTML = '<p class="text-slate-400 font-bold p-6 text-center">No hay reservas para este establecimiento.</p>'; return; }
@@ -388,7 +389,8 @@
             abrirModal(`Reservas: ${nombre}`);
             try {
                 const res = await fetch(`http://localhost:8080/api/reservas`, { headers: { 'Authorization': `Bearer ${token}` } });
-                const allReservas = await res.json();
+                const allReservasRaw = await res.json();
+                const allReservas = allReservasRaw.content || allReservasRaw || [];
                 const data = allReservas.filter(r => r.eventoId === eventoId);
                 
                 if(data.length === 0) { document.getElementById('modal-contenido').innerHTML = '<p class="text-slate-400 font-bold p-6 text-center">No hay reservas registradas para este evento.</p>'; return; }

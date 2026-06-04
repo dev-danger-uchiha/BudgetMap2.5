@@ -1,5 +1,7 @@
 package com.budgetmap.service;
 
+import lombok.RequiredArgsConstructor;
+
 import com.budgetmap.exception.ResourceNotFoundException;
 import com.budgetmap.model.Usuario;
 import com.budgetmap.repository.UsuarioRepository;
@@ -12,13 +14,11 @@ import jakarta.annotation.PostConstruct;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class PasarelaService {
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private final UsuarioRepository usuarioRepository;
+    private final JdbcTemplate jdbcTemplate;
 
     @PostConstruct
     public void fixRolColumnType() {

@@ -1,5 +1,8 @@
 package com.budgetmap.service;
 
+import com.budgetmap.mapper.PromocionMapper;
+import lombok.RequiredArgsConstructor;
+
 import com.budgetmap.dto.PromocionRequest;
 import com.budgetmap.dto.PromocionResponse;
 import com.budgetmap.exception.PromocionException;
@@ -20,19 +23,18 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class PromocionService {
 
-    @Autowired
-    private PromocionRepository promocionRepository;
-
-    @Autowired
-    private EstablecimientoRepository establecimientoRepository;
-
-    @Autowired
-    private EventoRepository eventoRepository;
+    private final PromocionRepository promocionRepository;
+    private final EstablecimientoRepository establecimientoRepository;
+    private final EventoRepository eventoRepository;
+    private final PromocionMapper promocionMapper;
 
     public List<PromocionResponse> listarMisPromociones(Long propietarioId) {
         Establecimiento est = establecimientoRepository.findByPropietarioId(propietarioId)
@@ -42,42 +44,44 @@ public class PromocionService {
 
         return promocionRepository.findByEstablecimientoIdAndActivoTrue(est.getId())
                 .stream()
-                .map(this::convertirAResponse)
+                .map(promocionMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
-    public List<PromocionResponse> listarTodas() {
-        return promocionRepository.findAll().stream()
-                .map(this::convertirAResponse)
-                .collect(Collectors.toList());
+    public Page<PromocionResponse> listarTodas(Pageable pageable) {
+        return promocionRepository.findAll(pageable)
+                .map(promocionMapper::toResponse);
     }
 
     public List<PromocionResponse> listarPorEstablecimiento(Long establecimientoId) {
         return promocionRepository.findByEstablecimientoId(establecimientoId)
                 .stream()
-                .map(this::convertirAResponse)
+                .map(promocionMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
+    @Cacheable(value = "promociones_activas")
     public List<PromocionResponse> listarActivasPorEstablecimiento(Long establecimientoId) {
         return promocionRepository.findByEstablecimientoIdAndActivoTrue(establecimientoId)
                 .stream()
-                .map(this::convertirAResponse)
+                .map(promocionMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
+    @Cacheable(value = "promociones_activas")
     public Page<PromocionResponse> listarActivas(Pageable pageable) {
         return promocionRepository.findActivas(LocalDate.now(), pageable)
-                .map(this::convertirAResponse);
+                .map(promocionMapper::toResponse);
     }
 
     public PromocionResponse obtenerPorId(Long id) {
         Promocion promo = promocionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Promoción no encontrada"));
-        return convertirAResponse(promo);
+        return promocionMapper.toResponse(promo);
     }
 
     @Transactional
+    @CacheEvict(value = "promociones_activas", allEntries = true)
     public PromocionResponse crear(PromocionRequest request, Long propietarioId) {
         log.info("Creando promoción para el propietario ID: {}", propietarioId);
         Establecimiento est = null;
@@ -126,10 +130,11 @@ public class PromocionService {
                 .activo(true)
                 .build();
 
-        return convertirAResponse(promocionRepository.save(promo));
+        return promocionMapper.toResponse(promocionRepository.save(promo));
     }
 
     @Transactional
+    @CacheEvict(value = "promociones_activas", allEntries = true)
     public PromocionResponse actualizar(Long id, PromocionRequest request, Long propietarioId) {
         Promocion promo = promocionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Promoción no encontrada"));
@@ -147,10 +152,11 @@ public class PromocionService {
         promo.setUsosMaximos(request.getUsosMaximos());
         promo.setImagenUrl(request.getImagenUrl());
 
-        return convertirAResponse(promocionRepository.save(promo));
+        return promocionMapper.toResponse(promocionRepository.save(promo));
     }
 
     @Transactional
+    @CacheEvict(value = "promociones_activas", allEntries = true)
     public void desactivar(Long id, Long propietarioId) {
         Promocion promo = promocionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Promoción no encontrada"));
@@ -162,6 +168,7 @@ public class PromocionService {
     }
 
     @Transactional
+    @CacheEvict(value = "promociones_activas", allEntries = true)
     public void registrarUso(Long id) {
         Promocion promo = promocionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Promoción no encontrada"));
@@ -211,7 +218,7 @@ public class PromocionService {
         int start = (int) pageable.getOffset();
         int end = Math.min(start + pageable.getPageSize(), promos.size());
         List<PromocionResponse> dtos = promos.subList(start, end).stream()
-                .map(this::convertirAResponse)
+                .map(promocionMapper::toResponse)
                 .collect(Collectors.toList());
 
         return new org.springframework.data.domain.PageImpl<>(dtos, pageable, promos.size());
@@ -226,29 +233,5 @@ public class PromocionService {
                 !promo.getEvento().getCreador().getId().equals(propietarioId)) {
             throw new PromocionException("No tienes permisos para esta acción");
         }
-    }
-
-    private PromocionResponse convertirAResponse(Promocion promo) {
-        return PromocionResponse.builder()
-                .id(promo.getId())
-                .titulo(promo.getTitulo())
-                .descripcion(promo.getDescripcion())
-                .descuentoPorcentaje(promo.getDescuentoPorcentaje())
-                .descuentoValor(promo.getDescuentoValor())
-                .precioEspecial(promo.getPrecioEspecial())
-                .fechaInicio(promo.getFechaInicio())
-                .fechaFin(promo.getFechaFin())
-                .codigoCupon(promo.getCodigoCupon())
-                .usosMaximos(promo.getUsosMaximos())
-                .usosActuales(promo.getUsosActuales())
-                .imagenUrl(promo.getImagenUrl())
-                .activo(promo.getActivo())
-                .createdAt(promo.getCreatedAt())
-                .establecimientoId(promo.getEstablecimiento() != null ? promo.getEstablecimiento().getId() : null)
-                .establecimientoNombre(
-                        promo.getEstablecimiento() != null ? promo.getEstablecimiento().getNombre() : null)
-                .eventoId(promo.getEvento() != null ? promo.getEvento().getId() : null)
-                .eventoNombre(promo.getEvento() != null ? promo.getEvento().getNombre() : null)
-                .build();
     }
 }

@@ -24,8 +24,8 @@ public class PromocionController {
 
     @GetMapping("/promociones")
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'MODERADOR')")
-    public ResponseEntity<List<PromocionResponse>> listarTodas() {
-        return ResponseEntity.ok(promocionService.listarTodas());
+    public ResponseEntity<Page<PromocionResponse>> listarTodas(@org.springframework.data.web.PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(promocionService.listarTodas(pageable));
     }
 
     @GetMapping("/promociones/activas")
@@ -82,7 +82,7 @@ public class PromocionController {
     }
 
     @PostMapping("/promociones/{id}/usar")
-    @PreAuthorize("hasRole('EXPLORADOR')")
+    @PreAuthorize("hasAnyRole('EXPLORADOR', 'EXPLORADOR_PRO')")
     public ResponseEntity<Void> registrarUso(@PathVariable Long id) {
         promocionService.registrarUso(id);
         return ResponseEntity.ok().build();

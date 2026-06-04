@@ -9,7 +9,7 @@
   <script>
     const token = localStorage.getItem('jwt_token');
     const rol = localStorage.getItem('user_rol');
-    if (!token || rol !== 'EXPLORADOR') {
+    if (!token || (rol !== 'EXPLORADOR' && rol !== 'EXPLORADOR_PRO')) {
       window.location.href = '/login.html?denied=true';
     }
   </script>
