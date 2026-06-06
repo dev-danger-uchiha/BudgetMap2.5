@@ -214,7 +214,7 @@
             inicializarMapa(); // Inicializamos el mapa antes de cargar los datos
 
             try {
-                const res = await fetch('http://localhost:8080/api/establecimientos/mi-establecimiento', {
+                const res = await fetch('https://budgetmap-api.onrender.com/api/establecimientos/mi-establecimiento', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
@@ -297,7 +297,7 @@
             formData.append('file', file);
 
             try {
-                const res = await fetch('http://localhost:8080/api/upload', {
+                const res = await fetch('https://budgetmap-api.onrender.com/api/upload', {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}` },
                     body: formData
@@ -420,7 +420,7 @@
             };
 
             const method = id ? 'PUT' : 'POST';
-            const url = id ? `http://localhost:8080/api/establecimientos/${id}` : `http://localhost:8080/api/establecimientos`;
+            const url = id ? `https://budgetmap-api.onrender.com/api/establecimientos/${id}` : `https://budgetmap-api.onrender.com/api/establecimientos`;
 
             try {
                 const response = await fetch(url, {

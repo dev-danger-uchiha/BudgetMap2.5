@@ -177,7 +177,7 @@
 
         async function cargarLugares() {
             try {
-                const res = await fetch('http://localhost:8080/api/lugares/aprobados', { headers: { 'Authorization': `Bearer ${token}` } });
+                const res = await fetch('https://budgetmap-api.onrender.com/api/lugares/aprobados', { headers: { 'Authorization': `Bearer ${token}` } });
                 if (res.ok) {
                     const lugares = await res.json();
                     const sel = document.getElementById('lugarId');
@@ -204,7 +204,7 @@
                 if (filtroNombre) params.append('nombre', filtroNombre);
                 if (filtroEstado) params.append('estado', filtroEstado);
 
-                const res = await fetch(`http://localhost:8080/api/eventos/mis-eventos?${params}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const res = await fetch(`https://budgetmap-api.onrender.com/api/eventos/mis-eventos?${params}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if (res.ok) {
                     const data = await res.json();
                     const eventos = data.content || data;
@@ -283,7 +283,7 @@
             };
 
             try {
-                const res = await fetch('http://localhost:8080/api/eventos', {
+                const res = await fetch('https://budgetmap-api.onrender.com/api/eventos', {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -302,7 +302,7 @@
             const lista = document.getElementById('lista-reservas-modal');
             lista.innerHTML = '<p class="text-sm text-center">Cargando reservas...</p>';
             try {
-                const res = await fetch(`http://localhost:8080/api/mis-reservas/evento/${eventoId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const res = await fetch(`https://budgetmap-api.onrender.com/api/mis-reservas/evento/${eventoId}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if (res.ok) {
                     const reservas = await res.json();
                     if(reservas.length === 0) {
@@ -324,7 +324,7 @@
 
         async function eliminarEvento(id) {
             if (!confirm("¿Deseas cancelar y borrar este evento?")) return;
-            const res = await fetch(`http://localhost:8080/api/eventos/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+            const res = await fetch(`https://budgetmap-api.onrender.com/api/eventos/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
             if (res.ok) cargarEventos(paginaActual);
         }
 

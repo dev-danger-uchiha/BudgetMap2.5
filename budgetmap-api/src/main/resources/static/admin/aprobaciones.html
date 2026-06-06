@@ -127,9 +127,9 @@
 
             try {
                 const [resEst, resLug, resEvt] = await Promise.all([
-                    fetch('http://localhost:8080/api/establecimientos/pendientes', { headers: { 'Authorization': `Bearer ${token}` } }),
-                    fetch('http://localhost:8080/api/lugares/pendientes', { headers: { 'Authorization': `Bearer ${token}` } }),
-                    fetch('http://localhost:8080/api/eventos/pendientes', { headers: { 'Authorization': `Bearer ${token}` } })
+                    fetch('https://budgetmap-api.onrender.com/api/establecimientos/pendientes', { headers: { 'Authorization': `Bearer ${token}` } }),
+                    fetch('https://budgetmap-api.onrender.com/api/lugares/pendientes', { headers: { 'Authorization': `Bearer ${token}` } }),
+                    fetch('https://budgetmap-api.onrender.com/api/eventos/pendientes', { headers: { 'Authorization': `Bearer ${token}` } })
                 ]);
 
                 let estJson = resEst.ok ? await resEst.json() : {};
@@ -233,7 +233,7 @@
             const headers = { 'Authorization': `Bearer ${token}` };
             if (body) headers['Content-Type'] = 'application/json';
 
-            const res = await fetch(`http://localhost:8080/api/${path}/${id}/${accion}`, { method: 'POST', headers, body });
+            const res = await fetch(`https://budgetmap-api.onrender.com/api/${path}/${id}/${accion}`, { method: 'POST', headers, body });
             if (res.ok) { alert("¡Hecho!"); cargarSolicitudesUnificadas(); }
         }
 

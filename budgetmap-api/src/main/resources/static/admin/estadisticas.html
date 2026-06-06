@@ -215,7 +215,7 @@
 
         async function cargarMetricas() {
             try {
-                const res = await fetch(`http://localhost:8080/api/admin/metrics/summary`, {
+                const res = await fetch(`https://budgetmap-api.onrender.com/api/admin/metrics/summary`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {

@@ -204,7 +204,7 @@
 
         async function obtenerUsuarioActual() {
             try {
-                const res = await fetch('http://localhost:8080/api/perfil', {
+                const res = await fetch('https://budgetmap-api.onrender.com/api/perfil', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
@@ -242,7 +242,7 @@
             };
 
             try {
-                const res = await fetch('http://localhost:8080/api/usuarios/crear', {
+                const res = await fetch('https://budgetmap-api.onrender.com/api/usuarios/crear', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -284,7 +284,7 @@
                 if (rolFiltro) params.append('rol', rolFiltro);
                 if (estado) params.append('activo', estado);
 
-                const response = await fetch(`http://localhost:8080/api/usuarios/paginado?${params}`, {
+                const response = await fetch(`https://budgetmap-api.onrender.com/api/usuarios/paginado?${params}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
@@ -382,7 +382,7 @@
             if (!confirm(`¿Confirma que desea ${activar ? 'reactivar' : 'suspender'} esta cuenta?`)) return;
 
             try {
-                const response = await fetch(`http://localhost:8080/api/usuarios/${id}/estado?activo=${activar}`, {
+                const response = await fetch(`https://budgetmap-api.onrender.com/api/usuarios/${id}/estado?activo=${activar}`, {
                     method: 'PUT',
                     headers: {
                         'Authorization': `Bearer ${token}`,

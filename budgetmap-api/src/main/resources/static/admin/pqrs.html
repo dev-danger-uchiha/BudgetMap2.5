@@ -168,7 +168,7 @@
                 if (prioridad) params.append('prioridad', prioridad);
                 if (tipo) params.append('tipo', tipo);
 
-                const res = await fetch(`http://localhost:8080/api/pqrs/paginados?${params}`, {
+                const res = await fetch(`https://budgetmap-api.onrender.com/api/pqrs/paginados?${params}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
@@ -213,7 +213,7 @@
             document.getElementById('ticket-detalle').classList.replace('hidden', 'flex');
 
             try {
-                const res = await fetch(`http://localhost:8080/api/pqrs/${id}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const res = await fetch(`https://budgetmap-api.onrender.com/api/pqrs/${id}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if (res.ok) {
                     const t = await res.json();
                     document.getElementById('det-asunto').innerText = t.asunto;
@@ -240,7 +240,7 @@
             if (resp.length < 10) return alert("Respuesta muy corta.");
 
             try {
-                const res = await fetch(`http://localhost:8080/api/pqrs/${ticketActivo}/responder`, {
+                const res = await fetch(`https://budgetmap-api.onrender.com/api/pqrs/${ticketActivo}/responder`, {
                     method: 'PUT',
                     headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify({ respuesta: resp })

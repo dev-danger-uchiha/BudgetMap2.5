@@ -83,7 +83,7 @@
             if (filtroTipo) params.append('tipo', filtroTipo);
             if (filtroLeida) params.append('leida', filtroLeida);
 
-            const res = await fetch(`http://localhost:8080/api/notificaciones/paginado?${params}`, {
+            const res = await fetch(`https://budgetmap-api.onrender.com/api/notificaciones/paginado?${params}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
@@ -133,7 +133,7 @@
 
     async function marcarLeida(id) {
         try {
-            await fetch(`http://localhost:8080/api/notificaciones/${id}/leer`, {
+            await fetch(`https://budgetmap-api.onrender.com/api/notificaciones/${id}/leer`, {
                 method: 'PUT',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -144,7 +144,7 @@
     async function marcarTodasLeidas() {
         if(!confirm("¿Deseas marcar todas las notificaciones como leídas?")) return;
         try {
-            await fetch(`http://localhost:8080/api/notificaciones/leer-todas`, {
+            await fetch(`https://budgetmap-api.onrender.com/api/notificaciones/leer-todas`, {
                 method: 'PUT',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -155,7 +155,7 @@
 <script>
     async function checkNotificacionesBadge() {
         try {
-            const res = await fetch('http://localhost:8080/api/notificaciones/contador', { headers: { 'Authorization': 'Bearer ' + token } });
+            const res = await fetch('https://budgetmap-api.onrender.com/api/notificaciones/contador', { headers: { 'Authorization': 'Bearer ' + token } });
             if(res.ok) {
                 const data = await res.json();
                 if(data.noLeidas > 0) {

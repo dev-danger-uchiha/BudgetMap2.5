@@ -218,7 +218,7 @@
             };
 
             try {
-                const res = await fetch('http://localhost:8080/api/pqrs', {
+                const res = await fetch('https://budgetmap-api.onrender.com/api/pqrs', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -255,7 +255,7 @@
             container.innerHTML = '<div class="text-center p-12 text-slate-400 font-bold uppercase tracking-widest text-xs">Cargando solicitudes...</div>';
 
             try {
-                const res = await fetch('http://localhost:8080/api/mis-pqrs', {
+                const res = await fetch('https://budgetmap-api.onrender.com/api/mis-pqrs', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 

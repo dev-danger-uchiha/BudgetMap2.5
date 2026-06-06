@@ -89,7 +89,7 @@
         async function cargarMetricasEventos() {
             try {
                 // Se asume un endpoint que consolida estadísticas del anfitrión
-                const res = await fetch('http://localhost:8080/api/eventos/mis-estadisticas', {
+                const res = await fetch('https://budgetmap-api.onrender.com/api/eventos/mis-estadisticas', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
@@ -107,7 +107,7 @@
 
         async function cargarEventosBasico() {
             try {
-                const res = await fetch('http://localhost:8080/api/eventos/mis-eventos', {
+                const res = await fetch('https://budgetmap-api.onrender.com/api/eventos/mis-eventos', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {

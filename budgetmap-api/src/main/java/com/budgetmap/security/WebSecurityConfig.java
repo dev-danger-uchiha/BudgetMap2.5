@@ -33,7 +33,7 @@ public class WebSecurityConfig {
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    @Value("${cors.allowed-origins:http://localhost:3000,http://localhost:8080}")
+    @Value("${cors.allowed-origins:http://localhost:3000,https://budgetmap-api.onrender.com}")
     private String corsAllowedOrigins;
 
     @Bean
