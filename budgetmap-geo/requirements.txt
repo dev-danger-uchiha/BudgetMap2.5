@@ -6,7 +6,7 @@ PyMySQL==1.1.0
 cryptography
 Shapely
 GeoAlchemy2==0.14.2
-SQLAlchemy==2.0.23
+SQLAlchemy==2.0.50
 gunicorn==21.2.0
 requests==2.31.0
 numpy
