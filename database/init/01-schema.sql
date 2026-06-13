@@ -11,277 +11,365 @@ CREATE DATABASE IF NOT EXISTS budgetmap
 
 USE budgetmap;
 
--- -----------------------------------------------------
--- 1. MÓDULO DE PLANES (NUEVA TABLA PARA SaaS Y FREEMIUM)
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS planes_suscripcion (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(50) NOT NULL UNIQUE, -- Ej: 'BÁSICO', 'PRO', 'EXPLORADOR_PRO'
-    tipo_publico ENUM('ALIADO', 'EXPLORADOR') NOT NULL,
-    precio_mensual DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-    permite_promos_ilimitadas BOOLEAN DEFAULT FALSE,
-    permite_estadisticas_avanzadas BOOLEAN DEFAULT FALSE,
-    acceso_anticipado_ofertas BOOLEAN DEFAULT FALSE,
-    sin_anuncios BOOLEAN DEFAULT FALSE,
-    activo BOOLEAN DEFAULT TRUE,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
+-- budgetmap.planes_suscripcion definition
 
--- -----------------------------------------------------
--- 2. MÓDULO DE USUARIOS
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS usuarios (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    nombre VARCHAR(255) NOT NULL,
-    apellido VARCHAR(255),
-    telefono VARCHAR(255),
-    rol ENUM('ADMINISTRADOR', 'MODERADOR', 'LOCAL_ALIADO', 'ANFITRION', 'EXPLORADOR') NOT NULL,
-    
-    -- Manejo de Plan y Suscripción
-    plan_id INT, 
-    fecha_fin_suscripcion DATETIME,
-    
-    -- Manejo de Puntos / Tokens
-    puntos_acumulados INT DEFAULT 0,
-    
-    activo BOOLEAN DEFAULT TRUE,
-    email_verificado BOOLEAN DEFAULT FALSE,
-    ultimo_acceso DATETIME,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_email (email),
-    INDEX idx_rol (rol),
-    FOREIGN KEY (plan_id) REFERENCES planes_suscripcion(id)
-) ENGINE=InnoDB;
+CREATE TABLE "planes_suscripcion" (
+  "id" int NOT NULL AUTO_INCREMENT,
+"nombre" varchar(50) NOT NULL,
+"tipo_publico" enum('ALIADO', 'EXPLORADOR') NOT NULL,
+"precio_mensual" decimal(38, 2) NOT NULL,
+"permite_promos_ilimitadas" tinyint(1) DEFAULT '0',
+"permite_estadisticas_avanzadas" tinyint(1) DEFAULT '0',
+"acceso_anticipado_ofertas" tinyint(1) DEFAULT '0',
+"sin_anuncios" tinyint(1) DEFAULT '0',
+"activo" tinyint(1) DEFAULT '1',
+"created_at" datetime DEFAULT CURRENT_TIMESTAMP,
+PRIMARY KEY ("id"),
+UNIQUE KEY "nombre" ("nombre")
+);
 
--- -----------------------------------------------------
--- 3. MÓDULO DE TRANSACCIONES (NUEVA TABLA PARA TOKENS Y COMISIONES)
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS transacciones (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    usuario_id BIGINT NOT NULL,
-    tipo ENUM('COMPRA_PLAN', 'COMPRA_PUNTOS', 'COMISION_RESERVA', 'PAGO_ADS') NOT NULL,
-    monto DECIMAL(10,2) NOT NULL,
-    metodo_pago VARCHAR(50), -- Ej: 'PSE', 'TDC', 'NEQUI'
-    referencia_pago VARCHAR(255) UNIQUE,
-    estado ENUM('PENDIENTE', 'EXITOSO', 'FALLIDO', 'REEMBOLSADO') DEFAULT 'PENDIENTE',
-    fecha_transaccion DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
-) ENGINE=InnoDB;
+-- budgetmap.usuarios definition
 
--- -----------------------------------------------------
--- 4. MÓDULO LUGARES
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS lugares (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(255) NOT NULL,
-    descripcion TEXT,
-    categoria ENUM('PARQUE', 'MUSEO', 'SITIO_TURISTICO', 'BIBLIOTECA', 'OTRO') NOT NULL,
-    direccion VARCHAR(255),
-    latitud DECIMAL(10, 8),
-    longitud DECIMAL(11, 8),
-    ubicacion POINT NOT NULL SRID 4326,
-    imagen_url VARCHAR(1000),
-    aforo_maximo INT,
-    estado ENUM('PENDIENTE', 'APROBADO', 'RECHAZADO') DEFAULT 'PENDIENTE',
-    moderador_id BIGINT,
-    fecha_aprobacion DATETIME,
-    motivo_rechazo VARCHAR(255),
-    destacado BOOLEAN DEFAULT FALSE,
-    activo BOOLEAN DEFAULT TRUE,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    SPATIAL INDEX idx_ubicacion_lugar (ubicacion),
-    FOREIGN KEY (moderador_id) REFERENCES usuarios(id)
-) ENGINE=InnoDB;
+CREATE TABLE "usuarios" (
+  "id" bigint NOT NULL AUTO_INCREMENT,
+"email" varchar(255) NOT NULL,
+"password" varchar(255) NOT NULL,
+"nombre" varchar(255) NOT NULL,
+"apellido" varchar(255) DEFAULT NULL,
+"telefono" varchar(255) DEFAULT NULL,
+"rol" varchar(50) NOT NULL,
+"plan_id" int DEFAULT NULL,
+"fecha_fin_suscripcion" datetime DEFAULT NULL,
+"puntos_acumulados" int DEFAULT '0',
+"activo" tinyint(1) DEFAULT '1',
+"email_verificado" tinyint(1) DEFAULT '0',
+"ultimo_acceso" datetime DEFAULT NULL,
+"created_at" datetime DEFAULT CURRENT_TIMESTAMP,
+"updated_at" datetime DEFAULT CURRENT_TIMESTAMP ON
+UPDATE
+    CURRENT_TIMESTAMP,
+    "avatar_url" varchar(1000) DEFAULT NULL,
+    "cuenta_bloqueada" tinyint(1) NOT NULL DEFAULT '0',
+    "intentos_fallidos" int NOT NULL DEFAULT '0',
+    "fecha_desbloqueo" datetime DEFAULT NULL,
+    PRIMARY KEY ("id"),
+    UNIQUE KEY "email" ("email"),
+    KEY "idx_email" ("email"),
+    KEY "idx_rol" ("rol"),
+    KEY "plan_id" ("plan_id"),
+    CONSTRAINT "usuarios_ibfk_1" FOREIGN KEY ("plan_id") REFERENCES "planes_suscripcion" ("id")
+);
 
--- -----------------------------------------------------
--- 5. MÓDULO ESTABLECIMIENTOS (Ajustado para SaaS y Ads)
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS establecimientos (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(255) NOT NULL,
-    nit VARCHAR(255) UNIQUE,
-    descripcion TEXT,
-    categoria ENUM('RESTAURANTE','PANADERIA','BAR','TIENDA','SUPERMERCADO','FARMACIA','HOTEL','GIMNASIO','OTRO') NOT NULL,
-    propietario_id BIGINT NOT NULL,
-    direccion VARCHAR(255),
-    latitud DOUBLE NOT NULL,
-    longitud DOUBLE NOT NULL,
-    ubicacion POINT NOT NULL SRID 4326,
-    imagen_url VARCHAR(1000),
-    aforo_maximo INT,
-    aforo_actual INT DEFAULT 0,
-    telefono VARCHAR(255),
-    horario_atencion VARCHAR(255),
-    reservas_habilitadas BOOLEAN DEFAULT FALSE,
-    estado ENUM('PENDIENTE','APROBADO','RECHAZADO') DEFAULT 'PENDIENTE',
-    moderador_id BIGINT,
-    fecha_aprobacion DATETIME,
-    motivo_rechazo VARCHAR(1000),
-    
-    -- Publicidad Hiperlocal (Ads)
-    pin_destacado BOOLEAN DEFAULT FALSE,
-    color_pin VARCHAR(20) DEFAULT 'NORMAL', -- Ej: 'DORADO', 'ROJO_URGENTE'
-    fin_publicidad DATETIME NULL,
-    
-    destacado BOOLEAN DEFAULT FALSE,
-    activo BOOLEAN DEFAULT TRUE,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    SPATIAL INDEX idx_ubicacion_estab (ubicacion),
-    FOREIGN KEY (propietario_id) REFERENCES usuarios(id),
-    FOREIGN KEY (moderador_id) REFERENCES usuarios(id)
-) ENGINE=InnoDB;
 
--- -----------------------------------------------------
--- 6. MÓDULO EVENTOS
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS eventos (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(255) NOT NULL,
-    descripcion TEXT,
-    tipo_evento ENUM('ARTISTICO','CULTURAL','DEPORTIVO','VETERINARIO','RECREATIVO') NOT NULL,
-    lugar_id BIGINT,
-    establecimiento_id BIGINT,
-    creador_id BIGINT NOT NULL,
-    fecha_inicio DATE NOT NULL,
-    fecha_fin DATE,
-    hora_inicio TIME NOT NULL,
-    hora_fin TIME,
-    aforo_maximo INT,
-    aforo_actual INT DEFAULT 0,
-    precio DECIMAL(10,2) DEFAULT 0.00,
-    imagen_url VARCHAR(1000),
-    activo BOOLEAN DEFAULT TRUE,
-    destacado BOOLEAN DEFAULT FALSE,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (lugar_id) REFERENCES lugares(id),
-    FOREIGN KEY (establecimiento_id) REFERENCES establecimientos(id),
-    FOREIGN KEY (creador_id) REFERENCES usuarios(id)
-) ENGINE=InnoDB;
+-- budgetmap.lugares definition
 
--- -----------------------------------------------------
--- 7. MÓDULO PROMOCIONES (Ajustado para Acceso Anticipado)
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS promociones (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    titulo VARCHAR(255) NOT NULL,
-    descripcion TEXT,
-    establecimiento_id BIGINT,
-    evento_id BIGINT,
-    descuento_porcentaje INT DEFAULT 0,
-    descuento_valor DECIMAL(10,2) DEFAULT 0.00,
-    precio_especial DECIMAL(10,2) DEFAULT 0.00,
-    fecha_inicio DATE NOT NULL,
-    fecha_fin DATE NOT NULL,
-    codigo_cupon VARCHAR(255),
-    usos_maximos INT,
-    usos_actuales INT DEFAULT 0,
-    solo_pro BOOLEAN DEFAULT FALSE,
-    imagen_url VARCHAR(1000),
-    activo BOOLEAN DEFAULT TRUE,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (establecimiento_id) REFERENCES establecimientos(id),
-    FOREIGN KEY (evento_id) REFERENCES eventos(id)
-) ENGINE=InnoDB;
+CREATE TABLE "lugares" (
+  "id" bigint NOT NULL AUTO_INCREMENT,
+"nombre" varchar(255) NOT NULL,
+"descripcion" text,
+"categoria" enum('PARQUE', 'MUSEO', 'SITIO_TURISTICO', 'BIBLIOTECA', 'OTRO') NOT NULL,
+"direccion" varchar(255) DEFAULT NULL,
+"latitud" double NOT NULL,
+"longitud" double NOT NULL,
+"ubicacion" point NOT NULL /*!80003 SRID 4326 */
+,
+"imagen_url" varchar(1000) DEFAULT NULL,
+"aforo_maximo" int DEFAULT NULL,
+"estado" enum('PENDIENTE', 'APROBADO', 'RECHAZADO') DEFAULT 'PENDIENTE',
+"moderador_id" bigint DEFAULT NULL,
+"fecha_aprobacion" datetime DEFAULT NULL,
+"motivo_rechazo" varchar(255) DEFAULT NULL,
+"destacado" tinyint(1) DEFAULT '0',
+"activo" tinyint(1) DEFAULT '1',
+"created_at" datetime DEFAULT CURRENT_TIMESTAMP,
+"updated_at" datetime DEFAULT CURRENT_TIMESTAMP ON
+UPDATE
+    CURRENT_TIMESTAMP,
+    "verificado" tinyint(1) NOT NULL DEFAULT '0',
+    PRIMARY KEY ("id"),
+    SPATIAL KEY "idx_ubicacion_lugar" ("ubicacion"),
+    KEY "moderador_id" ("moderador_id"),
+    CONSTRAINT "lugares_ibfk_1" FOREIGN KEY ("moderador_id") REFERENCES "usuarios" ("id")
+);
 
--- -----------------------------------------------------
--- 8. MÓDULO RESERVAS (Ajustado para Comisiones)
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS reservas (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    codigo_reserva VARCHAR(255) NOT NULL UNIQUE,
-    usuario_id BIGINT NOT NULL,
-    evento_id BIGINT NULL,
-    establecimiento_id BIGINT NULL,
-    lugar_id BIGINT NULL,
-    promocion_id BIGINT NULL,
-    fecha_reserva DATETIME NOT NULL,
-    numero_personas INT DEFAULT 1,
-    estado ENUM('PENDIENTE', 'CONFIRMADA', 'CANCELADA', 'COMPLETADA', 'REDIMIDA') DEFAULT 'PENDIENTE',
-    puntos_otorgados INT DEFAULT 0,
-    comision_cobrada DECIMAL(10,2) DEFAULT 0.00,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    hora_inicio TIME NULL AFTER fecha_reserva,
-    hora_fin TIME NULL AFTER hora_inicio,
-    fecha_validacion DATETIME NULL AFTER estado,
-    notas TEXT NULL AFTER comision_cobrada,
-    motivo_cancelacion VARCHAR(500) NULL AFTER notas,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
-    FOREIGN KEY (evento_id) REFERENCES eventos(id),
-    FOREIGN KEY (establecimiento_id) REFERENCES establecimientos(id),
-    FOREIGN KEY (lugar_id) REFERENCES lugares(id),
-    FOREIGN KEY (promocion_id) REFERENCES promociones(id)
-) ENGINE=InnoDB;
+-- budgetmap.establecimientos definition
 
--- -----------------------------------------------------
--- 9. MÓDULO DE ANALÍTICAS (NUEVA TABLA PARA EL ADD-ON OPCIONAL)
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS analiticas_locales (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    establecimiento_id BIGINT NOT NULL,
-    fecha DATE NOT NULL,
-    clics_perfil INT DEFAULT 0,
-    vistas_mapa INT DEFAULT 0,
-    cupones_vistos INT DEFAULT 0,
-    exploradores_cercanos_promedio INT DEFAULT 0, -- Dato traído por Flask/Geo
-    FOREIGN KEY (establecimiento_id) REFERENCES establecimientos(id),
-    UNIQUE INDEX idx_estab_fecha (establecimiento_id, fecha)
-) ENGINE=InnoDB;
+CREATE TABLE "establecimientos" (
+  "id" bigint NOT NULL AUTO_INCREMENT,
+"nombre" varchar(255) NOT NULL,
+"nit" varchar(255) DEFAULT NULL,
+"descripcion" text,
+"categoria" enum('RESTAURANTE', 'PANADERIA', 'BAR', 'TIENDA', 'SUPERMERCADO', 'FARMACIA', 'HOTEL', 'GIMNASIO', 'OTRO') NOT NULL,
+"propietario_id" bigint NOT NULL,
+"direccion" varchar(255) DEFAULT NULL,
+"latitud" double NOT NULL,
+"longitud" double NOT NULL,
+"ubicacion" point NOT NULL /*!80003 SRID 4326 */,
+"imagen_url" varchar(1000) DEFAULT NULL,
+"aforo_maximo" int DEFAULT NULL,
+"aforo_actual" int DEFAULT '0',
+"telefono" varchar(255) DEFAULT NULL,
+"horario_atencion" varchar(255) DEFAULT NULL,
+"reservas_habilitadas" tinyint(1) DEFAULT '0',
+"estado" enum('PENDIENTE', 'APROBADO', 'RECHAZADO') DEFAULT 'PENDIENTE',
+"moderador_id" bigint DEFAULT NULL,
+"fecha_aprobacion" datetime DEFAULT NULL,
+"motivo_rechazo" varchar(1000) DEFAULT NULL,
+"pin_destacado" tinyint(1) DEFAULT '0',
+"color_pin" varchar(20) DEFAULT 'NORMAL',
+"fin_publicidad" datetime DEFAULT NULL,
+"destacado" tinyint(1) DEFAULT '0',
+"activo" tinyint(1) DEFAULT '1',
+"created_at" datetime DEFAULT CURRENT_TIMESTAMP,
+"updated_at" datetime DEFAULT CURRENT_TIMESTAMP ON
+UPDATE
+    CURRENT_TIMESTAMP,
+    "rut_pdf_url" varchar(500) DEFAULT NULL,
+    "verificado" tinyint(1) NOT NULL DEFAULT '0',
+    PRIMARY KEY ("id"),
+    UNIQUE KEY "nit" ("nit"),
+    SPATIAL KEY "idx_ubicacion_estab" ("ubicacion"),
+    KEY "propietario_id" ("propietario_id"),
+    KEY "moderador_id" ("moderador_id"),
+    CONSTRAINT "establecimientos_ibfk_1" FOREIGN KEY ("propietario_id") REFERENCES "usuarios" ("id"),
+    CONSTRAINT "establecimientos_ibfk_2" FOREIGN KEY ("moderador_id") REFERENCES "usuarios" ("id")
+);
 
--- -----------------------------------------------------
--- 10. MÓDULO DE SOPORTE Y NOTIFICACIONES (Se mantienen igual)
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS pqrs (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    codigo_ticket VARCHAR(255) NOT NULL UNIQUE,
-    usuario_id BIGINT NOT NULL,
-    tipo ENUM('PETICION', 'QUEJA', 'RECLAMO', 'SUGERENCIA') NOT NULL,
-    asunto VARCHAR(255) NOT NULL,
-    descripcion TEXT NOT NULL,
-    estado ENUM('ABIERTO', 'EN_PROCESO', 'RESPONDIDO', 'CERRADO') DEFAULT 'ABIERTO',
-    prioridad ENUM('BAJA', 'MEDIA', 'ALTA') DEFAULT 'MEDIA',
-    moderador_asignado_id BIGINT,
-    respuesta TEXT,
-    fecha_respuesta DATETIME,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    adjuntos VARCHAR(1000) NULL AFTER fecha_respuesta,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
-    FOREIGN KEY (moderador_asignado_id) REFERENCES usuarios(id)
-) ENGINE=InnoDB;
+-- budgetmap.eventos definition
 
-CREATE TABLE IF NOT EXISTS notificaciones (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    usuario_id BIGINT NOT NULL,
-    tipo ENUM('RESERVA_CONFIRMADA', 'RESERVA_CANCELADA', 'ALERTA_PROXIMIDAD', 'PROMOCION_NUEVA', 'EVENTO_RECORDATORIO', 'PQRS_RESPUESTA', 'SISTEMA') NOT NULL,
-    titulo VARCHAR(255) NOT NULL,
-    mensaje TEXT NOT NULL,
-    referencia_id BIGINT NULL,
-    referencia_tipo ENUM('RESERVA', 'EVENTO', 'ESTABLECIMIENTO', 'PQRS') NULL,
-    leida BOOLEAN DEFAULT FALSE,
-    origen ENUM('SPRING', 'FLASK') DEFAULT 'SPRING',
-    fecha_lectura DATETIME NULL AFTER leida,
-    accion_url VARCHAR(500) NULL AFTER fecha_lectura,
-    imagen_url VARCHAR(500) NULL AFTER accion_url,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
-    
-) ENGINE=InnoDB;
+CREATE TABLE "eventos" (
+  "id" bigint NOT NULL AUTO_INCREMENT,
+"nombre" varchar(255) NOT NULL,
+"descripcion" text,
+"tipo_evento" enum('ARTISTICO', 'CULTURAL', 'DEPORTIVO', 'VETERINARIO', 'RECREATIVO') NOT NULL,
+"lugar_id" bigint DEFAULT NULL,
+"establecimiento_id" bigint DEFAULT NULL,
+"creador_id" bigint NOT NULL,
+"fecha_inicio" date NOT NULL,
+"fecha_fin" date DEFAULT NULL,
+"hora_inicio" time NOT NULL,
+"hora_fin" time DEFAULT NULL,
+"aforo_maximo" int DEFAULT NULL,
+"aforo_actual" int DEFAULT '0',
+"precio" decimal(10, 2) DEFAULT '0.00',
+"imagen_url" varchar(1000) DEFAULT NULL,
+"activo" tinyint(1) DEFAULT '1',
+"destacado" tinyint(1) DEFAULT '0',
+"created_at" datetime DEFAULT CURRENT_TIMESTAMP,
+"updated_at" datetime DEFAULT CURRENT_TIMESTAMP ON
+UPDATE
+    CURRENT_TIMESTAMP,
+    "estado" enum('PENDIENTE', 'APROBADO', 'RECHAZADO', 'EN_REVISION') NOT NULL,
+    "moderador_id" bigint DEFAULT NULL,
+    "fecha_aprobacion" datetime DEFAULT NULL,
+    "motivo_rechazo" varchar(500) DEFAULT NULL,
+    "verificado" tinyint(1) NOT NULL DEFAULT '0',
+    PRIMARY KEY ("id"),
+    KEY "lugar_id" ("lugar_id"),
+    KEY "establecimiento_id" ("establecimiento_id"),
+    KEY "creador_id" ("creador_id"),
+    KEY "moderador_id" ("moderador_id"),
+    CONSTRAINT "eventos_ibfk_1" FOREIGN KEY ("lugar_id") REFERENCES "lugares" ("id"),
+    CONSTRAINT "eventos_ibfk_2" FOREIGN KEY ("establecimiento_id") REFERENCES "establecimientos" ("id"),
+    CONSTRAINT "eventos_ibfk_3" FOREIGN KEY ("creador_id") REFERENCES "usuarios" ("id"),
+    CONSTRAINT "eventos_ibfk_4" FOREIGN KEY ("moderador_id") REFERENCES "usuarios" ("id")
+);
 
-CREATE TABLE IF NOT EXISTS config_alertas (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    usuario_id BIGINT NOT NULL UNIQUE,
-    radio_metros INT DEFAULT 500,
-    notificar_promociones BOOLEAN DEFAULT TRUE,
-    notificar_eventos BOOLEAN DEFAULT TRUE,
-    activo BOOLEAN DEFAULT TRUE,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
-) ENGINE=InnoDB;
+-- budgetmap.promociones definition
+
+CREATE TABLE "promociones" (
+  "id" bigint NOT NULL AUTO_INCREMENT,
+"titulo" varchar(255) NOT NULL,
+"descripcion" text,
+"establecimiento_id" bigint DEFAULT NULL,
+"evento_id" bigint DEFAULT NULL,
+"descuento_porcentaje" int DEFAULT '0',
+"descuento_valor" decimal(10, 2) DEFAULT '0.00',
+"precio_especial" decimal(10, 2) DEFAULT '0.00',
+"fecha_inicio" date NOT NULL,
+"fecha_fin" date NOT NULL,
+"codigo_cupon" varchar(255) DEFAULT NULL,
+"usos_maximos" int DEFAULT NULL,
+"usos_actuales" int DEFAULT '0',
+"solo_pro" tinyint(1) DEFAULT '0',
+"imagen_url" varchar(1000) DEFAULT NULL,
+"activo" tinyint(1) DEFAULT '1',
+"created_at" datetime DEFAULT CURRENT_TIMESTAMP,
+"updated_at" datetime DEFAULT CURRENT_TIMESTAMP ON
+UPDATE
+    CURRENT_TIMESTAMP,
+    PRIMARY KEY ("id"),
+    KEY "establecimiento_id" ("establecimiento_id"),
+    KEY "evento_id" ("evento_id"),
+    CONSTRAINT "promociones_ibfk_1" FOREIGN KEY ("establecimiento_id") REFERENCES "establecimientos" ("id"),
+    CONSTRAINT "promociones_ibfk_2" FOREIGN KEY ("evento_id") REFERENCES "eventos" ("id")
+);
+
+-- budgetmap.reservas definition
+
+CREATE TABLE "reservas" (
+  "id" bigint NOT NULL AUTO_INCREMENT,
+"codigo_reserva" varchar(255) NOT NULL,
+"usuario_id" bigint NOT NULL,
+"evento_id" bigint DEFAULT NULL,
+"establecimiento_id" bigint DEFAULT NULL,
+"lugar_id" bigint DEFAULT NULL,
+"promocion_id" bigint DEFAULT NULL,
+"fecha_reserva" date NOT NULL,
+"numero_personas" int DEFAULT '1',
+"estado" enum('PENDIENTE', 'CONFIRMADA', 'CANCELADA', 'COMPLETADA', 'REDIMIDA') DEFAULT 'PENDIENTE',
+"puntos_otorgados" int DEFAULT '0',
+"comision_cobrada" decimal(10, 2) DEFAULT '0.00',
+"created_at" datetime DEFAULT CURRENT_TIMESTAMP,
+"hora_inicio" time DEFAULT NULL,
+"hora_fin" time DEFAULT NULL,
+"fecha_validacion" datetime DEFAULT NULL,
+"notas" text,
+"motivo_cancelacion" varchar(500) DEFAULT NULL,
+"updated_at" datetime DEFAULT CURRENT_TIMESTAMP ON
+UPDATE
+    CURRENT_TIMESTAMP,
+    PRIMARY KEY ("id"),
+    UNIQUE KEY "codigo_reserva" ("codigo_reserva"),
+    KEY "usuario_id" ("usuario_id"),
+    KEY "evento_id" ("evento_id"),
+    KEY "establecimiento_id" ("establecimiento_id"),
+    KEY "lugar_id" ("lugar_id"),
+    KEY "promocion_id" ("promocion_id"),
+    CONSTRAINT "reservas_ibfk_1" FOREIGN KEY ("usuario_id") REFERENCES "usuarios" ("id"),
+    CONSTRAINT "reservas_ibfk_2" FOREIGN KEY ("evento_id") REFERENCES "eventos" ("id"),
+    CONSTRAINT "reservas_ibfk_3" FOREIGN KEY ("establecimiento_id") REFERENCES "establecimientos" ("id"),
+    CONSTRAINT "reservas_ibfk_4" FOREIGN KEY ("lugar_id") REFERENCES "lugares" ("id"),
+    CONSTRAINT "reservas_ibfk_5" FOREIGN KEY ("promocion_id") REFERENCES "promociones" ("id")
+);
+
+
+-- budgetmap.pqrs definition
+
+CREATE TABLE "pqrs" (
+  "id" bigint NOT NULL AUTO_INCREMENT,
+"codigo_ticket" varchar(255) NOT NULL,
+"usuario_id" bigint NOT NULL,
+"tipo" enum('PETICION', 'QUEJA', 'RECLAMO', 'SUGERENCIA') NOT NULL,
+"asunto" varchar(255) NOT NULL,
+"descripcion" text NOT NULL,
+"estado" enum('ABIERTO', 'EN_PROCESO', 'RESPONDIDO', 'CERRADO') DEFAULT 'ABIERTO',
+"prioridad" varchar(10) DEFAULT NULL,
+"moderador_asignado_id" bigint DEFAULT NULL,
+"respuesta" text,
+"fecha_respuesta" datetime DEFAULT NULL,
+"created_at" datetime DEFAULT CURRENT_TIMESTAMP,
+"adjuntos" varchar(1000) DEFAULT NULL,
+"updated_at" datetime DEFAULT CURRENT_TIMESTAMP ON
+UPDATE
+    CURRENT_TIMESTAMP,
+    PRIMARY KEY ("id"),
+    UNIQUE KEY "codigo_ticket" ("codigo_ticket"),
+    KEY "usuario_id" ("usuario_id"),
+    KEY "moderador_asignado_id" ("moderador_asignado_id"),
+    CONSTRAINT "pqrs_ibfk_1" FOREIGN KEY ("usuario_id") REFERENCES "usuarios" ("id"),
+    CONSTRAINT "pqrs_ibfk_2" FOREIGN KEY ("moderador_asignado_id") REFERENCES "usuarios" ("id")
+);
+
+
+-- budgetmap.cupones_redimidos definition
+
+CREATE TABLE "cupones_redimidos" (
+  "id" bigint NOT NULL AUTO_INCREMENT,
+"codigo_unico" varchar(20) NOT NULL,
+"fecha_expiracion" datetime(6) DEFAULT NULL,
+"fecha_redencion" datetime(6) DEFAULT NULL,
+"puntos_gastados" int NOT NULL,
+"titulo_descuento" varchar(255) NOT NULL,
+"usado" tinyint(1) NOT NULL,
+"establecimiento_id" bigint NOT NULL,
+"usuario_id" bigint NOT NULL,
+PRIMARY KEY ("id"),
+UNIQUE KEY "UK_ipckg9a8c7xsna78ubhxd7df4" ("codigo_unico"),
+KEY "FK9e577ako84ls5wn28obac41q9" ("establecimiento_id"),
+KEY "FKfqdohhqicy17r1qw5kdk0hf34" ("usuario_id"),
+CONSTRAINT "FK9e577ako84ls5wn28obac41q9" FOREIGN KEY ("establecimiento_id") REFERENCES "establecimientos" ("id"),
+CONSTRAINT "FKfqdohhqicy17r1qw5kdk0hf34" FOREIGN KEY ("usuario_id") REFERENCES "usuarios" ("id")
+);
+
+-- budgetmap.tokens_revocados definition
+
+CREATE TABLE "tokens_revocados" (
+  "id" bigint NOT NULL AUTO_INCREMENT,
+"created_at" datetime(6) NOT NULL,
+"fecha_expiracion" datetime(6) NOT NULL,
+"token" varchar(512) NOT NULL,
+PRIMARY KEY ("id"),
+UNIQUE KEY "UK_svutquepwyiy8h1lyb0cacxa9" ("token")
+);
+
+-- budgetmap.transacciones definition
+
+CREATE TABLE "transacciones" (
+  "id" bigint NOT NULL AUTO_INCREMENT,
+"usuario_id" bigint NOT NULL,
+"tipo" enum('COMPRA_PLAN', 'COMPRA_PUNTOS', 'COMISION_RESERVA', 'PAGO_ADS') NOT NULL,
+"monto" decimal(38, 2) NOT NULL,
+"metodo_pago" varchar(50) DEFAULT NULL,
+"referencia_pago" varchar(255) DEFAULT NULL,
+"estado" enum('PENDIENTE', 'EXITOSO', 'FALLIDO', 'REEMBOLSADO') DEFAULT 'PENDIENTE',
+"fecha_transaccion" datetime DEFAULT CURRENT_TIMESTAMP,
+PRIMARY KEY ("id"),
+UNIQUE KEY "referencia_pago" ("referencia_pago"),
+KEY "usuario_id" ("usuario_id"),
+CONSTRAINT "transacciones_ibfk_1" FOREIGN KEY ("usuario_id") REFERENCES "usuarios" ("id")
+);
+
+-- budgetmap.analiticas_locales definition
+
+CREATE TABLE "analiticas_locales" (
+  "id" bigint NOT NULL AUTO_INCREMENT,
+"establecimiento_id" bigint NOT NULL,
+"fecha" date NOT NULL,
+"clics_perfil" int DEFAULT '0',
+"vistas_mapa" int DEFAULT '0',
+"cupones_vistos" int DEFAULT '0',
+"exploradores_cercanos_promedio" int DEFAULT '0',
+PRIMARY KEY ("id"),
+UNIQUE KEY "idx_estab_fecha" ("establecimiento_id",
+"fecha"),
+CONSTRAINT "analiticas_locales_ibfk_1" FOREIGN KEY ("establecimiento_id") REFERENCES "establecimientos" ("id")
+);
+
+-- budgetmap.notificaciones definition
+
+CREATE TABLE "notificaciones" (
+  "id" bigint NOT NULL AUTO_INCREMENT,
+"usuario_id" bigint NOT NULL,
+"tipo" enum('RESERVA_CONFIRMADA', 'RESERVA_CANCELADA', 'ALERTA_PROXIMIDAD', 'PROMOCION_NUEVA', 'EVENTO_RECORDATORIO', 'PQRS_RESPUESTA', 'SISTEMA') NOT NULL,
+"titulo" varchar(255) NOT NULL,
+"mensaje" text NOT NULL,
+"referencia_id" bigint DEFAULT NULL,
+"referencia_tipo" varchar(50) DEFAULT NULL,
+"leida" tinyint(1) DEFAULT '0',
+"origen" varchar(20) DEFAULT NULL,
+"fecha_lectura" datetime DEFAULT NULL,
+"accion_url" varchar(500) DEFAULT NULL,
+"imagen_url" varchar(500) DEFAULT NULL,
+"created_at" datetime DEFAULT CURRENT_TIMESTAMP,
+PRIMARY KEY ("id"),
+KEY "usuario_id" ("usuario_id"),
+CONSTRAINT "notificaciones_ibfk_1" FOREIGN KEY ("usuario_id") REFERENCES "usuarios" ("id")
+);
+
+-- budgetmap.config_alertas definition
+
+CREATE TABLE "config_alertas" (
+  "id" bigint NOT NULL AUTO_INCREMENT,
+"usuario_id" bigint NOT NULL,
+"radio_metros" int DEFAULT '500',
+"notificar_promociones" tinyint(1) DEFAULT '1',
+"notificar_eventos" tinyint(1) DEFAULT '1',
+"activo" tinyint(1) DEFAULT '1',
+"updated_at" datetime DEFAULT CURRENT_TIMESTAMP ON
+UPDATE
+    CURRENT_TIMESTAMP,
+    PRIMARY KEY ("id"),
+    UNIQUE KEY "usuario_id" ("usuario_id"),
+    CONSTRAINT "config_alertas_ibfk_1" FOREIGN KEY ("usuario_id") REFERENCES "usuarios" ("id")
+);
