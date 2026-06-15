@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Iniciar Sesión - BudgetMap</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#f97316">
+  <link rel="apple-touch-icon" href="/images/logo.png">
 </head>
 <body class="relative min-h-screen flex items-center justify-center overflow-hidden font-sans">
 
@@ -160,6 +163,13 @@
       setTimeout(() => {
         alertContainer.classList.add('hidden');
       }, 4000);
+    }
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js');
+      });
     }
   </script>
 </body>
