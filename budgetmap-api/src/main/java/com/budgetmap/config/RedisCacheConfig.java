@@ -9,7 +9,7 @@ import org.springframework.data.redis.serializer.RedisSerializationContext;
 import java.time.Duration;
 
 @Configuration
-// @EnableCaching // DESHABILITADO TEMPORALMENTE HASTA QUE SE INSTALE REDIS
+@EnableCaching
 public class RedisCacheConfig {
 
     @Bean
