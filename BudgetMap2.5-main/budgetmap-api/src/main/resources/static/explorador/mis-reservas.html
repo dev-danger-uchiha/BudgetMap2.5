@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mis Entradas | BudgetMap</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    const token = localStorage.getItem('jwt_token');
+    if (!token) window.location.href = '/login.html';
+  </script>
+</head>
+
+<body class="bg-slate-50 font-sans min-h-screen">
+
+  <nav class="bg-gradient-to-r from-orange-500 to-amber-500 p-4 shadow-lg text-white sticky top-0 z-50">
+    <div class="w-full px-6 md:px-10 flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <button onclick="location.href='dashboard.html'"
+          class="font-bold text-xs tracking-widest uppercase hover:text-amber-200 mr-2">⬅ Radar</button>
+        <div
+          class="relative bg-white rounded-full w-12 h-12 md:w-16 md:h-16 shadow-md ring-1 ring-black/5 flex items-center justify-center z-0 hidden sm:flex">
+          <img src="/images/logo.png" alt="Logo BudgetMap"
+            class="absolute w-16 h-16 md:w-24 md:h-24 max-w-none object-contain transform transition duration-500 hover:scale-110 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 drop-shadow-xl" />
+        </div>
+        <span class="font-black tracking-widest text-lg uppercase drop-shadow-md"><a href="/index.html"
+            class="hover:text-emerald-600 transition">BUDGETMAP</a></span>
+      </div>
+      <div class="flex items-center gap-4">
+        <span class="text-xs font-bold uppercase text-orange-100 hidden sm:inline-block">Mis Accesos</span>
+        <button onclick="cerrarSesion()"
+          class="text-[12px] text-white font-bold hover:text-red-200 transition">SALIR</button>
+      </div>
+    </div>
+  </nav>
+
+  <script>
+    function cerrarSesion() {
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = '/login.html';
+    }
+  </script>
+
+  <main class="w-full px-6 md:px-10 px-4 mt-8 pb-12">
+    <div class="flex bg-slate-200 p-1 rounded-2xl mb-4 shadow-inner">
+      <button onclick="cambiarPestana('ACTIVA')" id="btn-activa"
+        class="flex-1 py-3 text-xs font-black uppercase rounded-xl bg-white text-orange-600 shadow-sm transition">Próximos</button>
+      <button onclick="cambiarPestana('HISTORIAL')" id="btn-historial"
+        class="flex-1 py-3 text-xs font-black uppercase text-slate-500 hover:text-slate-800 transition">Historial</button>
+    </div>
+
+    <!-- Filtros -->
+    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 mb-6 flex flex-col md:flex-row gap-4 items-end">
+        <div class="w-full md:w-1/3">
+            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Buscar por nombre</label>
+            <input type="text" id="filtro-nombre" placeholder="Ej: Concierto, Restaurante..." class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-orange-500">
+        </div>
+        <div class="w-full md:w-1/4">
+            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Tipo</label>
+            <select id="filtro-tipo" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-orange-500">
+                <option value="">Todos</option>
+                <option value="EVENTO">Evento</option>
+                <option value="ESTABLECIMIENTO">Establecimiento</option>
+            </select>
+        </div>
+        <div class="w-full md:w-1/4">
+            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Fecha exacta</label>
+            <input type="date" id="filtro-fecha" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-orange-500">
+        </div>
+        <div class="w-full md:w-auto">
+            <button onclick="cargarMisReservas()" class="w-full md:w-auto bg-orange-500 text-white font-black text-[10px] uppercase tracking-widest px-4 py-2.5 rounded-lg hover:bg-orange-600 shadow-md">Aplicar Filtros</button>
+        </div>
+    </div>
+
+    <div id="lista-reservas" class="space-y-6">
+      <p class="text-center text-orange-500 font-bold mt-10 animate-pulse">Sincronizando billetera...</p>
+    </div>
+  </main>
+
+  <script>
+    let estadoActual = 'ACTIVA';
+
+    document.addEventListener("DOMContentLoaded", () => {
+      cargarMisReservas();
+    });
+
+    function cambiarPestana(estado) {
+        estadoActual = estado;
+        if (estado === 'ACTIVA') {
+            document.getElementById('btn-activa').classList.add('bg-white', 'text-orange-600', 'shadow-sm');
+            document.getElementById('btn-activa').classList.remove('text-slate-500');
+            document.getElementById('btn-historial').classList.add('text-slate-500');
+            document.getElementById('btn-historial').classList.remove('bg-white', 'text-orange-600', 'shadow-sm');
+        } else {
+            document.getElementById('btn-historial').classList.add('bg-white', 'text-orange-600', 'shadow-sm');
+            document.getElementById('btn-historial').classList.remove('text-slate-500');
+            document.getElementById('btn-activa').classList.add('text-slate-500');
+            document.getElementById('btn-activa').classList.remove('bg-white', 'text-orange-600', 'shadow-sm');
+        }
+        cargarMisReservas();
+    }
+
+    async function cargarMisReservas() {
+      const filtroNombre = document.getElementById('filtro-nombre').value;
+      const filtroTipo = document.getElementById('filtro-tipo').value;
+      const filtroFecha = document.getElementById('filtro-fecha').value;
+      
+      const contenedor = document.getElementById('lista-reservas');
+      contenedor.innerHTML = '<p class="text-center text-orange-500 font-bold mt-10 animate-pulse">Buscando entradas...</p>';
+
+      try {
+        const params = new URLSearchParams({ size: 100 });
+        if (filtroNombre) params.append('nombre', filtroNombre);
+        if (filtroTipo) params.append('tipo', filtroTipo);
+        if (filtroFecha) params.append('fecha', filtroFecha);
+
+        const response = await fetch(`https://budgetmap-api.onrender.com/api/mis-reservas?${params}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+          const rawReservas = await response.json();
+          const reservas = rawReservas.content || rawReservas || [];
+          let filtradas = reservas.filter(r => estadoActual === 'ACTIVA'
+            ? (r.estado === 'PENDIENTE' || r.estado === 'CONFIRMADA')
+            : (r.estado === 'CANCELADA' || r.estado === 'COMPLETADA' || r.estado === 'NO_ASISTIO')
+          );
+
+          if (filtradas.length === 0) {
+            contenedor.innerHTML = `<p class="text-center text-slate-400 font-bold mt-10">No tienes reservas en esta sección.</p>`;
+            return;
+          }
+
+          contenedor.innerHTML = '';
+          filtradas.forEach(r => {
+            const esActiva = r.estado === 'CONFIRMADA' || r.estado === 'PENDIENTE';
+            const colorEstado = esActiva ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500';
+
+            contenedor.innerHTML += `
+              <div class="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden flex flex-col md:flex-row relative transform transition ${esActiva ? 'hover:-translate-y-1' : 'opacity-70'}">
+                
+                <div class="hidden md:block absolute -left-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-slate-50 rounded-full border border-slate-100"></div>
+                <div class="hidden md:block absolute -right-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-slate-50 rounded-full border border-slate-100"></div>
+
+                <div class="p-6 flex-1 border-b md:border-b-0 md:border-r-2 border-dashed border-slate-200">
+                    <div class="flex justify-between items-start">
+                        <span class="${colorEstado} text-[9px] font-black px-2 py-1 rounded uppercase tracking-widest">${r.estado}</span>
+                        <span class="text-[10px] text-slate-400 font-bold">${new Date(r.fechaReserva).toLocaleDateString()}</span>
+                    </div>
+                    <h3 class="text-2xl font-black text-slate-800 uppercase italic mt-3">${r.establecimientoNombre || r.eventoNombre || 'Reserva'}</h3>
+                    <p class="text-xs text-slate-500 font-bold mt-1">* Ver ubicación en el mapa</p>
+                    <div class="mt-6 flex gap-4">
+                        <div class="bg-slate-50 px-4 py-2 rounded-xl border border-slate-100">
+                            <p class="text-[9px] font-black text-slate-400 uppercase">Boletas</p>
+                            <p class="text-lg font-black text-orange-600">${r.numeroPersonas} Pax</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-6 md:w-56 bg-orange-50 flex flex-col items-center justify-center text-center">
+                    <p class="text-[9px] font-black text-orange-400 uppercase tracking-widest mb-1">CÓDIGO DE ACCESO</p>
+                    <span class="text-2xl font-black text-slate-900 tracking-widest font-mono border-b-2 border-orange-200 pb-1">${r.codigoReserva || 'N/A'}</span>
+                    
+                    ${esActiva ? `
+                    <div class="w-24 h-24 bg-white border border-slate-200 rounded-xl mt-4 flex items-center justify-center shadow-inner overflow-hidden p-1">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${r.codigoReserva}" class="w-full h-full mix-blend-multiply">
+                    </div>
+                    <button onclick="cancelarReserva(${r.id})" class="mt-4 text-[9px] text-red-500 font-bold uppercase underline">Cancelar Reserva</button>
+                    ` : ''}
+                </div>
+              </div>
+            `;
+          });
+        }
+      } catch (error) {
+        contenedor.innerHTML = '<p class="text-center text-red-500 font-bold mt-10">Error de conexión con la billetera.</p>';
+      }
+    }
+
+    async function cancelarReserva(id) {
+      if (!confirm("�Est�s seguro de que deseas cancelar tu asistencia? Esta acción no se puede deshacer.")) return;
+
+      try {
+        const response = await fetch(`https://budgetmap-api.onrender.com/api/reservas/${id}/cancelar`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ motivo: "Cancelado por el explorador" })
+        });
+        if (response.ok) {
+          alert("Reserva cancelada exitosamente.");
+          cargarMisReservas();
+        } else { alert("No se pudo cancelar la reserva en el servidor."); }
+      } catch (error) { alert("Error de conexión al intentar cancelar."); }
+    }
+  </script>
+  <script>
+    async function checkNotificacionesBadge() {
+      try {
+        const res = await fetch('https://budgetmap-api.onrender.com/api/notificaciones/contador', { headers: { 'Authorization': 'Bearer ' + token } });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.noLeidas > 0) {
+            document.getElementById('notif-badge')?.classList.remove('hidden');
+          }
+        }
+      } catch (e) { }
+    }
+    checkNotificacionesBadge();
+  </script>
+</body>
+
+</html>

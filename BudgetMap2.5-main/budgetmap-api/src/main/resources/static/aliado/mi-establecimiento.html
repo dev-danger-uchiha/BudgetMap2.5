@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Local - BudgetMap</title>
+    <script src="https://cdn.tailwindcss.com">
+        function cerrarSesion() {
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = '/login.html';
+        }
+    </script>
+    <script>
+        const token = localStorage.getItem('jwt_token');
+        if (!token || localStorage.getItem('user_rol') !== 'LOCAL_ALIADO') window.location.href = '/login.html';
+
+        function cerrarSesion() {
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = '/login.html';
+        }
+    </script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+
+<body class="bg-slate-50 h-screen overflow-hidden text-slate-800 font-sans flex flex-col">
+
+    <nav class="bg-white border-b border-emerald-100 p-4 sticky top-0 z-50 shadow-sm">
+        <div class="w-full px-4 md:px-10 flex flex-col md:flex-row justify-between items-center gap-4 md:gap-0">
+            <div class="flex items-center gap-2 md:gap-4 w-full md:w-auto justify-between md:justify-start">
+                <div class="flex items-center gap-2 md:gap-4">
+                    <div class="relative bg-white rounded-full w-12 h-12 md:w-16 md:h-16 shadow-md ring-1 ring-black/5 flex items-center justify-center z-0 hidden sm:flex">
+                        <img src="/images/logo.png" alt="Logo BudgetMap" class="absolute w-16 h-16 md:w-24 md:h-24 max-w-none object-contain transform transition duration-500 hover:scale-110 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 drop-shadow-xl" />
+                    </div>
+                    <span class="text-xl font-black tracking-widest drop-shadow-md mx-2"><a href="/index.html" class="hover:text-emerald-600 transition">BUDGETMAP</a></span>
+                    <span class="bg-emerald-600 text-white px-3 py-1 rounded-full font-black text-[10px] uppercase tracking-tighter">ALIADO</span>
+                    <h1 class="font-black tracking-widest text-emerald-900 uppercase hidden sm:block">PANEL DE GESTIÓN</h1>
+                </div>
+                <button onclick="cerrarSesion()" class="text-[10px] font-bold text-red-500 hover:text-red-700 md:hidden bg-red-50 px-3 py-1.5 rounded-lg border border-red-100">SALIR</button>
+            </div>
+
+            <div class="flex gap-4 md:gap-6 text-[10px] md:text-xs font-bold uppercase tracking-widest overflow-x-auto whitespace-nowrap w-full md:w-auto pb-2 md:pb-0 no-scrollbar" style="-ms-overflow-style:none; scrollbar-width:none;">
+                <style> .no-scrollbar::-webkit-scrollbar { display: none; } </style>
+                <a href="/aliado/dashboard.html" class="text-slate-400 hover:text-emerald-600 transition">Resumen</a>
+                <a href="/aliado/mi-establecimiento.html" class="text-emerald-600 border-b-2 border-emerald-600 pb-1">Mi Local</a>
+                <a href="/aliado/promociones.html" class="text-slate-400 hover:text-emerald-600 transition">Promociones</a>
+            </div>
+
+            <button onclick="cerrarSesion()" class="text-[12px] text-slate-400 font-bold hover:text-red-500 transition hidden md:block">SALIR</button>
+        </div>
+    </nav>
+
+    <main class="flex-1 w-full px-4 md:px-8 py-4 md:py-6 grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6 min-h-0">
+
+        <div class="lg:col-span-3 flex flex-col gap-4 shrink-0 h-full min-h-0">
+            <div
+                class="bg-emerald-900 p-4 rounded-xl text-white shadow-md relative overflow-hidden flex flex-col sm:flex-row lg:flex-col justify-between items-start sm:items-center lg:items-start gap-3">
+                <div>
+                    <h3 class="font-black text-emerald-300 uppercase tracking-widest text-[9px] mb-1.5">Estado actual
+                    </h3>
+                    <div id="badge-estado"
+                        class="inline-block px-3 py-1 rounded bg-emerald-800 font-black text-[10px] shadow-inner tracking-widest uppercase">
+                        CARGANDO...</div>
+                </div>
+                <p class="text-[9px] text-emerald-100/70 leading-tight m-0 max-w-sm">
+                    La moderación de datos puede tardar hasta 24h.
+                </p>
+            </div>
+
+            <!-- Nueva Tarjeta Independiente para el Mapa -->
+            <div
+                class="bg-white p-4 rounded-xl border border-emerald-100 shadow-sm flex flex-col flex-1 min-h-[300px] z-10">
+                <h3 class="font-black text-slate-800 uppercase tracking-tighter mb-1 text-xs">Ubicación en el Mapa</h3>
+                <p class="text-[9px] text-slate-400 mb-3 leading-tight">* Arrastra el pin azul para ajustar con
+                    precisión.</p>
+                <div id="map" class="w-full flex-1 bg-slate-200 rounded-lg shadow-inner z-0"></div>
+            </div>
+        </div>
+
+        <div
+            class="lg:col-span-9 bg-white p-5 md:p-6 rounded-2xl border border-emerald-100 shadow-sm flex flex-col min-h-0 overflow-y-auto">
+            <h3
+                class="text-xl font-black text-slate-900 uppercase tracking-tighter mb-4 border-b border-emerald-50 pb-3 shrink-0">
+                Ficha Técnica del Negocio</h3>
+
+            <form id="establecimientoForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input type="hidden" id="est-id">
+                <input type="hidden" id="latitud">
+                <input type="hidden" id="longitud">
+                <input type="hidden" id="rutPdfUrl">
+
+                <!-- SECCIÓN: Previsualización de Imagen -->
+                <div class="md:col-span-2 flex flex-col items-center mb-4">
+                    <div
+                        class="w-full h-40 bg-slate-100 border-2 border-dashed border-slate-300 rounded-xl flex items-center justify-center overflow-hidden relative group shrink-0">
+                        <img id="img-preview" src="" class="w-full h-full object-cover hidden"
+                            alt="Previsualización del local">
+                        <span id="img-placeholder"
+                            class="text-slate-400 text-sm font-bold uppercase tracking-widest text-center px-4">??
+                            Previsualización de Imagen</span>
+                    </div>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">URL de la Imagen
+                        Promocional</label>
+                    <input type="url" id="imagenUrl" placeholder="https://..."
+                        class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-emerald-500 focus:bg-white transition-colors">
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nombre
+                        Comercial</label>
+                    <input type="text" id="nombre" required
+                        class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-emerald-500 focus:bg-white transition-colors">
+                </div>
+
+                <div class="md:col-span-2 p-4 bg-emerald-50 border border-emerald-100 rounded-xl">
+                    <label class="text-[10px] font-bold text-slate-700 uppercase tracking-widest block mb-2">Archivo RUT
+                        (PDF)</label>
+                    <div class="flex items-center gap-3">
+                        <input type="file" id="rutFile" accept="application/pdf"
+                            class="text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-black file:uppercase file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 transition-all cursor-pointer">
+                        <button type="button" onclick="subirRUT()" id="btn-subir-rut"
+                            class="bg-emerald-200 text-emerald-800 px-3 py-2 rounded-lg text-[10px] font-black uppercase hover:bg-emerald-300 transition-colors hidden">Subir
+                            Archivo</button>
+                    </div>
+                    <div id="rut-info" class="mt-2 text-xs font-bold text-slate-500 hidden flex items-center gap-2">
+                        Archivo cargado: <a id="rut-link" href="#" target="_blank" class="text-blue-600 underline">Ver
+                            Documento</a>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">NIT</label>
+                    <input type="text" id="nit" required
+                        class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-emerald-500 focus:bg-white transition-colors">
+                </div>
+
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Categoría</label>
+                    <select id="categoria" required
+                        class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-emerald-500 focus:bg-white transition-colors">
+                        <option value="RESTAURANTE">Restaurante</option>
+                        <option value="BAR">Bar / Discoteca</option>
+                        <option value="PANADERIA">Panadería / Café</option>
+                        <option value="OTRO">Otro</option>
+                    </select>
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Dirección
+                        Física</label>
+                    <div class="flex gap-2 mt-1 shrink-0">
+                        <input type="text" id="direccion" placeholder="Ingresa tu dirección y presiona Buscar..."
+                            required
+                            class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-emerald-500 focus:bg-white transition-colors">
+                        <button type="button" onclick="buscarDireccion()"
+                            class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-[10px] font-black uppercase hover:bg-slate-300 transition-colors">Buscar</button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Aforo Máximo</label>
+                    <input type="number" id="aforoMaximo" required
+                        class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-emerald-500 focus:bg-white transition-colors">
+                </div>
+
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Teléfono</label>
+                    <input type="text" id="telefono" required
+                        class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-emerald-500 focus:bg-white transition-colors">
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Descripción</label>
+                    <textarea id="descripcion" rows="2"
+                        class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-emerald-500 focus:bg-white transition-colors resize-none shrink-0"></textarea>
+                </div>
+
+                <div class="flex items-center justify-between bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <div>
+                        <h4 class="font-bold text-slate-800 text-sm">Aceptar Reservas a través de BudgetMap</h4>
+                        <p class="text-xs text-slate-500">Permite que los usuarios reserven boletos o aparten aforo
+                            desde la aplicación.</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="est-reservas" class="sr-only peer" checked>
+                        <div
+                            class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500">
+                        </div>
+                    </label>
+                </div>
+                <button type="submit" id="btn-guardar"
+                    class="md:col-span-2 mt-2 bg-emerald-600 text-white font-black py-3.5 rounded-xl text-[10px] uppercase tracking-widest hover:bg-emerald-700 shadow-md transition-all shrink-0">
+                    Guardar Información
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+        function cerrarSesion() {
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = '/login.html';
+        }
+    </script>
+    <script>
+        let map, marker;
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            inicializarMapa(); // Inicializamos el mapa antes de cargar los datos
+
+            try {
+                const res = await fetch('https://budgetmap-api.onrender.com/api/establecimientos/mi-establecimiento', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const est = await res.json();
+                    document.getElementById('est-id').value = est.id;
+                    document.getElementById('nombre').value = est.nombre;
+                    document.getElementById('nit').value = est.nit;
+                    document.getElementById('categoria').value = est.categoria;
+                    document.getElementById('direccion').value = est.direccion;
+                    document.getElementById('latitud').value = est.latitud;
+                    document.getElementById('longitud').value = est.longitud;
+                    document.getElementById('aforoMaximo').value = est.aforoMaximo;
+                    document.getElementById('telefono').value = est.telefono;
+                    document.getElementById('descripcion').value = est.descripcion;
+                    document.getElementById('imagenUrl').value = est.imagenUrl || '';
+                    document.getElementById('rutPdfUrl').value = est.rutPdfUrl || '';
+                    document.getElementById('est-reservas').checked = est.reservasHabilitadas === true;
+
+                    if (est.rutPdfUrl) {
+                        const infoDiv = document.getElementById('rut-info');
+                        const link = document.getElementById('rut-link');
+                        infoDiv.classList.remove('hidden');
+                        link.href = est.rutPdfUrl;
+                    }
+
+                    actualizarPreviewImagen(est.imagenUrl);
+
+                    // Si ya tiene coordenadas, actualizar el mapa
+                    if (est.latitud && est.longitud && map) {
+                        const pos = [est.latitud, est.longitud];
+                        map.setView(pos, 17);
+                        marker.setLatLng(pos);
+                    }
+
+                    const badge = document.getElementById('badge-estado');
+                    badge.innerText = est.estado;
+                    if (est.estado === 'APROBADO') badge.className = 'inline-block px-3 py-1 rounded bg-lime-400 text-emerald-900 font-black text-[10px] shadow-md tracking-widest uppercase';
+                    if (est.estado === 'RECHAZADO') badge.className = 'inline-block px-3 py-1 rounded bg-red-500 text-white font-black text-[10px] shadow-md tracking-widest uppercase';
+                }
+            } catch (e) { console.warn("Nuevo establecimiento. Por favor, llena los datos."); }
+        });
+
+        // --- 1. Lógica de Previsualización de Imagen ---
+        const urlInput = document.getElementById('imagenUrl');
+        const imgPreview = document.getElementById('img-preview');
+        const imgPlaceholder = document.getElementById('img-placeholder');
+
+        function actualizarPreviewImagen(url) {
+            if (url && url.startsWith('http')) {
+                imgPreview.src = url;
+                imgPreview.classList.remove('hidden');
+                imgPlaceholder.classList.add('hidden');
+            } else {
+                imgPreview.classList.add('hidden');
+                imgPlaceholder.classList.remove('hidden');
+            }
+        }
+        urlInput.addEventListener('input', (e) => actualizarPreviewImagen(e.target.value));
+
+        // --- Lógica de Subida de RUT ---
+        const rutFileInput = document.getElementById('rutFile');
+        const btnSubirRut = document.getElementById('btn-subir-rut');
+
+        rutFileInput.addEventListener('change', () => {
+            if (rutFileInput.files.length > 0) {
+                btnSubirRut.classList.remove('hidden');
+            } else {
+                btnSubirRut.classList.add('hidden');
+            }
+        });
+
+        async function subirRUT() {
+            if (rutFileInput.files.length === 0) return;
+
+            btnSubirRut.innerText = 'SUBIENDO...';
+            btnSubirRut.disabled = true;
+
+            const file = rutFileInput.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const res = await fetch('https://budgetmap-api.onrender.com/api/upload', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById('rutPdfUrl').value = data.url;
+
+                    const infoDiv = document.getElementById('rut-info');
+                    const link = document.getElementById('rut-link');
+                    infoDiv.classList.remove('hidden');
+                    link.href = data.url;
+
+                    alert("�RUT subido exitosamente! No olvides 'Guardar Información' para aplicar los cambios.");
+                    btnSubirRut.classList.add('hidden');
+                } else {
+                    alert("Error al subir el archivo.");
+                }
+            } catch (e) {
+                alert("Error de conexión al subir el archivo.");
+            } finally {
+                btnSubirRut.innerText = 'Subir Archivo';
+                btnSubirRut.disabled = false;
+            }
+        }
+
+        // --- 2. Integración Leaflet y OpenStreetMap (Nominatim) ---
+        function inicializarMapa() {
+            // Centro por defecto (Ej: Bogotá, Colombia)
+            const defaultCenter = [4.6097, -74.0817];
+
+            map = L.map('map').setView(defaultCenter, 13);
+
+            // Usamos la misma capa de diseño limpio (CartoDB) que en tu Dashboard
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            marker = L.marker(defaultCenter, { draggable: true }).addTo(map);
+
+            // Evento: Al arrastrar el pin manualmente, actualizar lat/lng ocultos y la dirección
+            marker.on('dragend', async function () {
+                const pos = marker.getLatLng();
+                document.getElementById('latitud').value = pos.lat.toFixed(6);
+                document.getElementById('longitud').value = pos.lng.toFixed(6);
+
+                try {
+                    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${pos.lat}&lon=${pos.lng}`;
+                    const response = await fetch(url);
+                    const data = await response.json();
+                    if (data && data.display_name) {
+                        document.getElementById('direccion').value = data.display_name;
+                    }
+                } catch (e) {
+                    console.error("Error al obtener la dirección por coordenadas", e);
+                }
+            });
+        }
+
+        async function buscarDireccion() {
+            const direccion = document.getElementById('direccion').value;
+            if (!direccion) return;
+
+            const btn = document.querySelector('button[onclick="buscarDireccion()"]');
+            const textoOriginal = btn.innerText;
+            btn.innerText = '?';
+
+            try {
+                const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(direccion)}`;
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data && data.length > 0) {
+                    const lat = parseFloat(data[0].lat);
+                    const lon = parseFloat(data[0].lon);
+
+                    map.setView([lat, lon], 17);
+                    marker.setLatLng([lat, lon]);
+
+                    document.getElementById('latitud').value = lat.toFixed(6);
+                    document.getElementById('longitud').value = lon.toFixed(6);
+                } else {
+                    alert("No se encontró la dirección. Intenta agregar la ciudad, ej: 'Cra 15 #93, Bogotá'");
+                }
+            } catch (e) {
+                alert("Error al conectar con el servicio de búsqueda.");
+            } finally {
+                btn.innerText = textoOriginal;
+            }
+        }
+
+        document.getElementById('establecimientoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Validación de Integridad de Datos Espaciales
+            const lat = parseFloat(document.getElementById('latitud').value);
+            const lng = parseFloat(document.getElementById('longitud').value);
+            if (isNaN(lat) || isNaN(lng)) {
+                return alert("Coordenadas no detectadas. Por favor, selecciona una direcci�n válida en el mapa.");
+            }
+
+            const btn = document.getElementById('btn-guardar');
+            btn.innerText = 'GUARDANDO...'; btn.disabled = true;
+
+            const id = document.getElementById('est-id').value;
+            const payload = {
+                nombre: document.getElementById('nombre').value,
+                nit: document.getElementById('nit').value,
+                categoria: document.getElementById('categoria').value,
+                direccion: document.getElementById('direccion').value,
+                latitud: parseFloat(document.getElementById('latitud').value),
+                longitud: parseFloat(document.getElementById('longitud').value),
+                aforoMaximo: parseInt(document.getElementById('aforoMaximo').value),
+                telefono: document.getElementById('telefono').value,
+                descripcion: document.getElementById('descripcion').value,
+                imagenUrl: document.getElementById('imagenUrl').value,
+                rutPdfUrl: document.getElementById('rutPdfUrl').value,
+                reservasHabilitadas: document.getElementById('est-reservas').checked
+            };
+
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `https://budgetmap-api.onrender.com/api/establecimientos/${id}` : `https://budgetmap-api.onrender.com/api/establecimientos`;
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (response.ok) {
+                    alert("¡Información guardada exitosamente!");
+                    location.reload();
+                } else { alert("Error al guardar. Verifica los datos."); }
+            } catch (err) { alert("Error de red."); }
+            finally { btn.innerText = 'GUARDAR INFORMACIÓN'; btn.disabled = false; }
+        });
+
+        function cerrarSesion() {
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = '/login.html';
+        }
+    </script>
+</body>
+
+</html>
