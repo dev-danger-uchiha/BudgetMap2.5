@@ -232,8 +232,26 @@
           }
       } catch(e) { console.error("Error al cargar datos del usuario"); }
 
-      iniciarMapa();
-      cargarRadar();
+      const inicializarConMapa = () => {
+          iniciarMapa();
+          cargarRadar();
+      };
+
+      if ("geolocation" in navigator) {
+          navigator.geolocation.getCurrentPosition(
+              (position) => {
+                  userLocation = L.latLng(position.coords.latitude, position.coords.longitude);
+                  inicializarConMapa();
+              },
+              (error) => {
+                  console.warn("Geolocalización denegada o fallida, usando Bogotá por defecto.", error);
+                  inicializarConMapa();
+              },
+              { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+          );
+      } else {
+          inicializarConMapa();
+      }
     });
 
     function iniciarMapa() {
