@@ -190,11 +190,11 @@ public class GlobalExceptionHandler {
         }
         
         @ExceptionHandler(Exception.class)
-        public ResponseEntity<?> handleAllExceptions(Exception ex, WebRequest request) {
+        public ResponseEntity<?> handleAllExceptions(Exception ex, WebRequest request) throws Exception {
                 String path = request.getDescription(false).replace("uri=", "");
 
                 if (!path.startsWith("/api")) {
-                        return null;
+                        throw ex;
                 }
 
                 log.error("Error interno no esperado en {}: {}", path, ex.getMessage(), ex);
