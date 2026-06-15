@@ -66,11 +66,12 @@
   <div class="flex flex-col lg:flex-row flex-1 h-full relative overflow-y-auto lg:overflow-hidden">
     
     <!-- PANEL IZQUIERDO: LUGARES -->
-    <div class="w-full lg:w-60 shrink-0 h-[45vh] lg:h-full bg-slate-900/95 backdrop-blur shadow-xl border-b lg:border-b-0 lg:border-r border-slate-700 flex flex-col z-10 order-2 lg:order-1">
-      <div class="p-4 border-b border-slate-800 flex justify-between items-center">
+    <div class="w-full lg:w-60 shrink-0 h-auto lg:h-full bg-slate-900/95 backdrop-blur shadow-xl border-b lg:border-b-0 lg:border-r border-slate-700 flex flex-col z-10 order-2 lg:order-1">
+      <div class="p-4 border-b border-slate-800 flex justify-between items-center cursor-pointer lg:cursor-default" onclick="togglePanel('lista-lugares', 'icono-lugares')">
         <h2 class="text-white font-black text-sm uppercase tracking-widest flex items-center gap-2">📍 Lugares Públicos</h2>
+        <span id="icono-lugares" class="text-white lg:hidden transform transition-transform duration-300">▼</span>
       </div>
-      <div id="lista-lugares" class="flex-1 overflow-y-auto p-4 space-y-4 custom-scroll">
+      <div id="lista-lugares" class="hidden lg:block flex-1 overflow-y-auto p-4 space-y-4 custom-scroll max-h-[45vh] lg:max-h-full">
          <p class="text-xs text-slate-500 text-center mt-10">Cargando lugares...</p>
       </div>
     </div>
@@ -83,40 +84,45 @@
           <!-- MAPA -->
           <div id="mapa-radar" class="absolute inset-0 z-0"></div>
           
-          <!-- CONTROLES DE FILTRO FLOTANTES -->
-          <div class="absolute top-4 right-4 z-[1000] bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-slate-200 flex flex-col gap-3 min-w-[220px]">
-             <h3 class="text-[10px] font-black uppercase text-slate-800 tracking-widest flex justify-between items-center mb-1">
-                Filtros
-             </h3>
-             <label class="flex items-center gap-2 cursor-pointer group mt-1">
-                 <input type="checkbox" id="filter-destacados" class="w-4 h-4 rounded text-orange-500 focus:ring-orange-500 cursor-pointer" onchange="aplicarFiltros()">
-                 <span class="text-xs font-bold text-slate-700 group-hover:text-orange-600 transition">⭐ Solo Destacados</span>
-             </label>
-             <div class="mt-1">
-                 <input type="text" id="filter-nombre" placeholder="🔍 Buscar por nombre..." 
-                        class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 bg-white" 
-                        onkeyup="aplicarFiltros()">
+          <!-- CONTROLES DE FILTRO FLOTANTES DESPLEGABLES -->
+          <div class="absolute top-4 right-4 z-[1000] bg-white/95 backdrop-blur-md p-3 rounded-2xl shadow-xl border border-slate-200 flex flex-col min-w-[200px] max-w-[250px] transition-all duration-300">
+             <button onclick="toggleFiltros()" class="w-full text-[10px] font-black uppercase text-slate-800 tracking-widest flex justify-between items-center hover:text-orange-500 transition outline-none">
+                <span class="flex items-center gap-1">🔍 Filtros</span>
+                <span id="filtro-chevron" class="transform transition-transform duration-300">▼</span>
+             </button>
+             <div id="filtros-content" class="hidden flex-col gap-3 mt-3 pt-3 border-t border-slate-200">
+                 <label class="flex items-center gap-2 cursor-pointer group">
+                     <input type="checkbox" id="filter-destacados" class="w-4 h-4 rounded text-orange-500 focus:ring-orange-500 cursor-pointer" onchange="aplicarFiltros()">
+                     <span class="text-xs font-bold text-slate-700 group-hover:text-orange-600 transition">⭐ Solo Destacados</span>
+                 </label>
+                 <div>
+                     <input type="text" id="filter-nombre" placeholder="Buscar por nombre..." 
+                            class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 bg-white" 
+                            onkeyup="aplicarFiltros()">
+                 </div>
              </div>
           </div>
       </div>
       
       <!-- PANEL INFERIOR: EVENTOS -->
-      <div class="h-48 shrink-0 bg-slate-900/95 backdrop-blur shadow-[0_-10px_20px_rgba(0,0,0,0.5)] border-t border-slate-700 flex flex-col z-10 relative">
-        <div class="p-3 border-b border-slate-800 flex justify-between items-center">
+      <div class="h-auto lg:h-48 shrink-0 bg-slate-900/95 backdrop-blur shadow-[0_-10px_20px_rgba(0,0,0,0.5)] border-t border-slate-700 flex flex-col z-10 relative">
+        <div class="p-3 border-b border-slate-800 flex justify-between items-center cursor-pointer lg:cursor-default" onclick="togglePanel('lista-eventos', 'icono-eventos')">
           <h2 class="text-white font-black text-sm uppercase tracking-widest flex items-center gap-2">🎟️ Eventos</h2>
+          <span id="icono-eventos" class="text-white lg:hidden transform transition-transform duration-300">▼</span>
         </div>
-        <div id="lista-eventos" class="flex flex-1 overflow-x-auto p-4 gap-4 custom-scroll pb-6">
+        <div id="lista-eventos" class="hidden lg:flex flex-1 overflow-x-auto p-4 gap-4 custom-scroll pb-6 max-h-[30vh] lg:max-h-full">
            <p class="text-xs text-slate-500 w-full text-center">Cargando eventos...</p>
         </div>
       </div>
     </div>
 
     <!-- PANEL DERECHO: ESTABLECIMIENTOS -->
-    <div class="w-full lg:w-60 shrink-0 h-[45vh] lg:h-full bg-slate-900/95 backdrop-blur shadow-[-10px_0_20px_rgba(0,0,0,0.5)] border-t lg:border-t-0 lg:border-l border-slate-700 flex flex-col z-10 order-3">
-      <div class="p-4 border-b border-slate-800 flex justify-between items-center">
+    <div class="w-full lg:w-60 shrink-0 h-auto lg:h-full bg-slate-900/95 backdrop-blur shadow-[-10px_0_20px_rgba(0,0,0,0.5)] border-t lg:border-t-0 lg:border-l border-slate-700 flex flex-col z-10 order-3">
+      <div class="p-4 border-b border-slate-800 flex justify-between items-center cursor-pointer lg:cursor-default" onclick="togglePanel('lista-establecimientos', 'icono-est')">
         <h2 class="text-white font-black text-sm uppercase tracking-widest flex items-center gap-2">🍔 Establecimientos</h2>
+        <span id="icono-est" class="text-white lg:hidden transform transition-transform duration-300">▼</span>
       </div>
-      <div id="lista-establecimientos" class="flex-1 overflow-y-auto p-4 space-y-4 custom-scroll">
+      <div id="lista-establecimientos" class="hidden lg:block flex-1 overflow-y-auto p-4 space-y-4 custom-scroll max-h-[45vh] lg:max-h-full">
          <p class="text-xs text-slate-500 text-center mt-10">Cargando establecimientos...</p>
       </div>
     </div>
@@ -196,6 +202,40 @@
     function toggleMenu(event) {
         event.stopPropagation();
         document.getElementById('profile-menu').classList.toggle('hidden');
+    }
+
+    function togglePanel(contentId, iconId) {
+        if (window.innerWidth >= 1024) return; // lg breakpoint in tailwind
+        const content = document.getElementById(contentId);
+        const icon = document.getElementById(iconId);
+        
+        if (content.classList.contains('hidden')) {
+            content.classList.remove('hidden');
+            if (contentId === 'lista-eventos') {
+               content.classList.add('flex');
+            } else {
+               content.classList.add('block');
+            }
+            icon.style.transform = 'rotate(180deg)';
+        } else {
+            content.classList.add('hidden');
+            content.classList.remove('flex', 'block');
+            icon.style.transform = 'rotate(0deg)';
+        }
+    }
+
+    function toggleFiltros() {
+        const content = document.getElementById('filtros-content');
+        const chevron = document.getElementById('filtro-chevron');
+        if (content.classList.contains('hidden')) {
+            content.classList.remove('hidden');
+            content.classList.add('flex');
+            chevron.style.transform = 'rotate(180deg)';
+        } else {
+            content.classList.add('hidden');
+            content.classList.remove('flex');
+            chevron.style.transform = 'rotate(0deg)';
+        }
     }
 
     document.addEventListener('click', (event) => {

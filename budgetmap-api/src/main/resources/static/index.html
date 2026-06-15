@@ -379,6 +379,13 @@
 
     // Funciones del Modal
     function abrirModalDestacado(index, tipo) {
+      const token = localStorage.getItem("jwt_token");
+      if (!token) {
+          alert("Para ver los detalles completos y asistir, debes iniciar sesión.");
+          window.location.href = "/login.html";
+          return;
+      }
+
       const item = window.datosDestacados[index];
       const modal = document.getElementById('modal-destacado');
       const content = document.getElementById('modal-destacado-content');
