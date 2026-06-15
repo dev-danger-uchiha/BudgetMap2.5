@@ -1,20 +1,35 @@
-Flask==3.0.2
-Flask-SQLAlchemy==3.1.1
-Flask-CORS==4.0.0
-Flask-Migrate==4.0.5
-PyMySQL==1.1.0
-cryptography
-Shapely
-GeoAlchemy2==0.14.2
-SQLAlchemy==2.0.23
-gunicorn==21.2.0
-requests==2.31.0
-numpy
-pandas
-fpdf==1.7.2
-python-dotenv==1.0.1
-PyJWT==2.8.0
-Flask-Limiter 
-redis
+# FRAMEWORK principal
+Flask==3.0.2                # Framework web principal del microservicio geo
+Flask-CORS==4.0.0           # Permite peticiones cross-origin desde Spring Boot
+
+# BASE DE datos
+Flask-SQLAlchemy==3.1.1     # Integra SQLAlchemy con Flask (ORM)
+Flask-Migrate==4.0.5        # Maneja migraciones del esquema de base de datos
+SQLAlchemy==2.0.50          # ORM principal: modelos Python en vez de SQL puro
+PyMySQL==1.1.0              # Driver de conexión a MySQL (Aiven)
+cryptography                # Cifrado SSL requerido por PyMySQL para Aiven
+
+# GEOLOCALIZACIÓN
+Shapely                     # Manejo de geometrías espaciales (puntos, polígonos)
+GeoAlchemy2==0.14.2         # Extiende SQLAlchemy para tipos POINT/GEOMETRY en MySQL
+
+# SERVIDOR DE producción
+gunicorn==21.2.0            # Servidor WSGI para producción (usado por Render)
+
+# COMUNICACIÓN ENTRE MICROSERVICIOS
+requests==2.31.0            # Peticiones HTTP entre Flask y Spring Boot
+
+# REPORTES Y ANALÍTICAS
+numpy                       # Cálculo numérico para analíticas
+pandas                      # Análisis y manipulación de datos para reportes
+fpdf==1.7.2                 # Generación de archivos PDF para exportar reportes
+
+# CONFIGURACIÓN Y SEGURIDAD
+python-dotenv==1.0.1        # Lee variables de entorno desde .env
+PyJWT==2.8.0                # Valida tokens JWT generados por Spring Boot
+
+# RATE LIMITING
+Flask-Limiter               # Limita peticiones por IP para proteger la API
+redis                       # Almacena contadores de rate limiting en memoria
 
 # pip install -r requirements.txt

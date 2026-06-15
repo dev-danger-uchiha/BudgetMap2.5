@@ -117,11 +117,11 @@
         try {
             let url;
             if (tipo === 'establecimiento') {
-                url = `http://localhost:8080/api/establecimientos/${id}`;
+                url = `https://budgetmap-api.onrender.com/api/establecimientos/${id}`;
             } else if (tipo === 'lugar') {
-                url = `http://localhost:8080/api/lugares/${id}`;
+                url = `https://budgetmap-api.onrender.com/api/lugares/${id}`;
             } else {
-                url = `http://localhost:8080/api/eventos/${id}`;
+                url = `https://budgetmap-api.onrender.com/api/eventos/${id}`;
             }
             
             const response = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
@@ -163,7 +163,7 @@
     async function cargarPromos(estId) {
         const contenedor = document.getElementById('contenedor-promos');
         try {
-            const response = await fetch(`http://localhost:8080/api/promociones/establecimiento/${estId}`, {
+            const response = await fetch(`https://budgetmap-api.onrender.com/api/promociones/establecimiento/${estId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (response.ok) {
@@ -216,7 +216,7 @@
         else payload.eventoId = parseInt(id);
 
         try {
-            const res = await fetch(`http://localhost:8080/api/reservas`, {
+            const res = await fetch(`https://budgetmap-api.onrender.com/api/reservas`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)

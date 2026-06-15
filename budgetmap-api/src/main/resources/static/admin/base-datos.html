@@ -226,14 +226,14 @@
             if (currentTab === 'lugares') {
                 thead.innerHTML = '<th class="p-5">Nombre</th><th class="p-5">Categoría</th><th class="p-5">Estado</th><th class="p-5 text-right">Relaciones</th>';
                 const cat = document.getElementById('filtro-categoria').value;
-                url = `http://localhost:8080/api/lugares/admin/paginado?page=${currentPage}&size=${pageSize}`;
+                url = `https://budgetmap-api.onrender.com/api/lugares/admin/paginado?page=${currentPage}&size=${pageSize}`;
                 if(texto) url += `&texto=${encodeURIComponent(texto)}`;
                 if(estado) url += `&estado=${estado}`;
                 if(cat) url += `&categoria=${cat}`;
 
             } else if (currentTab === 'establecimientos') {
                 thead.innerHTML = '<th class="p-5">Nombre</th><th class="p-5">NIT</th><th class="p-5">Estado</th><th class="p-5 text-right">Relaciones</th>';
-                url = `http://localhost:8080/api/establecimientos/admin/paginado?page=${currentPage}&size=${pageSize}`;
+                url = `https://budgetmap-api.onrender.com/api/establecimientos/admin/paginado?page=${currentPage}&size=${pageSize}`;
                 if(texto) url += `&texto=${encodeURIComponent(texto)}`;
                 if(estado) url += `&estado=${estado}`;
 
@@ -241,7 +241,7 @@
                 thead.innerHTML = '<th class="p-5">Nombre</th><th class="p-5">Fecha</th><th class="p-5">Estado</th><th class="p-5 text-right">Relaciones</th>';
                 const fInicio = document.getElementById('filtro-fecha-inicio').value;
                 const fFin = document.getElementById('filtro-fecha-fin').value;
-                url = `http://localhost:8080/api/eventos/admin/paginado?page=${currentPage}&size=${pageSize}`;
+                url = `https://budgetmap-api.onrender.com/api/eventos/admin/paginado?page=${currentPage}&size=${pageSize}`;
                 if(texto) url += `&texto=${encodeURIComponent(texto)}`;
                 if(estado) url += `&estado=${estado}`;
                 if(fInicio) url += `&fechaInicio=${fInicio}`;
@@ -331,7 +331,7 @@
         async function verEventosLugar(lugarId, nombre) {
             abrirModal(`Eventos en: ${nombre}`);
             try {
-                const res = await fetch(`http://localhost:8080/api/eventos/lugar/${lugarId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const res = await fetch(`https://budgetmap-api.onrender.com/api/eventos/lugar/${lugarId}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 const data = await res.json();
                 if(data.length === 0) { document.getElementById('modal-contenido').innerHTML = '<p class="text-slate-400 font-bold p-6 text-center">No hay eventos asociados a este lugar.</p>'; return; }
                 let html = '<ul class="divide-y divide-emerald-50">';
@@ -346,7 +346,7 @@
         async function verPromocionesEstablecimiento(estId, nombre) {
             abrirModal(`Promociones: ${nombre}`);
             try {
-                const res = await fetch(`http://localhost:8080/api/promociones/establecimiento/${estId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const res = await fetch(`https://budgetmap-api.onrender.com/api/promociones/establecimiento/${estId}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if (!res.ok) {
                     const text = await res.text();
                     throw new Error("HTTP " + res.status + " " + text);
@@ -371,7 +371,7 @@
         async function verReservasEstablecimiento(estId, nombre) {
             abrirModal(`Reservas: ${nombre}`);
             try {
-                const res = await fetch(`http://localhost:8080/api/reservas`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const res = await fetch(`https://budgetmap-api.onrender.com/api/reservas`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if (!res.ok) throw new Error("Error");
                 const allReservasRaw = await res.json();
                 const allReservas = allReservasRaw.content || allReservasRaw || [];
@@ -390,7 +390,7 @@
         async function verReservasEvento(eventoId, nombre) {
             abrirModal(`Reservas: ${nombre}`);
             try {
-                const res = await fetch(`http://localhost:8080/api/reservas`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const res = await fetch(`https://budgetmap-api.onrender.com/api/reservas`, { headers: { 'Authorization': `Bearer ${token}` } });
                 const allReservasRaw = await res.json();
                 const allReservas = allReservasRaw.content || allReservasRaw || [];
                 const data = allReservas.filter(r => r.eventoId === eventoId);

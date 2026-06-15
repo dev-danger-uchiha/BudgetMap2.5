@@ -94,7 +94,7 @@ cd budgetmap-api
 mvn clean install -U
 mvn spring-boot:run
 ```
-> La API y el Portal Web estarán disponibles en: **http://localhost:8080/**
+> La API y el Portal Web estarán disponibles en: **https://budgetmap-api.onrender.com/**
 
 ### 3. Levantar Microservicio Geo (Python)
 Requiere Python 3.9+ instalado:

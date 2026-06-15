@@ -116,7 +116,7 @@
         if (filtroTipo) params.append('tipo', filtroTipo);
         if (filtroFecha) params.append('fecha', filtroFecha);
 
-        const response = await fetch(`http://localhost:8080/api/mis-reservas?${params}`, {
+        const response = await fetch(`https://budgetmap-api.onrender.com/api/mis-reservas?${params}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
 
@@ -183,7 +183,7 @@
       if (!confirm("�Est�s seguro de que deseas cancelar tu asistencia? Esta acción no se puede deshacer.")) return;
 
       try {
-        const response = await fetch(`http://localhost:8080/api/reservas/${id}/cancelar`, {
+        const response = await fetch(`https://budgetmap-api.onrender.com/api/reservas/${id}/cancelar`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -201,7 +201,7 @@
   <script>
     async function checkNotificacionesBadge() {
       try {
-        const res = await fetch('http://localhost:8080/api/notificaciones/contador', { headers: { 'Authorization': 'Bearer ' + token } });
+        const res = await fetch('https://budgetmap-api.onrender.com/api/notificaciones/contador', { headers: { 'Authorization': 'Bearer ' + token } });
         if (res.ok) {
           const data = await res.json();
           if (data.noLeidas > 0) {

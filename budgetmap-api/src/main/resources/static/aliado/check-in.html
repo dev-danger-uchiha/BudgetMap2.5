@@ -50,7 +50,7 @@
         
         try {
             // Llama a tu endpoint de confirmación
-            const res = await fetch(`http://localhost:8080/api/reservas/confirmar/${codigo}`, {
+            const res = await fetch(`https://budgetmap-api.onrender.com/api/reservas/confirmar/${codigo}`, {
                 method: 'PUT',
                 headers: { 'Authorization': `Bearer ${token}` }
             });

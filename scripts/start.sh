@@ -29,8 +29,8 @@ sleep 30
 # Verificar servicios
 echo "🔍 Verificando servicios..."
 
-if curl -s http://localhost:8080/health > /dev/null; then
-    echo "✅ Spring Boot API está corriendo en http://localhost:8080"
+if curl -s https://budgetmap-api.onrender.com/health > /dev/null; then
+    echo "✅ Spring Boot API está corriendo en https://budgetmap-api.onrender.com"
 else
     echo "⚠️  Spring Boot API no responde todavía"
 fi
@@ -45,7 +45,7 @@ echo ""
 echo "🎉 BudgetMap está iniciando!"
 echo ""
 echo "📋 Servicios disponibles:"
-echo "   - Spring Boot API: http://localhost:8080"
+echo "   - Spring Boot API: https://budgetmap-api.onrender.com"
 echo "   - Flask Geo:       http://localhost:5000"
 echo "   - phpMyAdmin:      http://localhost:8081"
 echo ""

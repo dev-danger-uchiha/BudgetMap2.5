@@ -216,7 +216,7 @@
       });
 
       try {
-          const res = await fetch('http://localhost:8080/api/perfil', { headers: { 'Authorization': `Bearer ${token}` }});
+          const res = await fetch('https://budgetmap-api.onrender.com/api/perfil', { headers: { 'Authorization': `Bearer ${token}` }});
           if(res.ok) {
               const user = await res.json();
               document.getElementById('user-points').innerHTML = `🪙 ${user.puntosAcumulados || 0} Puntos`;
@@ -263,10 +263,10 @@
     async function cargarRadar() {
       try {
         const [resLugares, resEst, resEv, resConfig] = await Promise.all([
-            fetch('http://localhost:8080/api/lugares/aprobados', { headers: { 'Authorization': `Bearer ${token}` }}),
-            fetch('http://localhost:8080/api/establecimientos/aprobados', { headers: { 'Authorization': `Bearer ${token}` }}),
-            fetch('http://localhost:8080/api/eventos', { headers: { 'Authorization': `Bearer ${token}` }}),
-            fetch('http://localhost:8080/api/config-alertas/mi-radar', { headers: { 'Authorization': `Bearer ${token}` }})
+            fetch('https://budgetmap-api.onrender.com/api/lugares/aprobados', { headers: { 'Authorization': `Bearer ${token}` }}),
+            fetch('https://budgetmap-api.onrender.com/api/establecimientos/aprobados', { headers: { 'Authorization': `Bearer ${token}` }}),
+            fetch('https://budgetmap-api.onrender.com/api/eventos', { headers: { 'Authorization': `Bearer ${token}` }}),
+            fetch('https://budgetmap-api.onrender.com/api/config-alertas/mi-radar', { headers: { 'Authorization': `Bearer ${token}` }})
         ]);
 
         if (resConfig.ok) {
@@ -369,7 +369,7 @@
 <script>
     async function checkNotificacionesBadge() {
         try {
-            const res = await fetch('http://localhost:8080/api/notificaciones/contador', { headers: { 'Authorization': 'Bearer ' + token } });
+            const res = await fetch('https://budgetmap-api.onrender.com/api/notificaciones/contador', { headers: { 'Authorization': 'Bearer ' + token } });
             if(res.ok) {
                 const data = await res.json();
                 if(data.noLeidas > 0) {

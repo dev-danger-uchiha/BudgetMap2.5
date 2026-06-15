@@ -95,7 +95,7 @@
         // Carga de la información veraz desde la base de datos de producción
         async function cargarDatosDashboard() {
             try {
-                const responseEst = await fetch('http://localhost:8080/api/establecimientos/mi-establecimiento', {
+                const responseEst = await fetch('https://budgetmap-api.onrender.com/api/establecimientos/mi-establecimiento', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
@@ -124,7 +124,7 @@
 
         async function cargarContadorPromos(establecimientoId) {
             try {
-                const res = await fetch(`http://localhost:8080/api/promociones/establecimiento/${establecimientoId}/activas`, {
+                const res = await fetch(`https://budgetmap-api.onrender.com/api/promociones/establecimiento/${establecimientoId}/activas`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
@@ -136,7 +136,7 @@
 
         async function cargarContadorReservas(establecimientoId) {
             try {
-                const res = await fetch(`http://localhost:8080/api/mis-reservas/establecimiento/${establecimientoId}`, {
+                const res = await fetch(`https://budgetmap-api.onrender.com/api/mis-reservas/establecimiento/${establecimientoId}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {

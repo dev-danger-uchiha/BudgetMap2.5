@@ -169,7 +169,7 @@
                 if (filtroEstado) params.append('estado', filtroEstado);
                 if (filtroTitulo) params.append('titulo', filtroTitulo);
 
-                const res = await fetch(`http://localhost:8080/api/promociones/mis-promociones?${params}`, {
+                const res = await fetch(`https://budgetmap-api.onrender.com/api/promociones/mis-promociones?${params}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
@@ -245,7 +245,7 @@
                 fechaFin: document.getElementById('fecha-fin').value
             };
             try {
-                const res = await fetch('http://localhost:8080/api/promociones', {
+                const res = await fetch('https://budgetmap-api.onrender.com/api/promociones', {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -260,7 +260,7 @@
 
         async function eliminarPromo(id) {
             if (!confirm("¿Desactivar esta promoción?")) return;
-            const res = await fetch(`http://localhost:8080/api/promociones/${id}`, {
+            const res = await fetch(`https://budgetmap-api.onrender.com/api/promociones/${id}`, {
                 method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) cargarPromos(paginaActual);
