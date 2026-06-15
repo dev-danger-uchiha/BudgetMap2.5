@@ -177,7 +177,8 @@ public class WebSecurityConfig {
                 // ======================================================
                 // 9. REGLA DE PROTECCIÓN DE SEGURIDAD ABSOLUTA
                 // ======================================================
-                .anyRequest().authenticated()
+                .requestMatchers("/api/**").authenticated()
+                .anyRequest().permitAll()
             );
 
         http.authenticationProvider(authenticationProvider());
