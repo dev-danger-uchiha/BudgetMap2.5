@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,74 +10,82 @@
   <meta name="theme-color" content="#f97316">
   <link rel="apple-touch-icon" href="/images/pwa-icon.png">
 </head>
+
 <body class="relative min-h-screen flex items-center justify-center overflow-hidden font-sans">
 
-  <video 
-    autoplay 
-    loop 
-    muted 
-    playsinline 
-    class="absolute top-1/2 left-1/2 min-w-full min-h-full w-auto h-auto -translate-x-1/2 -translate-y-1/2 object-cover z-0"
-  >
+  <video autoplay loop muted playsinline
+    class="absolute top-1/2 left-1/2 min-w-full min-h-full w-auto h-auto -translate-x-1/2 -translate-y-1/2 object-cover z-0">
     <source src="/images/dia.mp4" type="video/mp4">
   </video>
 
   <div class="absolute inset-0 bg-black/10 backdrop-blur-sm z-10"></div>
 
   <div class="relative z-20 w-full max-w-md px-6 mt-12 md:mt-0">
-    
-    <a href="/" class="absolute -top-16 left-1/2 transform -translate-x-1/2 z-30 group block cursor-pointer outline-none">
-      
-      <div class="absolute -inset-2 bg-gradient-to-r from-emerald-400 to-lime-300 rounded-full blur-xl opacity-70 group-hover:opacity-100 transition duration-500"></div>
-      
-      <div class="relative bg-white rounded-full w-32 h-32 flex items-center justify-center shadow-2xl ring-4 ring-white/30">
-        <img src="/images/logo.png" alt="Logo BudgetMap" class="absolute w-40 h-40 max-w-none object-contain transform transition duration-500 hover:scale-110 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+
+    <a href="/"
+      class="absolute -top-16 left-1/2 transform -translate-x-1/2 z-30 group block cursor-pointer outline-none">
+
+      <div
+        class="absolute -inset-2 bg-gradient-to-r from-emerald-400 to-lime-300 rounded-full blur-xl opacity-70 group-hover:opacity-100 transition duration-500">
+      </div>
+
+      <div
+        class="relative bg-white rounded-full w-32 h-32 flex items-center justify-center shadow-2xl ring-4 ring-white/30">
+        <img src="/images/logo.png" alt="Logo BudgetMap"
+          class="absolute w-40 h-40 max-w-none object-contain transform transition duration-500 hover:scale-110 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
       </div>
     </a>
 
-    <main class="bg-orange-50 dark:bg-gray-900/70  backdrop-blur-xl pt-20 pb-8 px-8 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/20">
-      
+    <main
+      class="bg-orange-50 dark:bg-gray-900/70  backdrop-blur-xl pt-20 pb-8 px-8 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/20">
+
       <div class="text-center mb-8">
         <h2 class="text-3xl font-black text-gray-800 dark:text-white tracking-tight">Bienvenido de nuevo</h2>
         <p class="text-gray-500 dark:text-gray-400 mt-2 text-sm font-medium">Accede a tu radar interactivo</p>
       </div>
 
-      <div id="alertContainer" class="hidden mb-4 p-4 rounded-xl text-sm font-bold text-center transition-all shadow-inner">
+      <div id="alertContainer"
+        class="hidden mb-4 p-4 rounded-xl text-sm font-bold text-center transition-all shadow-inner">
         <span id="alertText"></span>
       </div>
 
       <form id="loginForm" class="space-y-6">
-        
+
         <div class="space-y-1.5">
-          <label for="email" class="block text-sm font-bold text-gray-700 dark:text-gray-300 ml-1">Correo Electrónico</label>
+          <label for="email" class="block text-sm font-bold text-gray-700 dark:text-gray-300 ml-1">Correo
+            Electrónico</label>
           <div class="relative">
-            <input type="email" id="email" required autofocus 
-                   class="w-full pl-4 pr-4 py-3 bg-white/60 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900 dark:text-white outline-none transition shadow-sm" 
-                   placeholder="ejemplo@correo.com" />
+            <input type="email" id="email" required autofocus
+              class="w-full pl-4 pr-4 py-3 bg-white/60 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900 dark:text-white outline-none transition shadow-sm"
+              placeholder="ejemplo@correo.com" />
           </div>
         </div>
 
         <div class="space-y-1.5">
           <label for="password" class="block text-sm font-bold text-gray-700 dark:text-gray-300 ml-1">Contraseña</label>
           <div class="relative">
-            <input type="password" id="password" required 
-                   class="w-full pl-4 pr-4 py-3 bg-white/60 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900 dark:text-white outline-none transition shadow-sm" 
-                   placeholder="••••••••" />
+            <input type="password" id="password" required
+              class="w-full pl-4 pr-4 py-3 bg-white/60 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900 dark:text-white outline-none transition shadow-sm"
+              placeholder="••••••••" />
           </div>
         </div>
 
         <div class="pt-2">
-          <button type="submit" 
-                  class="w-full flex justify-center py-3.5 px-4 rounded-xl shadow-lg shadow-emerald-500/30 text-base font-extrabold text-white bg-gradient-to-r from-emerald-500 to-lime-500 hover:from-emerald-400 hover:to-lime-400 focus:outline-none focus:ring-4 focus:ring-emerald-500/50 transition duration-300 transform hover:-translate-y-1">
+          <button type="submit"
+            class="w-full flex justify-center py-3.5 px-4 rounded-xl shadow-lg shadow-emerald-500/30 text-base font-extrabold text-white bg-gradient-to-r from-emerald-500 to-lime-500 hover:from-emerald-400 hover:to-lime-400 focus:outline-none focus:ring-4 focus:ring-emerald-500/50 transition duration-300 transform hover:-translate-y-1">
             Ingresar a BudgetMap
           </button>
         </div>
       </form>
 
       <div class="mt-8 flex flex-col items-center space-y-4 text-sm border-t border-gray-200 dark:border-gray-700 pt-6">
-        <a href="/password/request" class="text-emerald-600 hover:text-emerald-500 dark:text-emerald-400 font-bold transition hover:underline">¿Olvidaste tu contraseña?</a>
+        <a href="/recuperar-password.html"
+          class="text-emerald-600 hover:text-emerald-500 dark:text-emerald-400 font-bold transition hover:underline">¿Olvidaste
+          tu contraseña?</a>
         <p class="text-gray-600 dark:text-gray-400 font-medium">
-          ¿No tienes cuenta? <a href="/register.html" class="font-black text-emerald-600 dark:text-emerald-400 hover:text-lime-500 transition hover:underline ml-1">Regístrate aquí</a>
+          ¿No tienes cuenta? <a href="/register.html"
+            class="font-black text-emerald-600 dark:text-emerald-400 hover:text-lime-500 transition hover:underline ml-1">Regístrate
+            aquí</a>
         </p>
       </div>
     </main>
@@ -99,9 +108,9 @@
       const password = document.getElementById('password').value;
       const submitBtn = document.querySelector('button[type="submit"]');
       const originalText = submitBtn.innerText;
-      
+
       submitBtn.disabled = true;
-      submitBtn.innerText = 'Cargando... (Despertando servidor)';
+      submitBtn.innerText = 'Ingresando...';
       submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
 
       try {
@@ -115,7 +124,7 @@
 
         if (response.ok) {
           const data = await response.json();
-          
+
           localStorage.setItem('jwt_token', data.token);
           localStorage.setItem('user_id', data.id);
           localStorage.setItem('user_nombre', data.nombre);
@@ -162,7 +171,7 @@
     function mostrarAlerta(mensaje, tipo) {
       const alertContainer = document.getElementById('alertContainer');
       const alertText = document.getElementById('alertText');
-      
+
       alertText.textContent = mensaje;
       alertContainer.classList.remove('hidden', 'bg-red-500/10', 'text-red-600', 'bg-emerald-500/10', 'text-emerald-600');
 
@@ -185,4 +194,5 @@
     }
   </script>
 </body>
+
 </html>

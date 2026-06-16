@@ -104,7 +104,7 @@ public class WebSecurityConfig {
                 // ======================================================
                 // 1. RECURSOS PÚBLICOS Y FRONTEND (Páginas y Estáticos)
                 // ======================================================
-                .requestMatchers("/", "/index.html", "/login.html", "/register.html", "/favicon.ico").permitAll()
+                .requestMatchers("/", "/index.html", "/login.html", "/register.html", "/favicon.ico", "/recuperar-password.html", "/reset-password.html").permitAll()
                 .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
                 .requestMatchers("/info/**").permitAll()
                 .requestMatchers("/explorador/**", "/aliado/**", "/anfitrion/**", "/admin/**", "/soporte/**").permitAll()
