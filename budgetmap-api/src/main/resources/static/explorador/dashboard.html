@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mi Radar | BudgetMap</title>
+  <!-- Preconnect para optimizar tiempos de DNS/TLS -->
+  <link rel="preconnect" href="https://cdn.tailwindcss.com">
+  <link rel="preconnect" href="https://images.unsplash.com">
+
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script>
@@ -393,7 +397,7 @@
         return `
             <a href="${url}" class="block ${wClass} bg-slate-800/80 hover:bg-slate-800 border border-slate-700 rounded-xl p-3 shadow-sm hover:shadow-orange-500/20 hover:border-orange-500/50 transition-all group">
                 <div class="w-full h-24 bg-slate-700 rounded-lg mb-3 overflow-hidden">
-                    <img src="${item.imagenUrl || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500&q=80'}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                    <img src="${item.imagenUrl || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500&q=80'}" loading="lazy" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                 </div>
                 <div class="flex gap-1 flex-wrap mb-2">${isDestacado}${isVerificado}${stateTag}</div>
                 <h3 class="text-white font-bold text-sm truncate">${item.nombre}</h3>
