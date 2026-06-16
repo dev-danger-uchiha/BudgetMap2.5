@@ -41,8 +41,9 @@ public class PasswordResetService {
 
         Usuario usuario = optionalUsuario.get();
 
-        // Eliminar token anterior si existe
+        // Eliminar token anterior si existe y hacer flush para evitar error de constraint (Insert before Delete)
         tokenRepository.deleteByUsuario(usuario);
+        tokenRepository.flush();
 
         // Crear nuevo token (válido por 30 minutos)
         String token = UUID.randomUUID().toString();
