@@ -3,46 +3,84 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Error del Servidor | BudgetMap</title>
+  <title>Error del Servidor - BudgetMap</title>
+  
+  <link rel="preconnect" href="https://cdn.tailwindcss.com">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
   <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+  
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .glitch-effect {
+      animation: glitch 1s linear infinite;
+    }
+    @keyframes glitch {
+      2%, 64% { transform: translate(2px,0) skew(0deg); }
+      4%, 60% { transform: translate(-2px,0) skew(0deg); }
+      62% { transform: translate(0,0) skew(5deg); }
+    }
+  </style>
 </head>
-<body class="bg-slate-900 min-h-screen font-sans flex flex-col">
+<body class="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#0a0a0a] text-white">
 
-  <!-- Navbar simple -->
-  <nav class="bg-gradient-to-r from-orange-500 to-amber-500 p-4 shadow-md text-white">
-    <div class="max-w-7xl mx-auto px-4 flex justify-between items-center">
-      <div class="flex items-center gap-3">
-        <span class="font-black tracking-widest text-lg uppercase drop-shadow-md">
-          <a href="/index.html" class="hover:text-emerald-600 transition">BUDGETMAP</a>
+  <!-- Background Video de Servidor o abstracto (fallback a foto oscura) -->
+  <div class="absolute inset-0 w-full h-full opacity-30 mix-blend-screen pointer-events-none">
+     <img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1600&q=80" class="w-full h-full object-cover">
+  </div>
+
+  <div class="absolute inset-0 bg-gradient-to-b from-black/80 via-black/50 to-black z-10"></div>
+  
+  <!-- Red alert glow -->
+  <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-red-600/20 blur-[120px] rounded-full pointer-events-none z-10"></div>
+
+  <main class="relative z-20 w-full max-w-lg px-6 text-center transform transition-all duration-700 animate-[fadeInUp_1s_ease-out]">
+    
+    <div class="relative inline-flex items-center justify-center w-32 h-32 mb-8 rounded-2xl bg-red-500/10 border border-red-500/30 backdrop-blur-md shadow-[0_0_40px_rgba(239,68,68,0.2)] rotate-3">
+      <h1 class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-br from-red-400 to-rose-700 drop-shadow-lg glitch-effect">500</h1>
+    </div>
+
+    <h2 class="text-4xl md:text-5xl font-black tracking-tight mb-4 text-white drop-shadow-md">
+      Sobrecarga de <span class="text-red-500">Radar</span>.
+    </h2>
+    
+    <p class="text-gray-400 text-lg font-light mb-10 px-4 leading-relaxed">
+      Nuestros satélites sufrieron una anomalía procesando tu solicitud. Nuestros ingenieros ya fueron alertados.
+    </p>
+
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+      <a href="/" class="group relative px-8 py-4 w-full sm:w-auto rounded-2xl font-bold text-white overflow-hidden shadow-[0_0_20px_rgba(239,68,68,0.3)] hover:shadow-[0_0_30px_rgba(239,68,68,0.6)] transition-all duration-300">
+        <div class="absolute inset-0 bg-gradient-to-r from-red-600 to-rose-500 group-hover:scale-105 transition-transform duration-500"></div>
+        <span class="relative flex items-center justify-center gap-2">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          </svg>
+          Reiniciar al Inicio
         </span>
-      </div>
+      </a>
+      
+      <button onclick="location.reload()" class="px-8 py-4 w-full sm:w-auto rounded-2xl font-bold text-gray-300 bg-white/5 border border-white/10 hover:bg-white/10 hover:text-white transition-all duration-300 backdrop-blur-md">
+        Intentar de nuevo
+      </button>
     </div>
-  </nav>
 
-  <!-- Contenido de Error -->
-  <main class="flex-grow flex items-center justify-center p-6">
-    <div class="bg-slate-800 border border-slate-700 p-10 rounded-3xl shadow-2xl text-center max-w-lg w-full relative overflow-hidden">
-        <div class="absolute top-0 right-0 w-32 h-32 bg-orange-500 rounded-full blur-3xl opacity-10 pointer-events-none"></div>
-        
-        <h1 class="text-9xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-400 drop-shadow-lg mb-4">
-            500
-        </h1>
-        <h2 class="text-3xl font-black text-white uppercase tracking-tighter mb-4">Error del Servidor</h2>
-        <p class="text-slate-400 mb-8 font-medium">
-            ¡Ups! Nuestros servidores tuvieron un contratiempo técnico inesperado. 
-            Nuestro equipo de ingenieros ya fue notificado.
-        </p>
-        
-        <div class="flex flex-col gap-4">
-            <button onclick="window.location.reload()" class="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white font-black py-4 px-8 rounded-xl text-sm uppercase tracking-widest hover:scale-[1.02] transition shadow-lg shadow-orange-500/30">
-                Intentar Nuevamente
-            </button>
-            <a href="/index.html" class="w-full bg-slate-700 text-white font-black py-4 px-8 rounded-xl text-sm uppercase tracking-widest hover:bg-slate-600 transition shadow-lg">
-                Volver al Inicio
-            </a>
-        </div>
-    </div>
   </main>
 
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          keyframes: {
+            fadeInUp: {
+              '0%': { opacity: '0', transform: 'translateY(30px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
 </body>
 </html>
