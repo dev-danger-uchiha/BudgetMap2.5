@@ -19,6 +19,8 @@ import com.budgetmap.model.enums.CategoriaLugar;
  *
  * Este DTO expone solo lo que la vista del mapa o la card de lugar necesitan.
  */
+import java.io.Serializable;
+
 public record LugarDestacadoDTO(
 
         Long id,
@@ -31,7 +33,7 @@ public record LugarDestacadoDTO(
         String imagenUrl,
         Integer aforoMaximo
 
-) {
+) implements Serializable {
     /**
      * Factory method estático: convierte una entidad Lugar a este DTO.
      *
