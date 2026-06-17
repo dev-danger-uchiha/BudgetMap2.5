@@ -43,7 +43,7 @@ public class EmailService {
             body.put("to", List.of(toRecipient));
 
             body.put("subject", subject);
-            body.put("textContent", text);
+            body.put("htmlContent", text);
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
 

@@ -57,15 +57,26 @@ public class PasswordResetService {
 
         // Enviar correo
         String link = frontendUrl + "/reset-password.html?token=" + token;
-        String subject = "BudgetMap - Recuperación de Contraseña";
-        String text = "Hola " + usuario.getNombre() + ",\n\n" +
-                "Has solicitado restablecer tu contraseña. Haz clic en el siguiente enlace para crear una nueva:\n\n" +
-                link + "\n\n" +
-                "Este enlace expirará en 30 minutos.\n" +
-                "Si no has sido tú, ignora este mensaje.\n\n" +
-                "El equipo de BudgetMap.";
+        String subject = "BudgetMap - Solicitud de Cambio de Contraseña";
+        String htmlContent = "<div style=\"font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #111111; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.8); border: 1px solid #333;\">" +
+                "<div style=\"background: linear-gradient(135deg, #ea580c, #d97706); padding: 30px; text-align: center;\">" +
+                "<h1 style=\"margin: 0; color: #ffffff; font-size: 32px; font-weight: 900; letter-spacing: 2px; text-shadow: 0 2px 4px rgba(0,0,0,0.3);\">Budget<span style=\"color: #000000;\">Map</span></h1>" +
+                "</div>" +
+                "<div style=\"padding: 40px 30px;\">" +
+                "<h2 style=\"margin-top: 0; color: #ffffff; font-size: 24px; font-weight: bold;\">¡Hola " + usuario.getNombre() + "!</h2>" +
+                "<p style=\"color: #d4d4d8; font-size: 16px; line-height: 1.6; margin-bottom: 30px;\">Hemos recibido una solicitud desde nuestros radares para restablecer la contraseña de tu cuenta. Si fuiste tú, haz clic en el botón de abajo para configurarla:</p>" +
+                "<div style=\"text-align: center; margin: 40px 0;\">" +
+                "<a href=\"" + link + "\" style=\"background: linear-gradient(90deg, #ea580c, #d97706); color: #ffffff; text-decoration: none; padding: 16px 36px; border-radius: 50px; font-weight: bold; font-size: 16px; display: inline-block; box-shadow: 0 4px 15px rgba(234, 88, 12, 0.5); text-transform: uppercase; letter-spacing: 1px;\">Crear Nueva Contraseña</a>" +
+                "</div>" +
+                "<p style=\"color: #a1a1aa; font-size: 14px; text-align: center; margin-top: 30px;\">Por tu seguridad, este enlace se autodestruirá en <strong>30 minutos</strong>.</p>" +
+                "<p style=\"color: #71717a; font-size: 13px; text-align: center; margin-top: 10px;\">Si tú no solicitaste este cambio, simplemente ignora este correo. Tu cuenta está segura en la bóveda.</p>" +
+                "</div>" +
+                "<div style=\"background-color: #09090b; padding: 20px; text-align: center; border-top: 1px solid #27272a;\">" +
+                "<p style=\"margin: 0; color: #52525b; font-size: 12px;\">&copy; 2026 BudgetMap. El mapa de tus finanzas.</p>" +
+                "</div>" +
+                "</div>";
 
-        emailService.enviarCorreo(usuario.getEmail(), subject, text);
+        emailService.enviarCorreo(usuario.getEmail(), subject, htmlContent);
         log.info("Correo de recuperación enviado a {}", email);
     }
 
