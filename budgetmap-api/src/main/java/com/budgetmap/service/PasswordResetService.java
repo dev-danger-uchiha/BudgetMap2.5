@@ -55,6 +55,7 @@ public class PasswordResetService {
 
         tokenRepository.save(resetToken);
 
+        String link = frontendUrl + "/reset-password.html?token=" + token;
         String subject = "BudgetMap - Solicitud de Cambio de Contraseña";
         String logoUrl = frontendUrl + "/images/pwa-icon.png";
         String grassBg = "https://images.unsplash.com/photo-1533460004989-cef01064af7e?w=800&q=80"; // Imagen de pasto claro
