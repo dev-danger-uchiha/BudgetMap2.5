@@ -55,24 +55,26 @@ public class PasswordResetService {
 
         tokenRepository.save(resetToken);
 
-        // Enviar correo
-        String link = frontendUrl + "/reset-password.html?token=" + token;
         String subject = "BudgetMap - Solicitud de Cambio de Contraseña";
-        String htmlContent = "<div style=\"font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #111111; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.8); border: 1px solid #333;\">" +
-                "<div style=\"background: linear-gradient(135deg, #ea580c, #d97706); padding: 30px; text-align: center;\">" +
-                "<h1 style=\"margin: 0; color: #ffffff; font-size: 32px; font-weight: 900; letter-spacing: 2px; text-shadow: 0 2px 4px rgba(0,0,0,0.3);\">Budget<span style=\"color: #000000;\">Map</span></h1>" +
+        String logoUrl = frontendUrl + "/images/pwa-icon.png";
+        String grassBg = "https://images.unsplash.com/photo-1533460004989-cef01064af7e?w=800&q=80"; // Imagen de pasto claro
+        
+        String htmlContent = "<div style=\"font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #dcfce7; background-image: url('" + grassBg + "'); background-size: cover; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid #bbf7d0;\">" +
+                "<div style=\"background: rgba(255, 255, 255, 0.85); padding: 30px; text-align: center; border-bottom: 2px solid #fdba74;\">" +
+                "<img src=\"" + logoUrl + "\" alt=\"BudgetMap Icon\" width=\"70\" style=\"display: block; margin: 0 auto 10px auto; drop-shadow: 0 4px 6px rgba(0,0,0,0.1);\">" +
+                "<h1 style=\"margin: 0; color: #166534; font-size: 28px; font-weight: 900; letter-spacing: 1px;\">Budget<span style=\"color: #f97316;\">Map</span></h1>" +
                 "</div>" +
-                "<div style=\"padding: 40px 30px;\">" +
-                "<h2 style=\"margin-top: 0; color: #ffffff; font-size: 24px; font-weight: bold;\">¡Hola " + usuario.getNombre() + "!</h2>" +
-                "<p style=\"color: #d4d4d8; font-size: 16px; line-height: 1.6; margin-bottom: 30px;\">Hemos recibido una solicitud desde nuestros radares para restablecer la contraseña de tu cuenta. Si fuiste tú, haz clic en el botón de abajo para configurarla:</p>" +
+                "<div style=\"padding: 40px 30px; background: rgba(255, 255, 255, 0.95);\">" +
+                "<h2 style=\"margin-top: 0; color: #14532d; font-size: 24px; font-weight: bold;\">¡Hola " + usuario.getNombre() + "!</h2>" +
+                "<p style=\"color: #3f3f46; font-size: 16px; line-height: 1.6; margin-bottom: 30px;\">Hemos recibido una solicitud desde nuestros radares para restablecer la contraseña de tu cuenta. Si fuiste tú, haz clic en el botón de abajo para configurarla:</p>" +
                 "<div style=\"text-align: center; margin: 40px 0;\">" +
-                "<a href=\"" + link + "\" style=\"background: linear-gradient(90deg, #ea580c, #d97706); color: #ffffff; text-decoration: none; padding: 16px 36px; border-radius: 50px; font-weight: bold; font-size: 16px; display: inline-block; box-shadow: 0 4px 15px rgba(234, 88, 12, 0.5); text-transform: uppercase; letter-spacing: 1px;\">Crear Nueva Contraseña</a>" +
+                "<a href=\"" + link + "\" style=\"background: linear-gradient(90deg, #fdba74, #fb923c); color: #ffffff; text-decoration: none; padding: 16px 36px; border-radius: 50px; font-weight: bold; font-size: 16px; display: inline-block; box-shadow: 0 4px 15px rgba(251, 146, 60, 0.4); text-transform: uppercase; letter-spacing: 1px; border: 1px solid #f97316;\">Crear Nueva Contraseña</a>" +
                 "</div>" +
-                "<p style=\"color: #a1a1aa; font-size: 14px; text-align: center; margin-top: 30px;\">Por tu seguridad, este enlace se autodestruirá en <strong>30 minutos</strong>.</p>" +
-                "<p style=\"color: #71717a; font-size: 13px; text-align: center; margin-top: 10px;\">Si tú no solicitaste este cambio, simplemente ignora este correo. Tu cuenta está segura en la bóveda.</p>" +
+                "<p style=\"color: #71717a; font-size: 14px; text-align: center; margin-top: 30px;\">Por tu seguridad, este enlace se autodestruirá en <strong>30 minutos</strong>.</p>" +
+                "<p style=\"color: #a1a1aa; font-size: 13px; text-align: center; margin-top: 10px;\">Si tú no solicitaste este cambio, simplemente ignora este correo. Tu cuenta está segura.</p>" +
                 "</div>" +
-                "<div style=\"background-color: #09090b; padding: 20px; text-align: center; border-top: 1px solid #27272a;\">" +
-                "<p style=\"margin: 0; color: #52525b; font-size: 12px;\">&copy; 2026 BudgetMap. El mapa de tus finanzas.</p>" +
+                "<div style=\"background-color: rgba(220, 252, 231, 0.95); padding: 20px; text-align: center; border-top: 1px solid #bbf7d0;\">" +
+                "<p style=\"margin: 0; color: #166534; font-size: 12px; font-weight: bold;\">&copy; 2026 BudgetMap. El mapa de tus finanzas.</p>" +
                 "</div>" +
                 "</div>";
 
