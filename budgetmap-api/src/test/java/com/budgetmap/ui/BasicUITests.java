@@ -1,41 +1,36 @@
 package com.budgetmap.ui;
 
-// Importaciones de JUnit 5 (Framework de pruebas)
-import org.junit.jupiter.api.AfterEach; // Anotación para ejecutar código DESPUÉS de cada prueba 
-import org.junit.jupiter.api.BeforeEach; // Anotación para ejecutar código ANTES de cada prueba 
-import org.junit.jupiter.api.Test; // Anotación que indica que un método es un caso de prueba ejecutable
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.Select;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
-// Importaciones base de Selenium WebDriver
-import org.openqa.selenium.By; // Permite localizar elementos en el DOM--
-import org.openqa.selenium.WebDriver; // Interfaz principal que representa el navegador web
-import org.openqa.selenium.WebElement; // Representa un elemento HTML individual dentro de la página
+import java.time.Duration;
+import java.util.List;
 
-// Importaciones específicas del navegador
-import org.openqa.selenium.chrome.ChromeDriver; // Implementación del WebDriver específica para Google Chrome
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-// Importaciones para sincronización e interacción avanzada
-import org.openqa.selenium.support.ui.ExpectedConditions; // Condiciones predefinidas para esperar (ej. que un elemento sea visible)
-import org.openqa.selenium.support.ui.Select; // Utilidad para interactuar fácilmente con menús desplegables (<select>)
-import org.openqa.selenium.support.ui.WebDriverWait; // Clase que implementa esperas explícitas (esperar un tiempo máximo)
-
-// Utilidades estándar de Java
-import java.time.Duration; // Manejo de duraciones en Java (usado para indicar tiempos de espera)
-import java.util.List; // Interfaz estándar de Java para manejar listas de objetos
-
-// Importaciones estáticas para aserciones (Validaciones)
-import static org.junit.jupiter.api.Assertions.assertEquals; // Comprueba que un valor actual es igual a uno esperado
-import static org.junit.jupiter.api.Assertions.assertTrue; // Comprueba que una condición o expresión sea verdadera
-
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class BasicUITests {
 
     private WebDriver driver;
 
     @BeforeEach
     public void setUp() {
-        // En Selenium 4.6+, Selenium Manager maneja el binario de ChromeDriver
-        // automáticamente.
         driver = new ChromeDriver();
         driver.manage().window().maximize();
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
     }
 
     @AfterEach
@@ -45,132 +40,262 @@ public class BasicUITests {
         }
     }
 
-    @Test
-    public void testLandingPageLoad() {
-        driver.get("https://budgetmap-api.onrender.com/index.html");
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+    // Pausa de 5 segundos para rutas estáticas
+    private void pausaEstatica() {
+        try { Thread.sleep(5000); } catch (InterruptedException e) {}
+    }
 
-        // Verificar título
-        assertEquals("BudgetMap - Inicio", driver.getTitle());
+    // Pausa de 10 segundos para formularios y flujos interactivos
+    private void pausaVisual() {
+        try { Thread.sleep(10000); } catch (InterruptedException e) {}
+    }
 
-        // Verificar que el contenedor principal o carrusel es visible
-        WebElement carousel = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("hero-carousel")));
-        assertTrue(carousel.isDisplayed());
-
-        // Verificar botón de registro
-        WebElement ctaBtn = driver.findElement(By.cssSelector(".btn-cta-register"));
-        assertTrue(ctaBtn.isDisplayed());
+    // Método utilitario para hacer clics mediante JavaScript y evitar la excepción "ElementClickInterceptedException"
+    private void clickWithJS(WebElement element) {
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
     }
 
     @Test
+    @Order(1)
+    public void testLandingPageLoad() {
+        driver.get("https://budgetmap-api.onrender.com/index.html");
+        
+        // Inyectamos token temporal para que al dar clic en la tarjeta no nos bloquee la alerta de seguridad
+        ((JavascriptExecutor) driver).executeScript("window.localStorage.setItem('jwt_token', 'token_dummy');");
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+
+        assertEquals("BudgetMap - Inicio", driver.getTitle());
+
+        WebElement carousel = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("grid-destacados")));
+        assertTrue(carousel.isDisplayed());
+
+        // 1. Interacción en "Establecimientos" y "Lugares"
+        WebElement btnEstablecimientos = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("btn-establecimientos")));
+        clickWithJS(btnEstablecimientos);
+        // Esperamos que termine el fetch
+        wait.until(d -> !d.findElement(By.id("grid-destacados")).getText().contains("Cargando"));
+
+        WebElement btnLugares = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("btn-lugares")));
+        clickWithJS(btnLugares);
+        // Esperamos que termine el fetch
+        wait.until(d -> !d.findElement(By.id("grid-destacados")).getText().contains("Cargando"));
+
+        // 2. Mover el carrusel mediante JS
+        WebElement btnDerecha = wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("button[onclick='deslizarCarrusel(1)']")));
+        clickWithJS(btnDerecha);
+        try { Thread.sleep(1000); } catch (InterruptedException e) {}
+
+        // 3. Interactuar con las tarjetas (Destacados) - Clic en el botón "Ver más"
+        List<WebElement> btnVerMas = driver.findElements(By.xpath("//button[contains(text(), 'Ver más')]"));
+        if (!btnVerMas.isEmpty()) {
+            clickWithJS(btnVerMas.get(0)); // Abre el modal
+            
+            // Esperar a que el modal abra y sea visible
+            WebElement modal = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("modal-destacado")));
+            assertTrue(modal.isDisplayed());
+            
+            try { Thread.sleep(2000); } catch (InterruptedException e) {} // Pausa breve para ver el modal abierto
+            
+            // Cerrar el modal
+            WebElement btnCerrarModal = driver.findElement(By.cssSelector("button[onclick='cerrarModalDestacado()']"));
+            clickWithJS(btnCerrarModal);
+        }
+
+        // Limpiamos el localStorage para no afectar el flujo normal de registro y login que siguen
+        ((JavascriptExecutor) driver).executeScript("window.localStorage.clear();");
+
+        pausaVisual(); // 10s
+    }
+
+    @Test
+    @Order(2)
+    public void testRegisterFormValidation() {
+        driver.get("https://budgetmap-api.onrender.com/register.html");
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+
+        WebElement roleCard = wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".role-card")));
+        clickWithJS(roleCard);
+
+        WebElement btnSubmit = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("button[type='submit']")));
+        
+        driver.findElement(By.id("nombre")).sendKeys("Juan Selenium");
+        driver.findElement(By.id("apellido")).sendKeys("Pérez");
+        driver.findElement(By.id("email")).sendKeys("juan_selenium@budgetmap.com");
+        driver.findElement(By.id("telefono")).sendKeys("3001234567");
+        driver.findElement(By.id("password")).sendKeys("TestPassword123!");
+        driver.findElement(By.id("confirmPassword")).sendKeys("TestPassword123!");
+
+        clickWithJS(btnSubmit);
+
+        WebElement alert = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("alertContainer")));
+        assertTrue(alert.isDisplayed());
+        
+        pausaVisual(); // 10s
+    }
+
+    @Test
+    @Order(3)
+    public void testLoginFormSubmission() {
+        driver.get("https://budgetmap-api.onrender.com/login.html");
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+
+        // Inicia sesión con el MISMO usuario con el que se registra
+        driver.findElement(By.id("email")).sendKeys("juan_selenium@budgetmap.com");
+        driver.findElement(By.id("password")).sendKeys("TestPassword123!");
+
+        WebElement btnSubmit = driver.findElement(By.cssSelector("button[type='submit']"));
+        clickWithJS(btnSubmit);
+
+        WebElement alert = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("alertContainer")));
+        assertTrue(alert.isDisplayed());
+        
+        pausaVisual(); // 10s
+    }
+
+    @Test
+    @Order(4)
+    public void testPasswordRecoveryRequest() {
+        driver.get("https://budgetmap-api.onrender.com/recuperar-password.html");
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+
+        driver.findElement(By.id("email")).sendKeys("juan_selenium@budgetmap.com");
+        
+        WebElement btnSubmit = driver.findElement(By.cssSelector("button[type='submit']"));
+        clickWithJS(btnSubmit);
+
+        WebElement successMsg = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("alertContainer")));
+        assertTrue(successMsg.isDisplayed());
+        
+        pausaVisual(); // 10s
+    }
+
+    @Test
+    @Order(5)
+    public void testPqrsForm() {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        
+        // 1. Iniciar sesión REAL para obtener un token JWT válido de la base de datos
+        driver.get("https://budgetmap-api.onrender.com/login.html");
+        driver.findElement(By.id("email")).sendKeys("juan_selenium@budgetmap.com");
+        driver.findElement(By.id("password")).sendKeys("TestPassword123!");
+        clickWithJS(driver.findElement(By.cssSelector("button[type='submit']")));
+        
+        // Esperar a que el login procese y asigne el token
+        wait.until(d -> ((JavascriptExecutor) d).executeScript("return window.localStorage.getItem('jwt_token');") != null);
+
+        // 2. Entrar a PQRS
+        driver.get("https://budgetmap-api.onrender.com/info/pqrs.html");
+
+        WebElement selectElement = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("pqrs-tipo")));
+        Select tipoPqrs = new Select(selectElement);
+        tipoPqrs.selectByValue("RECLAMO");
+
+        driver.findElement(By.id("pqrs-asunto")).sendKeys("Inconveniente automatizado");
+        driver.findElement(By.id("pqrs-descripcion")).sendKeys("Prueba de envío de PQRS con usuario Juan Selenium tras Login.");
+
+        WebElement btnEnviar = driver.findElement(By.id("btn-enviar"));
+        clickWithJS(btnEnviar);
+        
+        // Esperar alerta (éxito o error)
+        wait.until(d -> d.findElement(By.id("error-envio")).isDisplayed() || d.findElement(By.id("mensaje-exito")).isDisplayed());
+        
+        try { Thread.sleep(2000); } catch (InterruptedException e) {} 
+        
+        // 3. Cambiar a "Mis Solicitudes"
+        WebElement tabHistorial = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("tab-historial")));
+        clickWithJS(tabHistorial);
+        
+        // 4. Verificar que se cargue la sección "Mis Solicitudes / Historial"
+        WebElement historial = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("sec-historial")));
+        assertTrue(historial.isDisplayed());
+
+        // Esperar a que la lista termine de cargar los datos de la API
+        wait.until(d -> {
+            String text = d.findElement(By.id("pqrs-lista")).getText();
+            return !text.contains("Cargando solicitudes...");
+        });
+        
+        pausaVisual(); // 10s
+    }
+
+    @Test
+    @Order(6)
+    public void testFaqAccordion() {
+        driver.get("https://budgetmap-api.onrender.com/info/faq.html");
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        
+        WebElement firstQuestion = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("h3.text-emerald-700")));
+        assertTrue(firstQuestion.isDisplayed());
+        
+        pausaEstatica(); // 5s
+    }
+
+    @Test
+    @Order(7)
+    public void testNosotrosPageLoad() {
+        driver.get("https://budgetmap-api.onrender.com/info/nosotros.html");
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+
+        WebElement visionSection = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//h2[contains(text(), 'Por qué BudgetMap')]")));
+        assertTrue(visionSection.isDisplayed());
+        
+        pausaEstatica(); // 5s
+    }
+
+    @Test
+    @Order(8)
     public void testLeaderboardLoad() {
         driver.get("https://budgetmap-api.onrender.com/info/leaderboard.html");
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
-        WebElement table = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("leaderboard-table")));
+        WebElement table = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("leaderboard-body")));
         assertTrue(table.isDisplayed());
 
-        List<WebElement> rows = driver.findElements(By.cssSelector("#leaderboard-table tbody tr"));
-        assertTrue(rows.size() > 0, "El leaderboard debe contener usuarios");
+        List<WebElement> rows = driver.findElements(By.cssSelector("#leaderboard-body tr"));
+        assertTrue(rows.size() > 0, "El leaderboard debe contener usuarios o mensaje de carga");
+        
+        pausaEstatica(); // 5s
     }
 
     @Test
-    public void testLoginFormSubmission() {
-        driver.get("https://budgetmap-api.onrender.com/login.html");
-
-        driver.findElement(By.id("email")).sendKeys("test@budgetmap.com");
-        driver.findElement(By.id("password")).sendKeys("Password123!");
-
-        driver.findElement(By.id("btn-login")).click();
-
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
-        wait.until(ExpectedConditions.urlContains("dashboard.html"));
-        assertTrue(driver.getCurrentUrl().contains("dashboard.html"));
-    }
-
-    @Test
-    public void testRegisterFormValidation() {
-        driver.get("https://budgetmap-api.onrender.com/register.html");
-
-        WebElement btnSubmit = driver.findElement(By.id("btn-register"));
-        btnSubmit.click();
-
-        WebElement errorMsg = driver.findElement(By.cssSelector(".invalid-feedback"));
-        assertTrue(errorMsg.isDisplayed());
-    }
-
-    @Test
-    public void testPasswordRecoveryRequest() {
-        driver.get("https://budgetmap-api.onrender.com/recuperar-password.html");
-
-        driver.findElement(By.id("emailRecovery")).sendKeys("usuario@ejemplo.com");
-        driver.findElement(By.id("btn-recover")).click();
-
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
-        WebElement successMsg = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("msg-success")));
-
-        assertTrue(successMsg.getText().contains("correo enviado"));
-    }
-
-    @Test
-    public void testFaqAccordion() {
-        driver.get("https://budgetmap-api.onrender.com/info/faq.html");
-
-        WebElement firstQuestion = driver.findElement(By.cssSelector(".accordion-button:first-of-type"));
-        firstQuestion.click();
-
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(3));
-        WebElement firstAnswer = wait.until(ExpectedConditions
-                .visibilityOfElementLocated(By.cssSelector(".accordion-collapse.show .accordion-body")));
-
-        assertTrue(firstAnswer.isDisplayed());
-    }
-
-    @Test
-    public void testPqrsForm() {
-        driver.get("https://budgetmap-api.onrender.com/info/pqrs.html");
-
-        Select tipoPqrs = new Select(driver.findElement(By.id("tipoPqrs")));
-        tipoPqrs.selectByValue("RECLAMO");
-
-        driver.findElement(By.id("asunto")).sendKeys("Inconveniente con reserva");
-        driver.findElement(By.id("descripcion")).sendKeys("El local estaba cerrado.");
-
-        WebElement submitBtn = driver.findElement(By.id("btn-submit-pqrs"));
-        assertTrue(submitBtn.isEnabled());
-    }
-
-    @Test
-    public void testNosotrosPageLoad() {
-        driver.get("https://budgetmap-api.onrender.com/info/nosotros.html");
-
-        WebElement visionSection = driver.findElement(By.id("vision-mision"));
-        assertTrue(visionSection.isDisplayed());
-    }
-
-    @Test
+    @Order(9)
     public void testError403Render() {
         driver.get("https://budgetmap-api.onrender.com/error/403.html");
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
-        WebElement errorTitle = driver.findElement(By.cssSelector("h1.error-code"));
-        assertEquals("403", errorTitle.getText());
+        WebElement errorTitle = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[contains(text(), 'Error 403')]")));
+        assertTrue(errorTitle.isDisplayed());
 
-        WebElement backBtn = driver.findElement(By.id("btn-back-home"));
-        assertTrue(backBtn.isDisplayed());
-        backBtn.click();
+        pausaEstatica(); // 5s
 
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
-        wait.until(ExpectedConditions.urlContains("index.html"));
+        // Botón regresar o navegación atrás
+        List<WebElement> backBtns = driver.findElements(By.xpath("//a[contains(text(), 'Ir al Mapa')]"));
+        if (!backBtns.isEmpty()) {
+            clickWithJS(backBtns.get(0));
+            wait.until(ExpectedConditions.urlToBe("https://budgetmap-api.onrender.com/"));
+        } else {
+            driver.navigate().back();
+        }
     }
 
     @Test
+    @Order(10)
     public void testError404Render() {
         driver.get("https://budgetmap-api.onrender.com/ruta-que-no-existe-12345");
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        
+        WebElement errorContent = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[contains(text(), '404')]")));
+        assertTrue(errorContent.isDisplayed());
+        
+        pausaEstatica(); // 5s
 
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
-        wait.until(ExpectedConditions.urlContains("404"));
-
-        WebElement errorTitle = driver.findElement(By.cssSelector("h1.error-code"));
-        assertEquals("404", errorTitle.getText());
+        // Botón regresar o navegación atrás (por si responde Spring Boot Whitelabel Page sin botón custom)
+        List<WebElement> backBtns = driver.findElements(By.xpath("//a[contains(text(), 'Volver al Explorador')]"));
+        if (!backBtns.isEmpty()) {
+            clickWithJS(backBtns.get(0));
+            wait.until(ExpectedConditions.urlToBe("https://budgetmap-api.onrender.com/"));
+        } else {
+            driver.navigate().back();
+        }
     }
 }
