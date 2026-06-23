@@ -11,6 +11,19 @@
 
 ---
 
+## 🎯 Objetivos del Proyecto
+
+### Objetivo General
+Diseñar y desarrollar un ecosistema informático que centralice la oferta de destinos urbanos poco convencionales, proveyendo a los usuarios información detallada que fomente la exploración de alternativas culturales, recreativas y turísticas fuera de los circuitos tradicionales, impulsando así la economía local.
+
+### Objetivos Específicos
+1. **Descubrimiento Geoespacial:** Implementar un motor de descubrimiento interactivo (Radar Dinámico) apoyado por microservicios, que consolide y filtre las diversas opciones de entretenimiento local, permitiendo a los usuarios encontrar planes personalizados rápidamente.
+2. **Gestión y Economía Local:** Desarrollar paneles de administración dedicados (Dashboards para Aliados y Anfitriones) que faciliten la gestión de aforo, creación de eventos y publicación de promociones dinámicas, digitalizando establecimientos locales desfavorecidos.
+3. **Comunidad y Gamificación:** Integrar un sistema de interacción y gamificación (Leaderboard en tiempo real) que recompense la recurrencia de los usuarios, permitiendo que los clientes compartan sus valoraciones y formen una red de recomendaciones.
+4. **Herramientas de Control:** Implementar herramientas de gestión avanzadas, incluyendo un sistema de Check-In móvil nativo para la validación instantánea de asistencia y un módulo de generación de reportes analíticos corporativos.
+
+---
+
 ## 🏛️ Arquitectura del Sistema (Microservicios)
 
 BudgetMap utiliza una arquitectura distribuida para maximizar el rendimiento y separar responsabilidades. El ecosistema se compone de dos grandes módulos:
